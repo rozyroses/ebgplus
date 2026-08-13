@@ -26,6 +26,8 @@ jobs:
         run: npm ci
       - name: Apply Supabase auth integration
         run: node scripts/apply-auth-integration.mjs
+      - name: Apply Supabase user data integration
+        run: node scripts/apply-userdata-integration.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
