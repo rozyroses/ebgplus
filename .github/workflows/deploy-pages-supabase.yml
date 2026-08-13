@@ -32,6 +32,18 @@ jobs:
         run: npm ci
       - name: Apply Supabase auth integration
         run: node scripts/apply-auth-integration.mjs
+      - name: Remove legacy auth leftovers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('src/App.tsx')
+          text = path.read_text()
+          text = re.sub(r"const hashPassword = async \(email: string, password: string\) => \{.*?\n\}\n\n(?=const createStarterProfile)", "", text, flags=re.S)
+          text = text.replace("  const [authState, setAuthState] = useState<AuthState | null>(null)\n", "")
+          text = re.sub(r"\n\s*setAuthState\([^\n]+\)", "", text)
+          path.write_text(text)
+          PY
       - name: Configure router for project Pages path
         run: |
           python - <<'PY'
