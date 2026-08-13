@@ -225,5 +225,35 @@ const castingPage = `function CastingPage({ onSubmitApplication }: { onSubmitApp
 
 mustReplace(/function CastingPage\([\s\S]*?\n\}\n\nfunction MusicPage/, `${castingPage}\n\nfunction MusicPage`, 'casting page')
 
+mustReplace(
+  "  const [profileId, setProfileId] = useState<string | null>(null)",
+  "  const [profileId, setProfileId] = useState<string | null>(() => localStorage.getItem('ebg.activeProfile.v1'))",
+  'persisted profile selection',
+)
+
+mustReplace(
+  "  const [authLoading, setAuthLoading] = useState(true)",
+  `  const [authLoading, setAuthLoading] = useState(true)\n\n  useEffect(() => {\n    if (profileId) localStorage.setItem('ebg.activeProfile.v1', profileId)\n    else localStorage.removeItem('ebg.activeProfile.v1')\n  }, [profileId])`,
+  'profile persistence effect',
+)
+
+mustReplace(
+  /function ProtectedRoute\(\{[\s\S]*?\n\}\n\nfunction LandingPage/,
+  `function ProtectedRoute({\n  account,\n  profile,\n  requireProfile = false,\n  children,\n}: {\n  account: Account | null\n  profile?: Profile | null\n  requireProfile?: boolean\n  children: ReactNode\n}) {\n  const location = useLocation()\n  if (!account) {\n    if (location.pathname.startsWith('/app/')) sessionStorage.setItem('ebg.returnTo.v1', location.pathname)\n    return <Navigate to=\"/auth/sign-in\" replace />\n  }\n  if (requireProfile && !profile) {\n    if (location.pathname.startsWith('/app/')) sessionStorage.setItem('ebg.returnTo.v1', location.pathname)\n    return <Navigate to=\"/profiles\" replace />\n  }\n  return <>{children}</>\n}\n\nfunction LandingPage`,
+  'protected route return path',
+)
+
+mustReplace(
+  "                onSelect(entry.id)\n                nav('/app/home')",
+  `                onSelect(entry.id)\n                const returnTo = sessionStorage.getItem('ebg.returnTo.v1') || '/app/home'\n                sessionStorage.removeItem('ebg.returnTo.v1')\n                nav(returnTo)`,
+  'profile return navigation',
+)
+
+mustReplace(
+  `        <div className="right-nav">\n          <Link to="/app/search">Search</Link>\n          <Link to="/app/my-list">My List</Link>\n          <Link to="/app/notifications">Notifications</Link>\n          <Link to="/app/settings">{profile.avatar}</Link>\n        </div>`,
+  `        <div className="right-nav">\n          <Link to="/app/search">Search</Link>\n          <Link to="/app/my-list">My List</Link>\n          <Link to="/app/casting">Casting</Link>\n          {['founder', 'administrator', 'producer', 'editor'].includes(account.role) && (\n            <Link to="/app/studio">EBG Studio</Link>\n          )}\n          <Link to="/app/notifications">Notifications</Link>\n          <Link to="/app/settings">{profile.avatar}</Link>\n        </div>`,
+  'Studio navigation link',
+)
+
 fs.writeFileSync(path, source)
-console.log('Applied EBG+ Supabase user-data integration.')
+console.log('Applied EBG+ Supabase user-data integration with Studio navigation fixes.')
