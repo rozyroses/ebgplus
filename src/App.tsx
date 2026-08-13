@@ -259,7 +259,17 @@ const loadJson = <T,>(key: string, fallback: T): T => {
 
 const saveJson = (key: string, value: unknown) => localStorage.setItem(key, JSON.stringify(value))
 
-const id = () => Math.random().toString(36).slice(2, 10)
+const randomInt = (max: number) => {
+  const values = new Uint32Array(1)
+  crypto.getRandomValues(values)
+  return values[0] % max
+}
+
+const id = () => {
+  const values = new Uint8Array(8)
+  crypto.getRandomValues(values)
+  return Array.from(values, (value) => value.toString(16).padStart(2, '0')).join('')
+}
 
 const hashPassword = async (email: string, password: string) => {
   const enc = new TextEncoder().encode(`${email.toLowerCase()}::${password}`)
@@ -272,7 +282,7 @@ const hashPassword = async (email: string, password: string) => {
 const createStarterProfile = (name = 'Main Profile'): Profile => ({
   id: id(),
   name,
-  avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)] ?? '✨',
+  avatar: AVATARS[randomInt(AVATARS.length)] ?? '✨',
   watchlist: [],
   playback: {},
   liked: [],
