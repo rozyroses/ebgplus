@@ -1,0 +1,42 @@
+name: Test EBG+ Phase 1.5
+
+on:
+  push:
+    branches: [feature/supabase-backend]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply Supabase auth integration
+        run: node scripts/apply-auth-integration.mjs
+      - name: Configure Pages base path
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/App.tsx')
+          text = path.read_text().replace('<BrowserRouter>', '<BrowserRouter basename={import.meta.env.BASE_URL}>', 1)
+          path.write_text(text)
+          PY
+      - name: Verify Supabase variables
+        run: |
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_ANON_KEY"
+      - name: Build
+        run: npm run build -- --base=/ebgplus/
