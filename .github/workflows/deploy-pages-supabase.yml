@@ -30,6 +30,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Apply Supabase auth integration
+        run: node scripts/apply-auth-integration.mjs
       - name: Configure router for project Pages path
         run: |
           python - <<'PY'
