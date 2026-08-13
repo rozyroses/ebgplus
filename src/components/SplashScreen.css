@@ -1,0 +1,66 @@
+.ebg-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(214, 174, 82, 0.08), transparent 34%),
+    #020202;
+  overflow: hidden;
+}
+
+.ebg-splash__brand {
+  width: min(58vw, 560px);
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  animation: ebg-splash-in 700ms cubic-bezier(.2,.7,.2,1) both;
+}
+
+.ebg-splash__logo {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 24px rgba(214, 174, 82, 0.14));
+}
+
+.ebg-splash__line {
+  width: min(220px, 48vw);
+  height: 1px;
+  position: relative;
+  overflow: hidden;
+  background: rgba(214, 174, 82, 0.15);
+}
+
+.ebg-splash__line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, #f4dc95, transparent);
+  animation: ebg-splash-shimmer 1.25s ease-in-out infinite;
+}
+
+@keyframes ebg-splash-in {
+  from { opacity: 0; transform: scale(.975); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ebg-splash-shimmer {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(260%); }
+}
+
+@media (max-width: 700px) {
+  .ebg-splash__brand {
+    width: min(78vw, 430px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ebg-splash__brand,
+  .ebg-splash__line::after {
+    animation: none;
+  }
+}
