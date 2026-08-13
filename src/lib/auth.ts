@@ -87,6 +87,36 @@ export const signUp = async (email: string, password: string): Promise<AuthState
   return loadAuthState(session)
 }
 
+const requireSession = () => {
+  const session = readStoredSession()
+  if (!session) throw new Error('Your EBG+ session has expired. Please sign in again.')
+  return session
+}
+
+export const createProfile = async (name: string, avatar = '✨') => {
+  const session = requireSession()
+  const [profile] = await db.insert<AuthProfile>('profiles', {
+    account_id: session.user.id,
+    name,
+    avatar,
+    autoplay_next: true,
+  }, session.access_token)
+  if (!profile) throw new Error('Profile could not be created.')
+  return profile
+}
+
+export const updateProfile = async (profileId: string, values: Partial<Pick<AuthProfile, 'name' | 'avatar' | 'autoplay_next'>>) => {
+  const session = requireSession()
+  const [profile] = await db.update<AuthProfile>('profiles', `id=eq.${encodeURIComponent(profileId)}`, values, session.access_token)
+  if (!profile) throw new Error('Profile could not be updated.')
+  return profile
+}
+
+export const deleteProfile = async (profileId: string) => {
+  const session = requireSession()
+  await db.remove<AuthProfile>('profiles', `id=eq.${encodeURIComponent(profileId)}`, session.access_token)
+}
+
 export const signOut = async () => {
   const session = readStoredSession()
   try {
