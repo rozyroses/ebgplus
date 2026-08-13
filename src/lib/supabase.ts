@@ -50,8 +50,29 @@ export const auth = {
     })
   },
 
+  refresh(refreshToken: string) {
+    return request<SupabaseSession>('/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    })
+  },
+
   getUser(accessToken: string) {
     return request<{ id: string; email?: string }>('/auth/v1/user', { method: 'GET' }, accessToken)
+  },
+
+  requestPasswordReset(email: string, redirectTo?: string) {
+    return request<Record<string, never>>('/auth/v1/recover', {
+      method: 'POST',
+      body: JSON.stringify({ email, ...(redirectTo ? { redirect_to: redirectTo } : {}) }),
+    })
+  },
+
+  updatePassword(accessToken: string, password: string) {
+    return request<{ id: string; email?: string }>('/auth/v1/user', {
+      method: 'PUT',
+      body: JSON.stringify({ password }),
+    }, accessToken)
   },
 
   signOut(accessToken: string) {
