@@ -108,3 +108,27 @@ export const db = {
     }, accessToken)
   },
 }
+
+const encodeStoragePath = (path: string) => path.split('/').map(encodeURIComponent).join('/')
+
+export const storage = {
+  async uploadPublic(bucket: string, path: string, file: File, accessToken: string) {
+    if (!supabaseConfigured) throw new Error('Supabase is not configured.')
+    const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeStoragePath(path)}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY ?? '',
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true',
+      },
+      body: file,
+    })
+    const body = await response.json().catch(() => null)
+    if (!response.ok) {
+      const message = body?.message ?? body?.error ?? `Upload failed (${response.status})`
+      throw new Error(message)
+    }
+    return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(bucket)}/${encodeStoragePath(path)}`
+  },
+}
