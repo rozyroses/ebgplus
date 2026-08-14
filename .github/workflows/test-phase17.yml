@@ -1,4 +1,4 @@
-name: Test EBG+ Phase 1.10
+name: Test EBG+ Phase 1.11
 
 on:
   push:
@@ -40,6 +40,10 @@ jobs:
         run: node scripts/apply-phase19-coming-soon.mjs
       - name: Apply Phase 1.10 Coming Soon polish
         run: node scripts/apply-phase110-coming-soon-polish.mjs
+      - name: Apply Phase 1.11 Heartspell House foundation
+        run: node scripts/apply-phase111-heartspell.mjs
+      - name: Apply Phase 1.11 build fix
+        run: node scripts/apply-phase111-buildfix.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'

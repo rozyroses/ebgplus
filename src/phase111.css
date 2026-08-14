@@ -1,0 +1,112 @@
+.heartspell-page {
+  --hs-wine: #4d1026;
+  --hs-plum: #2b1434;
+  --hs-gold: #d8b56d;
+  --hs-ivory: #f7efe4;
+  padding-top: 0;
+}
+
+.heartspell-hero {
+  min-height: min(82vh, 780px);
+  margin: 0 calc(clamp(20px, 5vw, 72px) * -1) 42px;
+  border-radius: 0 0 36px 36px;
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
+
+.heartspell-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 78% 28%, rgba(111, 25, 61, .22), transparent 32%),
+    linear-gradient(90deg, rgba(4, 3, 5, .96) 0%, rgba(10, 5, 10, .84) 38%, rgba(10, 5, 10, .28) 70%, rgba(4, 3, 5, .62) 100%),
+    linear-gradient(0deg, #050505 0%, transparent 34%);
+}
+
+.heartspell-hero-content {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  width: min(720px, 92%);
+  padding: clamp(94px, 13vw, 160px) clamp(24px, 7vw, 96px) 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.heartspell-hero .show-logo-image { max-width: min(460px, 85vw); max-height: 180px; object-fit: contain; object-position: left center; }
+.heartspell-title { font-size: clamp(3.4rem, 8vw, 7.2rem); line-height: .88; letter-spacing: -.055em; margin: 8px 0 18px; }
+.heartspell-kicker { color: var(--hs-gold); text-transform: uppercase; letter-spacing: .19em; font-size: .74rem; font-weight: 800; }
+.heartspell-meta { display: flex; flex-wrap: wrap; gap: 9px; margin: 16px 0 22px; }
+.heartspell-meta span { border: 1px solid rgba(216,181,109,.26); background: rgba(10,6,9,.52); border-radius: 999px; padding: 7px 11px; font-size: .82rem; color: #e7ded3; backdrop-filter: blur(10px); }
+.heartspell-description { max-width: 660px; color: #ded4cb; font-size: clamp(1rem, 1.8vw, 1.16rem); line-height: 1.68; }
+
+.heartspell-section { margin-top: 54px; }
+.heartspell-section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.heartspell-section-head h2 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.35rem); }
+.heartspell-section-head p { margin: 0; color: #958d8a; }
+
+.heartspell-season-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.heartspell-season-tabs button { border: 1px solid rgba(216,181,109,.2); background: rgba(255,255,255,.035); color: #cfc5bd; padding: 9px 14px; border-radius: 999px; cursor: pointer; }
+.heartspell-season-tabs button.active { background: var(--hs-ivory); color: #171014; border-color: var(--hs-ivory); }
+
+.heartspell-episode-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+.heartspell-episode { overflow: hidden; border: 1px solid rgba(216,181,109,.14); border-radius: 20px; background: linear-gradient(145deg, rgba(39,15,28,.4), rgba(13,10,13,.78)); }
+.heartspell-episode-media { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #171217; }
+.heartspell-episode-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+.heartspell-episode:hover .heartspell-episode-media img { transform: scale(1.025); }
+.heartspell-episode-body { padding: 18px; }
+.heartspell-episode-body h3 { margin: 0 0 8px; }
+.heartspell-episode-body p { color: #aea4a0; line-height: 1.55; }
+.heartspell-badge { position: absolute; top: 12px; left: 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 6px 9px; background: rgba(4,3,5,.78); color: #fff; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; backdrop-filter: blur(8px); }
+.heartspell-badge.new { color: #15100e; background: var(--hs-gold); border-color: var(--hs-gold); }
+.heartspell-badge.soon { color: #f3d8df; background: rgba(77,16,38,.88); border-color: rgba(221,126,160,.32); }
+
+.heartspell-cast-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.heartspell-cast-card { position: relative; min-height: 330px; overflow: hidden; border-radius: 24px; border: 1px solid rgba(216,181,109,.16); background: linear-gradient(165deg, #351527, #151015); }
+.heartspell-cast-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.heartspell-cast-fallback { position: absolute; inset: 0; display: grid; place-items: center; font-size: 4.2rem; font-weight: 800; color: rgba(247,239,228,.15); background: radial-gradient(circle at 50% 25%, rgba(216,181,109,.16), transparent 28%), linear-gradient(145deg, #4d1026, #1a101b 68%); }
+.heartspell-cast-gradient { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(6,4,6,.98) 0%, rgba(6,4,6,.72) 34%, transparent 70%); }
+.heartspell-cast-copy { position: absolute; inset: auto 18px 18px; z-index: 1; }
+.heartspell-cast-copy h3 { margin: 0; font-size: 1.35rem; }
+.heartspell-cast-copy p { margin: 4px 0 0; color: #bfb4b1; }
+.heartspell-cast-copy a { display: inline-block; margin-top: 11px; color: var(--hs-gold); font-weight: 700; }
+
+.heartspell-vote-teaser { padding: clamp(24px,5vw,48px); border: 1px solid rgba(216,181,109,.2); border-radius: 28px; background: radial-gradient(circle at 88% 20%, rgba(107,27,64,.35), transparent 28%), linear-gradient(145deg, rgba(41,15,31,.72), rgba(10,8,11,.86)); }
+.heartspell-vote-teaser h2 { max-width: 650px; font-size: clamp(2rem,5vw,4.4rem); line-height: .95; margin: 6px 0 14px; }
+.heartspell-vote-teaser p { max-width: 650px; color: #bdb2af; line-height: 1.6; }
+
+.heartspell-cast-profile { max-width: 980px; margin: 0 auto; }
+.heartspell-profile-hero { display: grid; grid-template-columns: minmax(250px,.8fr) 1.2fr; gap: clamp(24px,5vw,60px); align-items: center; }
+.heartspell-profile-photo { aspect-ratio: 4/5; border-radius: 26px; overflow: hidden; background: linear-gradient(145deg, #4d1026, #181018); border: 1px solid rgba(216,181,109,.18); }
+.heartspell-profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+.heartspell-profile-photo .heartspell-cast-fallback { position: relative; height: 100%; }
+.heartspell-profile-copy h1 { font-size: clamp(3rem,7vw,6rem); line-height: .9; margin: 8px 0 16px; }
+.heartspell-profile-copy .bio { color: #c4bab5; line-height: 1.75; max-width: 640px; }
+
+.heartspell-studio { grid-column: 1 / -1; border-color: rgba(216,181,109,.24); background: linear-gradient(145deg, rgba(65,18,41,.2), rgba(0,0,0,.2)); }
+.heartspell-studio-list { display: grid; gap: 10px; margin: 16px 0; }
+.heartspell-studio-person { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid rgba(216,181,109,.12); border-radius: 14px; }
+.heartspell-studio-person small { color: #928985; }
+.heartspell-studio-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 18px; }
+.heartspell-studio-form .full { grid-column: 1 / -1; }
+
+@media (max-width: 850px) {
+  .heartspell-episode-grid, .heartspell-cast-grid { grid-template-columns: 1fr 1fr; }
+  .heartspell-profile-hero { grid-template-columns: 1fr; }
+  .heartspell-profile-photo { max-width: 520px; }
+}
+
+@media (max-width: 620px) {
+  .heartspell-hero { min-height: 72vh; border-radius: 0 0 24px 24px; }
+  .heartspell-episode-grid, .heartspell-cast-grid, .heartspell-studio-form { grid-template-columns: 1fr; }
+  .heartspell-section-head { align-items: flex-start; flex-direction: column; }
+  .heartspell-cast-card { min-height: 390px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heartspell-episode-media img { transition: none; }
+}
