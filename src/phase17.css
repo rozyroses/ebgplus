@@ -1,0 +1,199 @@
+/* EBG+ Phase 1.7 — cinematic black + antique-gold universal shell */
+:root {
+  --ebg-glass: rgba(8, 8, 8, .72);
+  --ebg-glass-strong: rgba(4, 4, 4, .9);
+  --ebg-radius: 24px;
+  --ebg-shadow: 0 35px 100px rgba(0, 0, 0, .58);
+}
+
+body {
+  background:
+    radial-gradient(circle at 72% 5%, rgba(214,174,82,.09), transparent 28rem),
+    linear-gradient(180deg, #050505 0%, #020202 60%, #000 100%);
+}
+
+.app-shell { min-height: 100vh; }
+
+.topbar.app {
+  width: min(1440px, calc(100% - 48px));
+  margin: 18px auto 0;
+  padding: 14px 20px;
+  border: 1px solid rgba(214,174,82,.16);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(12,12,12,.82), rgba(3,3,3,.68));
+  box-shadow: 0 20px 70px rgba(0,0,0,.38);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+
+.topbar.app nav { gap: .5rem; }
+.topbar.app nav a,
+.topbar.app .right-nav a {
+  border-radius: 999px;
+  padding: .58rem .82rem;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+.topbar.app a.active,
+.topbar.app a:hover { background: rgba(214,174,82,.09); color: var(--gold-light); }
+
+.page {
+  width: min(1440px, 100%);
+  margin-inline: auto;
+  padding-top: 1.35rem;
+}
+
+.page > h1 { font-size: clamp(2.2rem, 4vw, 4.5rem); margin: .35rem 0 .4rem; }
+.page > h1 + p { color: var(--muted); max-width: 800px; }
+
+.hero-banner {
+  min-height: clamp(500px, 70vh, 780px);
+  border-radius: var(--ebg-radius);
+  border-color: rgba(214,174,82,.18);
+  box-shadow: var(--ebg-shadow), inset 0 0 0 1px rgba(255,255,255,.03);
+  position: relative;
+}
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 45%, rgba(0,0,0,.92) 100%);
+}
+.hero-banner.small { min-height: 520px; }
+.overlay {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  background: linear-gradient(90deg, rgba(0,0,0,.94), rgba(0,0,0,.46) 72%, transparent);
+}
+.overlay h1 { font-family: Inter, ui-sans-serif, sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -.055em; }
+.overlay p { max-width: 610px; line-height: 1.65; }
+
+.btn {
+  border-radius: 999px;
+  padding: .78rem 1.35rem;
+  min-height: 44px;
+}
+.btn.muted { background: rgba(9,9,9,.68); backdrop-filter: blur(12px); }
+
+.page section + section { margin-top: 2.8rem; }
+.page section > h2 { font-size: 1.35rem; margin-bottom: .85rem; }
+
+.rail {
+  grid-auto-columns: minmax(185px, 245px);
+  gap: 1rem;
+  padding: .4rem .2rem 1.1rem;
+  scroll-snap-type: x proximity;
+}
+.rail > * { scroll-snap-align: start; }
+
+.content-card,
+.episode-card {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #080808;
+  border-color: rgba(255,255,255,.08);
+}
+.content-card > div,
+.episode-card > div { padding: .9rem; }
+.content-card img { aspect-ratio: 2 / 3; border-radius: 0; }
+.episode-card img { aspect-ratio: 16 / 9; border-radius: 0; }
+.content-card:hover,
+.episode-card:hover { transform: translateY(-7px) scale(1.015); border-color: rgba(214,174,82,.62); }
+
+.panel,
+.auth-card,
+.profile-card {
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(17,17,17,.88), rgba(5,5,5,.96));
+  border-color: rgba(214,174,82,.15);
+  box-shadow: 0 24px 70px rgba(0,0,0,.28);
+}
+
+.grid-2, .grid-3 { gap: 1.2rem; }
+
+input, textarea, select {
+  min-height: 44px;
+  border-radius: 10px;
+  background: rgba(3,3,3,.92);
+  border-color: rgba(255,255,255,.11);
+}
+input[type='file'] {
+  border: 1px dashed rgba(214,174,82,.45);
+  padding: .8rem;
+  cursor: pointer;
+}
+textarea { min-height: 110px; resize: vertical; }
+
+.avatar,
+.profile-avatar-image {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(214,174,82,.62);
+  background: #0b0b0b;
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+}
+.avatar { display: grid; place-items: center; }
+.nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--gold);
+  vertical-align: middle;
+}
+
+.profile-card { min-width: 190px; padding: 1.3rem; }
+.profile-card .manage-tools { width: 100%; }
+.profile-card input[type='file'] { width: 100%; font-size: .72rem; }
+
+.settings-shell { display: grid; gap: 1.25rem; grid-template-columns: minmax(250px, .72fr) minmax(320px, 1.28fr); }
+.settings-profile-card { display: grid; place-items: center; text-align: center; gap: .9rem; }
+.settings-profile-card .profile-avatar-image,
+.settings-profile-card .avatar { width: 112px; height: 112px; font-size: 2.5rem; }
+.settings-section { display: grid; gap: 1rem; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.setting-row:last-child { border-bottom: 0; }
+
+.studio-page .panel { padding: 1.2rem; }
+.studio-page input[type='file'] { background: rgba(214,174,82,.035); }
+.studio-page .grid-2 article.panel { min-height: 170px; }
+
+.auth-page,
+.profiles-page {
+  background:
+    radial-gradient(circle at 50% 25%, rgba(214,174,82,.11), transparent 24rem),
+    #020202;
+}
+.auth-card { backdrop-filter: blur(18px); }
+
+.player-page { width: min(1440px, 100%); margin: auto; }
+.player-page video { width: 100%; max-width: none; border-radius: 18px; box-shadow: var(--ebg-shadow); }
+
+.list li {
+  border: 1px solid rgba(214,174,82,.11);
+  border-radius: 14px;
+  padding: 1rem;
+  background: rgba(9,9,9,.72);
+}
+
+@media (max-width: 1100px) {
+  .topbar.app { width: calc(100% - 24px); }
+  .settings-shell { grid-template-columns: 1fr; }
+  .hero-banner { min-height: 58vh; }
+}
+
+@media (max-width: 900px) {
+  .topbar.app { margin-top: 10px; border-radius: 16px; }
+  .page { padding-top: 1rem; }
+  .hero-banner { min-height: 62vh; border-radius: 18px; }
+  .overlay { padding: 1.5rem; background: linear-gradient(0deg, rgba(0,0,0,.95), rgba(0,0,0,.2)); justify-content: flex-end; }
+  .rail { grid-auto-columns: minmax(160px, 68vw); }
+  .mobile-nav { background: rgba(3,3,3,.94); backdrop-filter: blur(22px); }
+}
