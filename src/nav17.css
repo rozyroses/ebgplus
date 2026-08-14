@@ -1,0 +1,85 @@
+/* EBG+ navigation cleanup */
+.topbar.app { overflow: visible; }
+.topbar.app .primary-nav,
+.topbar.app .right-nav { flex-wrap: nowrap; }
+
+.nav-menu { position: relative; }
+.nav-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: .58rem .82rem;
+  color: #d7d2ca;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  user-select: none;
+}
+.nav-menu > summary::-webkit-details-marker { display: none; }
+.nav-menu[open] > summary,
+.nav-menu > summary:hover { background: rgba(214,174,82,.09); color: var(--gold-light); }
+
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  z-index: 80;
+  min-width: 210px;
+  display: grid;
+  gap: .2rem;
+  padding: .6rem;
+  border: 1px solid rgba(214,174,82,.2);
+  border-radius: 16px;
+  background: rgba(6,6,6,.96);
+  box-shadow: 0 24px 70px rgba(0,0,0,.58);
+  backdrop-filter: blur(22px);
+}
+.nav-dropdown-right { left: auto; right: 0; }
+.nav-dropdown a,
+.nav-dropdown button {
+  width: 100%;
+  border: 0;
+  border-radius: 11px !important;
+  padding: .72rem .8rem !important;
+  background: transparent;
+  color: #e8e2d8;
+  text-align: left;
+  font-size: .82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .01em !important;
+  text-transform: none !important;
+  cursor: pointer;
+}
+.nav-dropdown a:hover,
+.nav-dropdown button:hover { background: rgba(214,174,82,.1); color: var(--gold-light); }
+
+.profile-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .2rem .35rem .2rem .2rem !important;
+}
+.profile-dropdown { min-width: 260px; }
+.profile-dropdown-heading {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .65rem .8rem;
+  margin-bottom: .25rem;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.profile-dropdown-heading .avatar,
+.profile-dropdown-heading .profile-avatar-image { width: 42px; height: 42px; }
+.profile-dropdown-heading div { min-width: 0; display: grid; gap: .15rem; }
+.profile-dropdown-heading small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 1180px) {
+  .topbar.app .primary-nav > a:nth-of-type(3),
+  .topbar.app .primary-nav > a:nth-of-type(4) { display: none; }
+}
+
+@media (max-width: 900px) {
+  .topbar.app .primary-nav,
+  .topbar.app .right-nav { display: none; }
+}
