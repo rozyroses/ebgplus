@@ -20,10 +20,19 @@ if (!source.includes("window.location.replace('https://forms.ebgplus.app')")) {
   )
 }
 
-source = source.replaceAll(
+// Keep Casting in the Library menu, but remove the duplicate footer link.
+source = source.replace(
   '<Link to="/app/casting">Casting</Link>',
   '<a href="https://forms.ebgplus.app">Casting</a>',
 )
+source = source.replace(
+  '        <Link to="/app/casting">Casting</Link>\n        <Link to="/app/partnerships">Partnerships</Link>',
+  '        <Link to="/app/partnerships">Partnerships</Link>',
+)
+source = source.replace(
+  '        <a href="https://forms.ebgplus.app">Casting</a>\n        <Link to="/app/partnerships">Partnerships</Link>',
+  '        <Link to="/app/partnerships">Partnerships</Link>',
+)
 
 fs.writeFileSync(path, source)
-console.log('EBG Forms domain redirect and Casting links applied')
+console.log('EBG Forms domain redirect applied; duplicate footer Casting link removed')
