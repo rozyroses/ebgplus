@@ -1,4 +1,4 @@
-/* EBG+ universal transparent branding */
+/* EBG+ universal branding — preserve the original logo artwork */
 
 .wordmark {
   width: 116px;
@@ -8,12 +8,13 @@
   color: transparent !important;
   font-size: 0 !important;
   background-color: transparent !important;
-  background-image: url('/ebgplus-logo.svg') !important;
+  background-image: url('/ebgplus-logo.png') !important;
   background-position: center !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
   border: 0 !important;
   box-shadow: none !important;
+  mix-blend-mode: screen;
   flex: 0 0 auto;
 }
 
@@ -30,6 +31,7 @@
   border: 0 !important;
   box-shadow: none !important;
   object-fit: contain;
+  mix-blend-mode: screen;
 }
 
 .logo-wrap,
