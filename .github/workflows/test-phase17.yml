@@ -2,7 +2,7 @@ name: Test EBG+ Phase 1.7
 
 on:
   push:
-    branches: [feature/phase17-ui-media-v2]
+    branches: [feature/phase17-nav-cleanup]
   workflow_dispatch:
 
 permissions:
