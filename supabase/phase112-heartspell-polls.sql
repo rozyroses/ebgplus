@@ -1,5 +1,9 @@
--- EBG+ Phase 1.12 — Heartspell House live polls
+-- EBG+ Phase 1.12 — Heartspell House live polls + public casting portal
 -- Run this file once in Supabase SQL Editor after merging Phase 1.12.
+
+alter table public.casting_applications
+  add column if not exists show_id text not null default 'heartspell-house',
+  add column if not exists source text not null default 'ebgplus-app';
 
 create table if not exists public.polls (
   id uuid primary key default gen_random_uuid(),
@@ -99,7 +103,6 @@ on public.poll_options for delete
 to authenticated
 using (public.is_ebg_staff());
 
--- Vote rows stay private. Fans never select raw voter records.
 create policy "Fans can insert their own vote"
 on public.poll_votes for insert
 to authenticated
@@ -190,3 +193,51 @@ grant execute on function public.get_poll_results(uuid) to anon, authenticated;
 grant select on public.polls, public.poll_options to anon, authenticated;
 grant insert, update, delete on public.polls, public.poll_options to authenticated;
 grant insert on public.poll_votes to authenticated;
+
+create or replace function public.submit_public_casting_application(
+  p_legal_name text,
+  p_age integer,
+  p_city_state text,
+  p_email text,
+  p_relationship_goals text,
+  p_camera_comfort text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+  v_email text := lower(trim(p_email));
+begin
+  if p_age < 21 then raise exception 'Heartspell House applicants must be 21+.'; end if;
+  if char_length(trim(p_legal_name)) < 2 or char_length(trim(p_legal_name)) > 120 then raise exception 'Enter a valid name.'; end if;
+  if char_length(v_email) < 5 or position('@' in v_email) = 0 then raise exception 'Enter a valid email.'; end if;
+  if char_length(trim(p_city_state)) < 2 or char_length(trim(p_city_state)) > 120 then raise exception 'Enter a valid city/state.'; end if;
+  if char_length(trim(p_relationship_goals)) < 10 or char_length(trim(p_relationship_goals)) > 4000 then raise exception 'Tell us a little more about your relationship goals.'; end if;
+  if char_length(trim(p_camera_comfort)) < 10 or char_length(trim(p_camera_comfort)) > 4000 then raise exception 'Tell us a little more about your camera comfort.'; end if;
+
+  if exists (
+    select 1 from public.casting_applications
+    where lower(email) = v_email
+      and show_id = 'heartspell-house'
+      and created_at > now() - interval '24 hours'
+  ) then
+    raise exception 'We already received an application from this email recently.';
+  end if;
+
+  insert into public.casting_applications (
+    submitted_by, show_id, source, legal_name, age, city_state, email,
+    relationship_goals, camera_comfort, status
+  ) values (
+    auth.uid(), 'heartspell-house', 'forms.ebgplus.app', trim(p_legal_name), p_age,
+    trim(p_city_state), v_email, trim(p_relationship_goals), trim(p_camera_comfort), 'New'
+  )
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
+
+grant execute on function public.submit_public_casting_application(text, integer, text, text, text, text) to anon, authenticated;
