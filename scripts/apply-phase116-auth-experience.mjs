@@ -2,96 +2,133 @@ import fs from 'node:fs'
 
 const path = new URL('../src/App.tsx', import.meta.url)
 let source = fs.readFileSync(path, 'utf8')
-if (source.includes('// EBG_PHASE116_AUTH_EXPERIENCE')) process.exit(0)
+if (source.includes('// EBG_PHASE116_PUBLIC_LANDING')) process.exit(0)
 
 const must = (pattern, replacement, label) => {
   const next = source.replace(pattern, replacement)
-  if (next === source) throw new Error(`Phase 1.16 patch failed: ${label}`)
+  if (next === source) throw new Error(`Phase 1.16 landing patch failed: ${label}`)
   source = next
 }
 
 must(
   "import './phase115-home.css'",
-  "import './phase115-home.css'\nimport './phase116-auth.css'\n\n// EBG_PHASE116_AUTH_EXPERIENCE",
+  "import './phase115-home.css'\nimport './phase116-auth.css'\n\n// EBG_PHASE116_PUBLIC_LANDING",
   'styles import',
 )
 
-const authLayout = `function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
+const landingPage = `function LandingPage({ cms }: { cms: CmsData }) {
+  const visibleShows = cms.shows.filter((show) => show.homeVisible !== false)
+  const previewShows = visibleShows.slice(0, 4)
+
   return (
-    <main className="auth-page auth-experience">
-      <div className="auth-backdrop" aria-hidden="true" />
-      <header className="auth-topbar">
+    <main className="landing public-landing-v2">
+      <header className="topbar public-topbar">
         <Link className="wordmark" to="/">EBG+</Link>
-        <div className="auth-top-links">
-          <Link to="/help">Help</Link>
-          <Link to="/about">About EBG</Link>
-        </div>
+        <nav>
+          <Link to="/coming-soon">Coming Soon</Link>
+          <Link to="/auth/create-account">Join EBG+</Link>
+          <Link to="/auth/sign-in" className="btn">Sign In</Link>
+        </nav>
       </header>
 
-      <div className="auth-stage">
-        <section className="auth-story" aria-label="Welcome to EBG+">
-          <p className="eyebrow">Stories live here.</p>
-          <h1>One account. The whole EBG+ world.</h1>
-          <p className="auth-lead">Stream originals, save what you love, follow casting updates, join fan voting, and keep your place across EBG+.</p>
-
-          <div className="auth-benefits">
-            <span>✓ Continue Watching</span>
-            <span>✓ My List & profiles</span>
-            <span>✓ Casting application updates</span>
-            <span>✓ Interactive fan voting</span>
+      <section className="hero public-hero" aria-label="EBG+ introduction">
+        <div className="public-hero-copy">
+          <p className="eyebrow">EBG Original Network</p>
+          <h1>{cms.slogan}</h1>
+          <p className="public-hero-lead">Premium series, reality television, cinematic music performances, artist stories, and the evolving EBG universe — all in one place.</p>
+          <div className="actions">
+            <Link className="btn" to="/coming-soon">Get Launch Updates</Link>
+            <Link className="btn muted" to="/auth/sign-in">Sign In</Link>
           </div>
+        </div>
+        <div className="public-hero-orbit" aria-hidden="true">
+          <span>EBG+</span><span>ORIGINALS</span><span>MUSIC</span><span>STORIES</span>
+        </div>
+      </section>
 
-          <div className="auth-creators-wrap">
-            <div className="auth-section-heading">
-              <p className="eyebrow">Inside the EBG world</p>
-              <h2>Meet three creative pillars.</h2>
-            </div>
-            <div className="auth-creators">
-              <article className="auth-creator-card">
-                <span className="creator-monogram">BN</span>
-                <div><h3>Bijou Nicole</h3><p>Her 2026 music catalog includes <em>555</em>, <em>HEARTSPELL</em>, “Found You,” and “Bites The Dust.”</p></div>
+      <section className="public-intro-section">
+        <div className="public-section-heading">
+          <p className="eyebrow">Inside EBG+</p>
+          <h2>Watch the story. Then step inside it.</h2>
+          <p>EBG+ combines streaming with interactive fan experiences, creator-led programming, casting, application updates, and a growing entertainment universe.</p>
+        </div>
+        <div className="public-benefit-grid">
+          <article><span>01</span><h3>Original programming</h3><p>Reality series, specials, music films, interviews, performances, and EBG-exclusive projects.</p></article>
+          <article><span>02</span><h3>Your own library</h3><p>Create profiles, build My List, save playback progress, and pick up where you left off.</p></article>
+          <article><span>03</span><h3>Interactive fandom</h3><p>Join eligible live polls and voting experiences as EBG+ stories unfold.</p></article>
+          <article><span>04</span><h3>Casting connection</h3><p>Apply through EBG Forms and track eligible application updates from your EBG+ account.</p></article>
+        </div>
+      </section>
+
+      <section className="public-founders-section">
+        <div className="public-section-heading compact">
+          <p className="eyebrow">The EBG world</p>
+          <h2>Three artists. Three distinct worlds. One creative home.</h2>
+          <p>Discover music and programming connected to Bijou Nicole, Empress V, and Goldie Songs across EBG+.</p>
+        </div>
+        <div className="public-creator-grid">
+          <article className="public-creator-card">
+            <div className="public-creator-mark">BN</div>
+            <p className="eyebrow">Artist spotlight</p>
+            <h3>Bijou Nicole</h3>
+            <p>Her public music catalog includes projects such as <em>555</em> and <em>HEARTSPELL</em>, alongside releases including “Found You” and “Bites The Dust.”</p>
+            <span className="creator-footnote">Music, performance & EBG+ originals</span>
+          </article>
+          <article className="public-creator-card">
+            <div className="public-creator-mark">EV</div>
+            <p className="eyebrow">Artist spotlight</p>
+            <h3>Empress V</h3>
+            <p>Her public catalog includes <em>Soft Lips, Hard Truths</em> and songs such as “On Repeat,” “Love Me Loud,” and “Phone On Silent.”</p>
+            <span className="creator-footnote">Music, performance & visual storytelling</span>
+          </article>
+          <article className="public-creator-card">
+            <div className="public-creator-mark">GS</div>
+            <p className="eyebrow">Artist spotlight</p>
+            <h3>Goldie Songs</h3>
+            <p>Her public catalog includes <em>MADE FOR MORE</em>, <em>NOSTALGIA</em>, “Safe with me,” and “Crowned.”</p>
+            <span className="creator-footnote">Music, conversations & artist stories</span>
+          </article>
+        </div>
+      </section>
+
+      {previewShows.length > 0 && (
+        <section className="public-preview-section">
+          <div className="public-section-heading compact">
+            <p className="eyebrow">On EBG+</p>
+            <h2>A first look at the world.</h2>
+          </div>
+          <div className="public-preview-grid">
+            {previewShows.map((show) => (
+              <article key={show.id} className="public-preview-card" style={{ backgroundImage: \`url(\${show.banner || show.artwork})\` }}>
+                <div>
+                  <span>{show.status}</span>
+                  <h3>{show.title}</h3>
+                  <p>{show.genre}</p>
+                </div>
               </article>
-              <article className="auth-creator-card">
-                <span className="creator-monogram">EV</span>
-                <div><h3>Empress V</h3><p>Her 2026 releases include <em>Soft Lips, Hard Truths</em> and “On Repeat,” with songs such as “Love Me Loud” and “Phone On Silent.”</p></div>
-              </article>
-              <article className="auth-creator-card">
-                <span className="creator-monogram">GS</span>
-                <div><h3>Goldie Songs</h3><p>Her 2026 catalog includes <em>MADE FOR MORE</em>, <em>NOSTALGIA</em>, “Safe with me,” and “Crowned.”</p></div>
-              </article>
-            </div>
+            ))}
           </div>
         </section>
+      )}
 
-        <section className="auth-card auth-card-premium">
-          <div className="auth-card-heading">
-            <p className="eyebrow">EBG+ Account</p>
-            <h2>{title}</h2>
-          </div>
-          {children}
-          <p className="auth-security-note">Your password stays private. EBG+ will never ask you to send a password or authentication code by email.</p>
-          <div className="auth-legal-links">
-            <Link to="/terms">Terms</Link><span>·</span><Link to="/privacy">Privacy</Link><span>·</span><Link to="/accessibility">Accessibility</Link>
-          </div>
-        </section>
-      </div>
+      <section className="public-join-banner">
+        <div>
+          <p className="eyebrow">Your seat is waiting</p>
+          <h2>One account connects your EBG+ experience.</h2>
+          <p>Use one email for your account and eligible casting submissions so application updates can stay connected to you.</p>
+        </div>
+        <div className="actions">
+          <Link className="btn" to="/auth/create-account">Join EBG+</Link>
+          <Link className="btn muted" to="/about">Learn About EBG</Link>
+        </div>
+      </section>
+
+      <Footer />
     </main>
   )
 }`
 
-must(/function AuthLayout\([\s\S]*?\n\}\n\nfunction SignInPage/, `${authLayout}\n\nfunction SignInPage`, 'AuthLayout')
-
-must(
-  `        <button className="btn" type="submit" disabled={loading}>\n          {loading ? 'Creating Account…' : 'Create Account'}\n        </button>\n      </form>`,
-  `        <button className="btn" type="submit" disabled={loading}>\n          {loading ? 'Creating Account…' : 'Create Account'}\n        </button>\n      </form>\n      <p className="auth-account-note">Use an email you check regularly. If you submit an EBG casting application with the same email, your application can appear in <strong>Library → My Applications</strong> after you sign in.</p>\n      <p className="auth-consent-copy">By creating an account, you agree to the <Link to="/terms">Terms of Use</Link> and acknowledge the <Link to="/privacy">Privacy notice</Link>.</p>`,
-  'create account guidance',
-)
-
-must(
-  `      <div className="split-links">\n        <Link to="/auth/forgot-password">Forgot Password</Link>\n        <Link to="/auth/create-account">Create Account</Link>\n      </div>`,
-  `      <div className="split-links">\n        <Link to="/auth/forgot-password">Forgot Password</Link>\n        <Link to="/auth/create-account">Create Account</Link>\n      </div>\n      <p className="auth-account-note compact">Signing in also reconnects your profiles, My List, playback progress, and eligible casting application updates.</p>`,
-  'sign in guidance',
-)
+must(/function LandingPage\([\s\S]*?\n\}\n\nfunction AuthLayout/, `${landingPage}\n\nfunction AuthLayout`, 'public landing page')
 
 fs.writeFileSync(path, source)
-console.log('Applied EBG+ Phase 1.16 premium auth experience.')
+console.log('Applied EBG+ Phase 1.16 public landing experience.')
