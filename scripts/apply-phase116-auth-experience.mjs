@@ -11,8 +11,8 @@ const must = (pattern, replacement, label) => {
 }
 
 must(
-  "import './phase115-home.css'",
-  "import './phase115-home.css'\nimport './phase116-auth.css'\n\n// EBG_PHASE116_PUBLIC_LANDING",
+  "import './phase115.css'",
+  "import './phase115.css'\nimport './phase116-auth.css'\n\n// EBG_PHASE116_PUBLIC_LANDING",
   'styles import',
 )
 
@@ -99,7 +99,7 @@ const landingPage = `function LandingPage({ cms }: { cms: CmsData }) {
           </div>
           <div className="public-preview-grid">
             {previewShows.map((show) => (
-              <article key={show.id} className="public-preview-card" style={{ backgroundImage: \`url(\${show.banner || show.artwork})\` }}>
+              <article key={show.id} className="public-preview-card" style={{ backgroundImage: `url(${show.banner || show.artwork})` }}>
                 <div>
                   <span>{show.status}</span>
                   <h3>{show.title}</h3>
