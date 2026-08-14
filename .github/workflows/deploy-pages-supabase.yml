@@ -70,6 +70,8 @@ jobs:
         run: node scripts/apply-phase117-studio-polish.mjs
       - name: Apply Phase 1.18 Studio replace media controls
         run: node scripts/apply-phase118-replace-media-controls.mjs
+      - name: Apply Phase 1.19 media delete and hero fit controls
+        run: node scripts/apply-phase119-media-delete-hero-fit.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
