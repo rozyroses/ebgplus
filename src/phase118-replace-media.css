@@ -1,0 +1,70 @@
+/* EBG+ Phase 1.18 — explicit upload / replace controls */
+
+.studio-replace-control {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 40px;
+  margin-top: .65rem;
+  padding: .65rem 1rem;
+  border: 1px solid rgba(214,174,82,.42);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(214,174,82,.12), rgba(214,174,82,.05));
+  color: #f2dc98 !important;
+  font-size: .75rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .035em !important;
+  text-transform: none !important;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.studio-replace-control:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242,220,152,.72);
+  background: rgba(214,174,82,.12);
+}
+
+.studio-replace-control:focus-within {
+  outline: 2px solid rgba(242,220,152,.35);
+  outline-offset: 3px;
+}
+
+.studio-replace-control input[type='file'] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.studio-upload-hint {
+  display: block;
+  margin-top: .1rem;
+  color: #8f8a81;
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.studio-media-preview > div {
+  min-width: 0;
+}
+
+.studio-media-preview > div > strong {
+  display: block;
+  color: #eee6d7;
+}
+
+@media (max-width: 700px) {
+  .studio-replace-control {
+    width: 100%;
+  }
+}
