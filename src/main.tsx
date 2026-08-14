@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import './phase17-fixes.css'
 import './phase17-force-fixes.css'
+import './branding.css'
 import SplashScreen from './components/SplashScreen.tsx'
 
 function Root() {
