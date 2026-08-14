@@ -56,7 +56,7 @@ jobs:
           text = re.sub(r"\n\s*setAuthState\([^\n]+\)", "", text)
           path.write_text(text)
           PY
-      - name: Configure router for project Pages path
+      - name: Configure router for custom domain
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -70,7 +70,7 @@ jobs:
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_ANON_KEY"
       - name: Build
-        run: npm run build -- --base=/ebgplus/
+        run: npm run build -- --base=/
       - name: Add SPA fallback
         run: cp dist/index.html dist/404.html
       - name: Setup Pages
