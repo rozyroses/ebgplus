@@ -1,0 +1,195 @@
+/* EBG+ Phase 1.17 — Studio workspace polish + banner framing */
+
+.ebg-studio-hub {
+  padding: clamp(22px, 3vw, 34px);
+  border-radius: 26px;
+}
+
+.ebg-studio-head {
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.ebg-studio-head > div:first-child {
+  max-width: 720px;
+}
+
+.ebg-studio-tabs {
+  gap: 10px;
+  margin: 0 -4px 28px;
+  padding: 4px 4px 14px;
+}
+
+.ebg-studio-tabs button {
+  min-height: 42px;
+  padding: 10px 16px;
+}
+
+/* Keep series cards compact instead of stretching across the whole Studio. */
+.ebg-studio-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
+  justify-content: start;
+  align-items: start;
+  gap: 18px;
+}
+
+.ebg-studio-card {
+  width: 100%;
+  max-width: 280px;
+  min-height: 0;
+  padding: 13px;
+  border-radius: 16px;
+}
+
+.ebg-studio-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 148px;
+  margin-bottom: 10px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.ebg-studio-card h3 {
+  margin: 4px 0 5px;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.ebg-studio-card p {
+  margin: 0 0 12px;
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.ebg-studio-card .btn {
+  width: auto;
+  min-height: 38px;
+  padding: .58rem .9rem;
+  font-size: .76rem;
+}
+
+/* Give every Studio workspace breathing room. */
+.ebg-studio-hub .studio-section-head {
+  margin: 4px 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.ebg-studio-hub .studio-stack {
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.ebg-studio-hub .studio-row {
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+
+.ebg-studio-hub .studio-form-grid {
+  gap: 16px;
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 18px;
+  background: rgba(255,255,255,.018);
+}
+
+.ebg-studio-hub .studio-help {
+  max-width: 760px;
+  margin-top: 14px;
+  line-height: 1.6;
+}
+
+/* Homepage banner framing controls. */
+.studio-homepage-workspace {
+  display: grid;
+  gap: 22px;
+}
+
+.studio-homepage-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: 16px;
+  align-items: end;
+}
+
+.studio-banner-focal-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  min-height: 220px;
+  overflow: hidden;
+  border: 1px solid rgba(214,174,82,.22);
+  border-radius: 20px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 -100px 100px rgba(0,0,0,.4);
+}
+
+.studio-banner-focal-preview::after {
+  content: 'HOME HERO PREVIEW';
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.68);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #f3ead6;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.studio-banner-tip {
+  margin: -8px 0 0;
+  color: #9c968d;
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+/* More cinematic hero framing on the viewer homepage. */
+.home-featured-hero {
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@media (max-width: 900px) {
+  .ebg-studio-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  .ebg-studio-card {
+    max-width: none;
+  }
+
+  .studio-homepage-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-banner-focal-preview {
+    min-height: 180px;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 600px) {
+  .ebg-studio-hub {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .ebg-studio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ebg-studio-card {
+    max-width: none;
+  }
+
+  .ebg-studio-card img {
+    max-height: none;
+  }
+}
