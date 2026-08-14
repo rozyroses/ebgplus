@@ -76,6 +76,8 @@ jobs:
         run: node scripts/apply-phase120-hero-logo-layout.mjs
       - name: Apply Phase 1.21 Shows browse layout
         run: node scripts/apply-phase121-shows-grid.mjs
+      - name: Apply Phase 1.22 Notifications 2.0
+        run: node scripts/apply-phase122-notifications2.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
