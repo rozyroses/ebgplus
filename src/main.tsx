@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './phase17-fixes.css'
 import App from './App.tsx'
 import SplashScreen from './components/SplashScreen.tsx'
 
