@@ -1,7 +1,7 @@
 import './SplashScreen.css'
 
 export default function SplashScreen() {
-  const logoUrl = `${import.meta.env.BASE_URL}ebgplus-logo.svg`
+  const logoUrl = `${import.meta.env.BASE_URL}ebgplus-logo.png`
 
   return (
     <div className="ebg-splash" role="status" aria-label="Loading EBG+">
