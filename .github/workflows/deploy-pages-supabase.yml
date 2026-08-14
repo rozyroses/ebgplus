@@ -54,6 +54,8 @@ jobs:
         run: node scripts/prepare-phase112.mjs
       - name: Apply Phase 1.12 universal Studio, polls, and forms
         run: node scripts/apply-phase112-studio-polls-forms.mjs
+      - name: Redirect EBG Forms to custom domain
+        run: node scripts/apply-forms-domain-redirect.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
