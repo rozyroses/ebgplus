@@ -25,7 +25,6 @@
   padding: 10px 16px;
 }
 
-/* Keep series cards compact instead of stretching across the whole Studio. */
 .ebg-studio-grid {
   grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
   justify-content: start;
@@ -70,7 +69,6 @@
   font-size: .76rem;
 }
 
-/* Give every Studio workspace breathing room. */
 .ebg-studio-hub .studio-section-head {
   margin: 4px 0 20px;
   padding-bottom: 14px;
@@ -102,7 +100,6 @@
   line-height: 1.6;
 }
 
-/* Homepage banner framing controls. */
 .studio-homepage-workspace {
   display: grid;
   gap: 22px;
@@ -118,8 +115,8 @@
 .studio-banner-focal-preview {
   position: relative;
   width: 100%;
-  aspect-ratio: 21 / 9;
-  min-height: 220px;
+  aspect-ratio: 16 / 7;
+  min-height: 260px;
   overflow: hidden;
   border: 1px solid rgba(214,174,82,.22);
   border-radius: 20px;
@@ -150,10 +147,28 @@
   line-height: 1.55;
 }
 
-/* More cinematic hero framing on the viewer homepage. */
+/* Viewer homepage: use a taller cinematic frame so uploaded banners are not brutally cropped. */
 .home-featured-hero {
+  min-height: 0 !important;
+  height: auto;
+  aspect-ratio: 16 / 7;
+  max-height: 720px;
   background-repeat: no-repeat;
   background-size: cover;
+  background-color: #050505;
+}
+
+/* Keep fallback show text from covering artwork when a separate show logo was not uploaded. */
+.home-featured-hero .overlay h1 {
+  max-width: 560px;
+  font-size: clamp(2.4rem, 5vw, 5rem);
+  line-height: .94;
+}
+
+.home-featured-hero .overlay {
+  min-height: 100%;
+  padding-top: clamp(2rem, 5vw, 4rem);
+  padding-bottom: clamp(2rem, 5vw, 4rem);
 }
 
 @media (max-width: 900px) {
@@ -172,6 +187,11 @@
   .studio-banner-focal-preview {
     min-height: 180px;
     aspect-ratio: 16 / 9;
+  }
+
+  .home-featured-hero {
+    aspect-ratio: 16 / 9;
+    max-height: none;
   }
 }
 
