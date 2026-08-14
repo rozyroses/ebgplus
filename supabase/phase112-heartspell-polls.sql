@@ -1,4 +1,4 @@
--- EBG+ Phase 1.12 — Heartspell House live polls + public casting portal
+-- EBG+ Phase 1.12 — universal Studio polls + EBG Forms casting portal
 -- Run this file once in Supabase SQL Editor after merging Phase 1.12.
 
 alter table public.casting_applications
@@ -7,7 +7,7 @@ alter table public.casting_applications
 
 create table if not exists public.polls (
   id uuid primary key default gen_random_uuid(),
-  show_id text not null default 'heartspell-house',
+  show_id text not null,
   question text not null,
   description text,
   status text not null default 'draft' check (status in ('draft','open','closed')),
@@ -47,8 +47,7 @@ security definer
 set search_path = public
 as $$
   select exists (
-    select 1
-    from public.accounts
+    select 1 from public.accounts
     where id = auth.uid()
       and role in ('founder','administrator','producer','editor')
   );
@@ -62,19 +61,15 @@ on public.polls for select
 using (status in ('open','closed') or public.is_ebg_staff());
 
 create policy "Staff can create polls"
-on public.polls for insert
-to authenticated
+on public.polls for insert to authenticated
 with check (public.is_ebg_staff());
 
 create policy "Staff can update polls"
-on public.polls for update
-to authenticated
-using (public.is_ebg_staff())
-with check (public.is_ebg_staff());
+on public.polls for update to authenticated
+using (public.is_ebg_staff()) with check (public.is_ebg_staff());
 
 create policy "Staff can delete polls"
-on public.polls for delete
-to authenticated
+on public.polls for delete to authenticated
 using (public.is_ebg_staff());
 
 create policy "Public can read options for published polls"
@@ -88,24 +83,19 @@ using (
 );
 
 create policy "Staff can create poll options"
-on public.poll_options for insert
-to authenticated
+on public.poll_options for insert to authenticated
 with check (public.is_ebg_staff());
 
 create policy "Staff can update poll options"
-on public.poll_options for update
-to authenticated
-using (public.is_ebg_staff())
-with check (public.is_ebg_staff());
+on public.poll_options for update to authenticated
+using (public.is_ebg_staff()) with check (public.is_ebg_staff());
 
 create policy "Staff can delete poll options"
-on public.poll_options for delete
-to authenticated
+on public.poll_options for delete to authenticated
 using (public.is_ebg_staff());
 
 create policy "Fans can insert their own vote"
-on public.poll_votes for insert
-to authenticated
+on public.poll_votes for insert to authenticated
 with check (voter_id = auth.uid());
 
 create or replace function public.cast_poll_vote(p_poll_id uuid, p_option_id uuid)
@@ -117,10 +107,7 @@ as $$
 declare
   v_poll public.polls;
 begin
-  if auth.uid() is null then
-    raise exception 'Sign in to vote.';
-  end if;
-
+  if auth.uid() is null then raise exception 'Sign in to vote.'; end if;
   select * into v_poll from public.polls where id = p_poll_id;
   if v_poll.id is null then raise exception 'Poll not found.'; end if;
   if v_poll.status <> 'open' then raise exception 'This poll is not open.'; end if;
@@ -166,9 +153,7 @@ begin
     or v_poll.results_visibility = 'live'
     or (v_poll.results_visibility = 'after_close' and v_poll.status = 'closed');
 
-  if not v_can_view then
-    raise exception 'Results are not available yet.';
-  end if;
+  if not v_can_view then raise exception 'Results are not available yet.'; end if;
 
   select count(*) into v_total from public.poll_votes where poll_votes.poll_id = p_poll_id;
 
@@ -189,12 +174,12 @@ end;
 $$;
 
 grant execute on function public.get_poll_results(uuid) to anon, authenticated;
-
 grant select on public.polls, public.poll_options to anon, authenticated;
 grant insert, update, delete on public.polls, public.poll_options to authenticated;
 grant insert on public.poll_votes to authenticated;
 
 create or replace function public.submit_public_casting_application(
+  p_show_id text,
   p_legal_name text,
   p_age integer,
   p_city_state text,
@@ -202,7 +187,7 @@ create or replace function public.submit_public_casting_application(
   p_relationship_goals text,
   p_camera_comfort text
 )
-returns uuid
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
@@ -210,18 +195,20 @@ as $$
 declare
   v_id uuid;
   v_email text := lower(trim(p_email));
+  v_show_id text := lower(trim(p_show_id));
 begin
-  if p_age < 21 then raise exception 'Heartspell House applicants must be 21+.'; end if;
+  if char_length(v_show_id) < 2 or char_length(v_show_id) > 100 then raise exception 'Choose a valid EBG+ series.'; end if;
+  if p_age < 21 then raise exception 'Applicants must be 21+.'; end if;
   if char_length(trim(p_legal_name)) < 2 or char_length(trim(p_legal_name)) > 120 then raise exception 'Enter a valid name.'; end if;
   if char_length(v_email) < 5 or position('@' in v_email) = 0 then raise exception 'Enter a valid email.'; end if;
   if char_length(trim(p_city_state)) < 2 or char_length(trim(p_city_state)) > 120 then raise exception 'Enter a valid city/state.'; end if;
-  if char_length(trim(p_relationship_goals)) < 10 or char_length(trim(p_relationship_goals)) > 4000 then raise exception 'Tell us a little more about your relationship goals.'; end if;
+  if char_length(trim(p_relationship_goals)) < 10 or char_length(trim(p_relationship_goals)) > 4000 then raise exception 'Tell us a little more about yourself and what you are looking for.'; end if;
   if char_length(trim(p_camera_comfort)) < 10 or char_length(trim(p_camera_comfort)) > 4000 then raise exception 'Tell us a little more about your camera comfort.'; end if;
 
   if exists (
     select 1 from public.casting_applications
     where lower(email) = v_email
-      and show_id = 'heartspell-house'
+      and show_id = v_show_id
       and created_at > now() - interval '24 hours'
   ) then
     raise exception 'We already received an application from this email recently.';
@@ -231,13 +218,12 @@ begin
     submitted_by, show_id, source, legal_name, age, city_state, email,
     relationship_goals, camera_comfort, status
   ) values (
-    auth.uid(), 'heartspell-house', 'forms.ebgplus.app', trim(p_legal_name), p_age,
+    auth.uid(), v_show_id, 'forms.ebgplus.app', trim(p_legal_name), p_age,
     trim(p_city_state), v_email, trim(p_relationship_goals), trim(p_camera_comfort), 'New'
-  )
-  returning id into v_id;
+  ) returning id into v_id;
 
-  return v_id;
+  return jsonb_build_object('ok', true, 'id', v_id);
 end;
 $$;
 
-grant execute on function public.submit_public_casting_application(text, integer, text, text, text, text) to anon, authenticated;
+grant execute on function public.submit_public_casting_application(text, text, integer, text, text, text, text) to anon, authenticated;
