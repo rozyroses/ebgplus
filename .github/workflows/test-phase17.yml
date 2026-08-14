@@ -1,4 +1,4 @@
-name: Test EBG+ Phase 1.8
+name: Test EBG+ Phase 1.9
 
 on:
   push:
@@ -36,6 +36,8 @@ jobs:
         run: node scripts/apply-phase18-homepage-studio.mjs
       - name: Apply Phase 1.8 build cleanup
         run: node scripts/apply-phase18-buildfix.mjs
+      - name: Apply Phase 1.9 Coming Soon waitlist
+        run: node scripts/apply-phase19-coming-soon.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
