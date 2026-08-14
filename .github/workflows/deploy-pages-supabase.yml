@@ -34,6 +34,8 @@ jobs:
         run: node scripts/apply-auth-integration.mjs
       - name: Apply Supabase user-data integration
         run: node scripts/apply-userdata-integration.mjs
+      - name: Apply Phase 1.6 Studio integration
+        run: node scripts/apply-phase16-studio.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
