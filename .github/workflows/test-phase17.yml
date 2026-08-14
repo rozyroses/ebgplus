@@ -1,4 +1,4 @@
-name: Test EBG+ Phase 1.11
+name: Test EBG+ Phase 1.12
 
 on:
   push:
@@ -44,6 +44,10 @@ jobs:
         run: node scripts/apply-phase111-heartspell.mjs
       - name: Apply Phase 1.11 build fix
         run: node scripts/apply-phase111-buildfix.mjs
+      - name: Prepare Phase 1.12 integration
+        run: node scripts/prepare-phase112.mjs
+      - name: Apply Phase 1.12 universal Studio, polls, and forms
+        run: node scripts/apply-phase112-studio-polls-forms.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
