@@ -62,6 +62,8 @@ jobs:
         run: node scripts/apply-phase114-footer-pages.mjs
       - name: Apply Phase 1.15 cinematic homepage refresh
         run: node scripts/apply-phase115-homepage-refresh.mjs
+      - name: Apply Phase 1.16 premium auth experience
+        run: node scripts/apply-phase116-auth-experience.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
