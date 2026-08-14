@@ -1,0 +1,68 @@
+/* EBG+ Phase 1.19 — media delete controls + safer full-bleed hero framing */
+
+.studio-media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  align-items: center;
+  margin-top: .55rem;
+}
+
+.studio-media-actions .studio-replace-control {
+  margin: 0;
+}
+
+.studio-delete-media {
+  min-height: 40px;
+  padding: .62rem .9rem;
+  border: 1px solid rgba(255,110,110,.34);
+  border-radius: 999px;
+  background: rgba(120,20,20,.16);
+  color: #ffb5b5;
+  font-size: .76rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.studio-delete-media:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255,125,125,.65);
+  background: rgba(150,25,25,.24);
+}
+
+.studio-delete-media:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* Full-bleed viewer hero: prevent the banner area from ending early inside the centered page shell. */
+.home-v2 .home-featured-hero {
+  width: 100vw !important;
+  max-width: none !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  background-color: #030303;
+  background-repeat: no-repeat !important;
+}
+
+/* Contain mode is the safe default for artwork that already has titles/composition baked in. */
+.home-v2 .home-featured-hero[style*="background-size: contain"] {
+  background-color: #030303;
+}
+
+.studio-banner-focal-preview {
+  background-color: #030303;
+}
+
+@media (max-width: 700px) {
+  .studio-media-actions {
+    align-items: stretch;
+  }
+
+  .studio-media-actions .studio-replace-control,
+  .studio-delete-media {
+    width: 100%;
+    justify-content: center;
+  }
+}
