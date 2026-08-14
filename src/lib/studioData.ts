@@ -45,9 +45,14 @@ const safeSegment = (value: string) =>
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'file'
 
-export const uploadStudioMedia = async (file: File, folder: 'episodes' | 'thumbnails' | 'shows') => {
+export const uploadStudioMedia = async (file: File, folder: string) => {
   const session = requireSession()
   const stamp = Date.now()
-  const path = `${folder}/${stamp}-${safeSegment(file.name)}`
+  const safeFolder = folder
+    .split('/')
+    .map(safeSegment)
+    .filter(Boolean)
+    .join('/')
+  const path = `${safeFolder}/${stamp}-${safeSegment(file.name)}`
   return storage.uploadPublic('ebg-media', path, file, session.access_token)
 }

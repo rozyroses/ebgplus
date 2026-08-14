@@ -1,4 +1,4 @@
-name: Test EBG+ Phase 1.7
+name: Test EBG+ Phase 1.8
 
 on:
   push:
@@ -32,6 +32,10 @@ jobs:
         run: node scripts/apply-phase16-studio.mjs
       - name: Apply Phase 1.7 UI/media integration
         run: node scripts/apply-phase17-ui-media.mjs
+      - name: Apply Phase 1.8 homepage/Studio integration
+        run: node scripts/apply-phase18-homepage-studio.mjs
+      - name: Apply Phase 1.8 build cleanup
+        run: node scripts/apply-phase18-buildfix.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
