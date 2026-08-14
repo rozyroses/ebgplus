@@ -64,6 +64,8 @@ jobs:
         run: node scripts/apply-phase115-homepage-refresh.mjs
       - name: Apply Phase 1.16 premium auth experience
         run: node scripts/apply-phase116-auth-experience.mjs
+      - name: Apply universal transparent branding
+        run: node scripts/apply-universal-branding.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
