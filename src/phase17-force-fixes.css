@@ -1,0 +1,47 @@
+/* Force-load Phase 1.7 sizing fixes after the universal UI stylesheet. */
+.hero-banner,
+.hero-banner.small {
+  height: clamp(360px, 52vh, 620px) !important;
+  min-height: 0 !important;
+  max-height: 620px !important;
+  overflow: hidden !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.hero-banner .overlay {
+  min-height: 100% !important;
+  height: 100% !important;
+}
+
+.studio-page::before,
+.studio-page::after,
+.studio-page .panel::before {
+  display: none !important;
+  content: none !important;
+}
+
+.studio-page,
+.studio-page > .grid-2,
+.studio-page section.panel,
+.studio-page article.panel,
+.studio-page .form-grid {
+  border-radius: 22px !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.studio-page .panel::after {
+  width: 96px !important;
+  height: 96px !important;
+  border-radius: 0 !important;
+  opacity: .35 !important;
+}
+
+@media (max-width: 900px) {
+  .hero-banner,
+  .hero-banner.small {
+    height: clamp(320px, 46vh, 500px) !important;
+    max-height: 500px !important;
+  }
+}
