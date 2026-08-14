@@ -107,6 +107,14 @@ export const db = {
       headers: { Prefer: 'return=representation' },
     }, accessToken)
   },
+
+  async rpc<T>(functionName: string, args: Record<string, unknown> = {}, accessToken?: string): Promise<T> {
+    return request<T>(`/rest/v1/rpc/${encodeURIComponent(functionName)}`, {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(args),
+    }, accessToken)
+  },
 }
 
 const encodeStoragePath = (path: string) => path.split('/').map(encodeURIComponent).join('/')
