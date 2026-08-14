@@ -34,6 +34,8 @@ jobs:
         run: node scripts/apply-phase17-ui-media.mjs
       - name: Apply Phase 1.8 homepage/Studio integration
         run: node scripts/apply-phase18-homepage-studio.mjs
+      - name: Apply Phase 1.8 build cleanup
+        run: node scripts/apply-phase18-buildfix.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
