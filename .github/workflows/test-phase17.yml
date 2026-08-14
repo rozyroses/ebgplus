@@ -42,6 +42,8 @@ jobs:
         run: node scripts/apply-phase110-coming-soon-polish.mjs
       - name: Apply Phase 1.11 Heartspell House foundation
         run: node scripts/apply-phase111-heartspell.mjs
+      - name: Apply Phase 1.11 build fix
+        run: node scripts/apply-phase111-buildfix.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
