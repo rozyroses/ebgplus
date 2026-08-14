@@ -1,4 +1,4 @@
-name: Test EBG+ Phase 1.9
+name: Test EBG+ Phase 1.10
 
 on:
   push:
@@ -38,6 +38,8 @@ jobs:
         run: node scripts/apply-phase18-buildfix.mjs
       - name: Apply Phase 1.9 Coming Soon waitlist
         run: node scripts/apply-phase19-coming-soon.mjs
+      - name: Apply Phase 1.10 Coming Soon polish
+        run: node scripts/apply-phase110-coming-soon-polish.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
@@ -63,4 +65,4 @@ jobs:
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_ANON_KEY"
       - name: Build
-        run: npm run build -- --base=/ebgplus/
+        run: npm run build -- --base=/
