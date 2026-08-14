@@ -36,6 +36,8 @@ jobs:
         run: node scripts/apply-userdata-integration.mjs
       - name: Apply Phase 1.6 Studio integration
         run: node scripts/apply-phase16-studio.mjs
+      - name: Apply Phase 1.7 UI/media integration
+        run: node scripts/apply-phase17-ui-media.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
