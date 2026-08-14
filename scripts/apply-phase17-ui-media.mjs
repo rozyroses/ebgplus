@@ -28,4 +28,5 @@ source = source.replace('<label>Episode Video<input name="videoFile" type="file"
 source = source.replace('<main className="page">\n      <h1>EBG Studio</h1>', '<main className="page studio-page">\n      <p className="eyebrow">EBG production control center</p>\n      <h1>EBG Studio</h1>')
 
 fs.writeFileSync(path, source)
-console.log('Applied EBG+ Phase 1.7 UI/media upgrades.')
+await import('./apply-nav-cleanup.mjs')
+console.log('Applied EBG+ Phase 1.7 UI/media upgrades with organized navigation.')
