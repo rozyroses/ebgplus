@@ -1,0 +1,48 @@
+/* EBG+ universal transparent branding */
+
+.wordmark {
+  width: 116px;
+  height: 34px;
+  display: inline-block;
+  overflow: visible;
+  color: transparent !important;
+  font-size: 0 !important;
+  background-color: transparent !important;
+  background-image: url('/ebgplus-logo.svg') !important;
+  background-position: center !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  flex: 0 0 auto;
+}
+
+.auth-page .wordmark {
+  width: 180px;
+  height: 52px;
+}
+
+.ebg-launch-logo,
+.ebg-splash__logo,
+.brand-logo,
+.site-logo {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  object-fit: contain;
+}
+
+.logo-wrap,
+.brand-logo-wrap,
+.wordmark-wrap {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 900px) {
+  .wordmark {
+    width: 102px;
+    height: 30px;
+  }
+}
