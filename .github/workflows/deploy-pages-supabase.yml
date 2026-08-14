@@ -74,6 +74,8 @@ jobs:
         run: node scripts/apply-phase119-media-delete-hero-fit.mjs
       - name: Apply Phase 1.20 hero logo layout
         run: node scripts/apply-phase120-hero-logo-layout.mjs
+      - name: Apply Phase 1.21 Shows browse layout
+        run: node scripts/apply-phase121-shows-grid.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
