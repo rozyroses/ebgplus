@@ -1,0 +1,197 @@
+.coming-soon-page {
+  isolation: isolate;
+}
+
+.coming-soon-page::after {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .42;
+  background:
+    conic-gradient(from 210deg at 50% 50%, transparent, rgba(214,174,82,.08), transparent 34%, rgba(104,46,132,.08), transparent 70%);
+  animation: ebg-coming-orbit 24s linear infinite;
+}
+
+.coming-soon-card.ebg-launch-card {
+  width: min(1120px, 100%);
+  min-height: min(760px, calc(100vh - 64px));
+  padding: clamp(28px, 5vw, 68px);
+  justify-content: flex-start;
+  gap: 0;
+  background:
+    linear-gradient(145deg, rgba(14,14,14,.96), rgba(5,5,5,.985)),
+    #080808;
+}
+
+.ebg-launch-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 72% 16%, rgba(214,174,82,.14), transparent 28%),
+    linear-gradient(120deg, transparent 15%, rgba(255,255,255,.025) 46%, transparent 68%);
+}
+
+.ebg-launch-topbar,
+.ebg-launch-main,
+.ebg-launch-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.ebg-launch-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.ebg-launch-logo {
+  display: block;
+  width: clamp(120px, 14vw, 178px);
+  height: auto;
+  object-fit: contain;
+}
+
+.ebg-launch-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a9a39a;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.ebg-launch-status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d6ae52;
+  box-shadow: 0 0 0 5px rgba(214,174,82,.1), 0 0 18px rgba(214,174,82,.4);
+}
+
+.ebg-launch-main {
+  margin: auto 0;
+  padding: clamp(62px, 8vw, 112px) 0 clamp(42px, 6vw, 76px);
+}
+
+.ebg-launch-main .coming-soon-kicker {
+  margin: 0 0 18px;
+}
+
+.ebg-launch-main h1 {
+  max-width: 860px;
+  margin: 0;
+  font-size: clamp(3.8rem, 9vw, 8.8rem);
+  line-height: .86;
+  letter-spacing: -.07em;
+}
+
+.ebg-launch-main h1 span {
+  display: block;
+  color: #d9b968;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -.055em;
+}
+
+.ebg-launch-main .coming-soon-copy {
+  max-width: 700px;
+  margin: 30px 0 36px;
+  font-size: clamp(1.02rem, 1.8vw, 1.3rem);
+}
+
+.ebg-launch-pillars {
+  width: min(760px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+  margin: 0 0 30px;
+}
+
+.ebg-launch-pillar {
+  padding: 14px 16px;
+  border: 1px solid rgba(214,174,82,.15);
+  border-radius: 16px;
+  color: #b8b1a7;
+  background: rgba(255,255,255,.022);
+  font-size: .82rem;
+}
+
+.ebg-launch-pillar strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #f3eee4;
+  font-size: .9rem;
+}
+
+.ebg-launch-card .waitlist-form {
+  width: min(720px, 100%);
+  backdrop-filter: blur(16px);
+}
+
+.ebg-launch-card .waitlist-form input {
+  color: #f5efe5;
+}
+
+.ebg-launch-card .waitlist-form input::placeholder {
+  color: #777168;
+}
+
+.ebg-launch-card .waitlist-status.success {
+  padding: 12px 14px;
+  border: 1px solid rgba(214,174,82,.22);
+  border-radius: 14px;
+  background: rgba(214,174,82,.07);
+}
+
+.ebg-launch-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(214,174,82,.1);
+}
+
+.ebg-launch-footer-copy {
+  margin: 0;
+  max-width: 580px;
+  color: #6f6a63;
+  font-size: .74rem;
+  line-height: 1.6;
+}
+
+.ebg-launch-footer .coming-soon-signin {
+  margin: 0;
+  text-align: right;
+}
+
+@keyframes ebg-coming-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coming-soon-page::after { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .coming-soon-card.ebg-launch-card {
+    min-height: calc(100vh - 28px);
+    padding: 26px 22px;
+  }
+
+  .ebg-launch-status { display: none; }
+  .ebg-launch-main { padding: 64px 0 42px; }
+  .ebg-launch-main h1 { font-size: clamp(3.4rem, 17vw, 6rem); }
+  .ebg-launch-pillars { grid-template-columns: 1fr; }
+  .ebg-launch-footer { align-items: flex-start; flex-direction: column; }
+  .ebg-launch-footer .coming-soon-signin { text-align: left; }
+}
