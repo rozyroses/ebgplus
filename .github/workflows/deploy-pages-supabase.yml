@@ -66,6 +66,8 @@ jobs:
         run: node scripts/apply-phase116-auth-experience.mjs
       - name: Apply universal transparent branding
         run: node scripts/apply-universal-branding.mjs
+      - name: Apply Phase 1.17 Studio workspace polish
+        run: node scripts/apply-phase117-studio-polish.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
