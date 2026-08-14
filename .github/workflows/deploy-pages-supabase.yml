@@ -58,6 +58,8 @@ jobs:
         run: node scripts/apply-forms-domain-redirect.mjs
       - name: Apply Phase 1.13 My Applications tracker
         run: node scripts/apply-phase113-my-applications.mjs
+      - name: Apply Phase 1.14 real footer pages
+        run: node scripts/apply-phase114-footer-pages.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
