@@ -99,7 +99,7 @@ const landingPage = `function LandingPage({ cms }: { cms: CmsData }) {
           </div>
           <div className="public-preview-grid">
             {previewShows.map((show) => (
-              <article key={show.id} className="public-preview-card" style={{ backgroundImage: `url(${show.banner || show.artwork})` }}>
+              <article key={show.id} className="public-preview-card" style={{ backgroundImage: 'url(' + (show.banner || show.artwork) + ')' }}>
                 <div>
                   <span>{show.status}</span>
                   <h3>{show.title}</h3>
