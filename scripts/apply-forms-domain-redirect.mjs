@@ -13,12 +13,17 @@ if (!source.includes(marker)) {
   throw new Error('EBG Forms redirect patch failed: forms component marker not found')
 }
 
-if (!source.includes('window.location.replace(\'https://forms.ebgplus.app\')')) {
+if (!source.includes("window.location.replace('https://forms.ebgplus.app')")) {
   source = source.replace(
     marker,
     `${marker}\n  useEffect(() => {\n    window.location.replace('https://forms.ebgplus.app')\n  }, [])`,
   )
 }
 
+source = source.replaceAll(
+  '<Link to="/app/casting">Casting</Link>',
+  '<a href="https://forms.ebgplus.app">Casting</a>',
+)
+
 fs.writeFileSync(path, source)
-console.log('EBG Forms domain redirect applied')
+console.log('EBG Forms domain redirect and Casting links applied')
