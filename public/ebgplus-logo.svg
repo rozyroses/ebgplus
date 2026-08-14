@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title desc">
+  <title id="title">EBG+</title>
+  <desc id="desc">Transparent antique gold EBG+ wordmark</desc>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff1bd"/>
+      <stop offset="0.34" stop-color="#d6ae52"/>
+      <stop offset="0.68" stop-color="#f1d889"/>
+      <stop offset="1" stop-color="#9a7025"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#gold)">
+    <text x="12" y="111" font-family="Georgia, 'Times New Roman', serif" font-size="112" font-weight="700" letter-spacing="-5">EBG</text>
+    <path d="M414 38h20v29h29v20h-29v29h-20V87h-29V67h29z"/>
+  </g>
+</svg>
