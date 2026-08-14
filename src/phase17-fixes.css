@@ -1,0 +1,70 @@
+/* Phase 1.7 sizing fixes: keep Shows cinematic without letting artwork take over the viewport. */
+
+/* Constrain hero banners across content pages, especially Shows. */
+.hero-banner,
+.hero-banner.small {
+  height: clamp(360px, 52vh, 620px) !important;
+  min-height: 0 !important;
+  max-height: 620px !important;
+  overflow: hidden !important;
+}
+
+.hero-banner > img,
+.hero-banner img,
+.hero-banner > video,
+.hero-banner video {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 620px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* Keep the Shows page artwork from stretching the page vertically. */
+.page .hero-banner:first-child {
+  margin-bottom: 2rem;
+}
+
+/* Remove the oversized decorative Studio glow/blob that reads like a giant circle. */
+.studio-page::before,
+.studio-page::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Panels can keep their subtle corner glow, but never render oversized shapes. */
+.studio-page .panel::before {
+  display: none !important;
+  content: none !important;
+}
+
+.studio-page .panel::after {
+  width: 110px !important;
+  height: 110px !important;
+  border-radius: 0 !important;
+  opacity: .55;
+}
+
+/* Make Studio sections feel contained and stop any decoration/form from spilling out. */
+.studio-page,
+.studio-page .panel,
+.studio-page .form-grid,
+.studio-page .grid-2 {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .hero-banner,
+  .hero-banner.small {
+    height: clamp(320px, 48vh, 500px) !important;
+    max-height: 500px !important;
+  }
+
+  .hero-banner > img,
+  .hero-banner img,
+  .hero-banner > video,
+  .hero-banner video {
+    max-height: 500px !important;
+  }
+}
