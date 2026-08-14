@@ -56,6 +56,8 @@ jobs:
         run: node scripts/apply-phase112-studio-polls-forms.mjs
       - name: Redirect EBG Forms to custom domain
         run: node scripts/apply-forms-domain-redirect.mjs
+      - name: Apply Phase 1.13 My Applications tracker
+        run: node scripts/apply-phase113-my-applications.mjs
       - name: Remove legacy auth leftovers
         run: |
           python - <<'PY'
