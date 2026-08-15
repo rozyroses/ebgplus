@@ -1,0 +1,97 @@
+/* EBG+ Phase 1.30 — combined Production Workspace, separate Homepage + Casting */
+
+/* On Production Workspace, stack every production section in the main content column. */
+.studio-route-production .ebg-studio-hub > .ebg-studio-grid,
+.studio-route-production .ebg-studio-hub > .studio-notifications-v2,
+.studio-route-production .ebg-studio-hub > div:not(.ebg-studio-head),
+.studio-route-production .ebg-studio-hub > p.studio-help {
+  grid-column: 2;
+  grid-row: auto;
+  margin-bottom: 20px;
+}
+
+.studio-route-production .ebg-studio-hub > .studio-workspace-sidebar {
+  grid-column: 1;
+  grid-row: 2 / span 20;
+}
+
+.studio-route-production .ebg-studio-grid,
+.studio-route-production .studio-notifications-v2,
+.studio-route-production .ebg-studio-hub > div:not(.ebg-studio-head) {
+  padding: 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.065);
+  background: rgba(255,255,255,.018);
+}
+
+/* Production Workspace gets the full working Show + Episode managers too. */
+.studio-route-production .legacy-show-manager,
+.studio-route-production .legacy-episode-manager {
+  display: block !important;
+  max-width: calc(100% - 258px);
+  margin: 24px 0 0 258px;
+  padding: 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.065);
+  background: rgba(255,255,255,.018);
+}
+
+.studio-route-production .legacy-show-manager > h2,
+.studio-route-production .legacy-episode-manager > h2 {
+  margin-top: 0;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+}
+
+/* Homepage and Casting remain intentionally excluded from Production Workspace. */
+.studio-route-production > .grid-2,
+.studio-route-production .legacy-home-manager,
+.studio-route-production .legacy-casting-manager {
+  display: none !important;
+}
+
+/* Homepage editing is a dedicated page. */
+.studio-route-homepage > .grid-2 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.studio-route-homepage .legacy-casting-manager { display: none !important; }
+
+/* Casting pipeline is a dedicated page and should not surface homepage tools. */
+.studio-route-casting > .grid-2 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  max-width: calc(100% - 258px);
+  margin: 24px 0 0 258px;
+}
+.studio-route-casting .legacy-home-manager { display: none !important; }
+.studio-route-casting .legacy-casting-manager { display: block !important; }
+
+@media (max-width: 980px) {
+  .studio-route-production .ebg-studio-hub > .ebg-studio-grid,
+  .studio-route-production .ebg-studio-hub > .studio-notifications-v2,
+  .studio-route-production .ebg-studio-hub > div:not(.ebg-studio-head),
+  .studio-route-production .ebg-studio-hub > p.studio-help,
+  .studio-route-production .ebg-studio-hub > .studio-workspace-sidebar {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .studio-route-production .legacy-show-manager,
+  .studio-route-production .legacy-episode-manager,
+  .studio-route-casting > .grid-2 {
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .studio-route-production .ebg-studio-grid,
+  .studio-route-production .studio-notifications-v2,
+  .studio-route-production .ebg-studio-hub > div:not(.ebg-studio-head),
+  .studio-route-production .legacy-show-manager,
+  .studio-route-production .legacy-episode-manager,
+  .studio-route-casting > .grid-2 {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
