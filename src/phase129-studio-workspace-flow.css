@@ -1,0 +1,307 @@
+/* EBG+ Phase 1.29 — true workspace-style Studio navigation + guided episode upload */
+
+.studio-route {
+  max-width: 1540px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 2.2vw, 34px);
+}
+
+.ebg-studio-hub {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  column-gap: 28px;
+  row-gap: 0;
+  min-height: 72vh;
+  align-items: start;
+}
+
+.ebg-studio-head {
+  grid-column: 1 / -1;
+  margin-bottom: 24px;
+  padding: 26px 28px;
+  border: 1px solid rgba(216,181,109,.14);
+  border-radius: 26px;
+  background: linear-gradient(135deg, rgba(46,26,31,.76), rgba(12,12,13,.94));
+}
+
+.ebg-studio-head h2 {
+  margin: 5px 0 8px;
+  font-size: clamp(2rem, 3.4vw, 3.3rem);
+}
+
+.ebg-studio-head p:last-child {
+  max-width: 680px;
+  color: #aaa29d;
+  line-height: 1.55;
+}
+
+.studio-workspace-sidebar {
+  grid-column: 1;
+  grid-row: 2;
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(216,181,109,.12);
+  border-radius: 20px;
+  background: rgba(9,9,10,.94);
+  backdrop-filter: blur(18px);
+}
+
+.studio-workspace-sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  color: #aaa39f;
+  text-decoration: none;
+  font-weight: 720;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.studio-workspace-sidebar a:hover {
+  color: #fff7e8;
+  background: rgba(255,255,255,.045);
+  transform: translateX(2px);
+}
+
+.studio-workspace-sidebar a.active {
+  color: #fff7e8;
+  background: linear-gradient(90deg, rgba(216,181,109,.18), rgba(216,181,109,.055));
+  box-shadow: inset 0 0 0 1px rgba(216,181,109,.16);
+}
+
+.studio-workspace-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: #58504c;
+}
+
+.studio-workspace-sidebar a.active .studio-workspace-dot {
+  background: #d8b56d;
+  box-shadow: 0 0 14px rgba(216,181,109,.55);
+}
+
+/* Only the selected route's conditional workspace is mounted in this column. */
+.ebg-studio-hub > .studio-page-overview,
+.ebg-studio-hub > .ebg-studio-grid,
+.ebg-studio-hub > .studio-notifications-v2,
+.ebg-studio-hub > div:not(.ebg-studio-head),
+.ebg-studio-hub > p.studio-help {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.studio-page-overview,
+.ebg-studio-grid,
+.studio-notifications-v2,
+.ebg-studio-hub > div:not(.ebg-studio-head) {
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,.065);
+  border-radius: 24px;
+  background: rgba(255,255,255,.018);
+}
+
+/* Legacy managers are now treated as the focused content body for their routed workspace. */
+.studio-route-series .legacy-show-manager,
+.studio-route-media .legacy-show-manager,
+.studio-route-episodes .legacy-episode-manager,
+.studio-route-homepage > .grid-2 {
+  max-width: calc(100% - 258px);
+  margin: 24px 0 0 258px;
+  padding: 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.065);
+  background: rgba(255,255,255,.018);
+}
+
+.studio-route-series .legacy-show-manager > h2,
+.studio-route-media .legacy-show-manager > h2,
+.studio-route-episodes .legacy-episode-manager > h2 {
+  margin-top: 0;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+}
+
+/* Episode upload wizard */
+.studio-upload-flow-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 32px 0 14px;
+  padding-top: 26px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.studio-upload-flow-head h3 {
+  margin: 4px 0 7px;
+  font-size: clamp(1.7rem, 2.8vw, 2.35rem);
+}
+
+.studio-upload-flow-head p:last-child {
+  margin: 0;
+  color: #9f9792;
+}
+
+.studio-upload-flow-head > span {
+  flex: 0 0 auto;
+  color: #d8b56d;
+  font-size: .82rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.studio-upload-progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.studio-upload-progress span {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255,255,255,.09);
+}
+
+.studio-upload-progress span.active {
+  background: #d8b56d;
+}
+
+.studio-upload-flow {
+  padding: 24px;
+  border: 1px solid rgba(216,181,109,.12);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(42,26,30,.36), rgba(10,10,11,.88));
+}
+
+.studio-upload-flow .upload-step {
+  display: none;
+}
+
+.studio-upload-flow.step-1 .upload-step-1,
+.studio-upload-flow.step-2 .upload-step-2,
+.studio-upload-flow.step-3 .upload-step-3,
+.studio-upload-flow.step-4 .upload-step-4 {
+  display: block;
+}
+
+.upload-step-copy {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.upload-step-copy > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 13px;
+  background: rgba(216,181,109,.12);
+  color: #d8b56d;
+  font-weight: 850;
+  font-size: .78rem;
+}
+
+.upload-step-copy h4 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.upload-step-copy p {
+  margin: 0;
+  color: #9e9691;
+  line-height: 1.5;
+}
+
+.upload-step-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+}
+
+.upload-step-fields .full {
+  grid-column: 1 / -1;
+}
+
+.studio-upload-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.studio-flow-publish-actions {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+@media (max-width: 980px) {
+  .ebg-studio-hub {
+    grid-template-columns: 1fr;
+  }
+
+  .ebg-studio-head,
+  .studio-workspace-sidebar,
+  .ebg-studio-hub > .studio-page-overview,
+  .ebg-studio-hub > .ebg-studio-grid,
+  .ebg-studio-hub > .studio-notifications-v2,
+  .ebg-studio-hub > div:not(.ebg-studio-head),
+  .ebg-studio-hub > p.studio-help {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .studio-workspace-sidebar {
+    position: sticky;
+    top: 72px;
+    z-index: 18;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 18px;
+  }
+
+  .studio-workspace-sidebar::-webkit-scrollbar { display: none; }
+  .studio-workspace-sidebar a { white-space: nowrap; }
+
+  .studio-route-series .legacy-show-manager,
+  .studio-route-media .legacy-show-manager,
+  .studio-route-episodes .legacy-episode-manager,
+  .studio-route-homepage > .grid-2 {
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .studio-route { padding-inline: 12px; }
+  .ebg-studio-head { padding: 20px; border-radius: 20px; }
+  .studio-page-overview,
+  .ebg-studio-grid,
+  .studio-notifications-v2,
+  .ebg-studio-hub > div:not(.ebg-studio-head),
+  .studio-route-series .legacy-show-manager,
+  .studio-route-media .legacy-show-manager,
+  .studio-route-episodes .legacy-episode-manager,
+  .studio-route-homepage > .grid-2 { padding: 18px; border-radius: 18px; }
+  .upload-step-fields { grid-template-columns: 1fr; }
+  .upload-step-fields .full { grid-column: auto; }
+  .studio-upload-flow-head { align-items: flex-start; flex-direction: column; }
+  .studio-upload-flow { padding: 18px; }
+}
