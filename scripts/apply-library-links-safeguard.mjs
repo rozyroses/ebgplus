@@ -8,8 +8,8 @@ if (!menuMatch) throw new Error('Library safeguard failed: Library dropdown not 
 
 let menu = menuMatch[0]
 
-// Normalize the Library menu so these viewer destinations cannot disappear as later phases patch App.tsx.
-menu = menu.replace(/\s*<Link to="\/app\/my-applications">My Applications<\/Link>/g, '')
+// Normalize Library destinations so later phases cannot remove or duplicate them.
+menu = menu.replace(/\s*<Link to="\/app\/(?:my-applications|applications)">My Applications<\/Link>/g, '')
 menu = menu.replace(/\s*<Link to="\/app\/casting">Casting<\/Link>/g, '')
 menu = menu.replace(/\s*<a href="https:\/\/forms\.ebgplus\.app">Casting<\/a>/g, '')
 
@@ -18,7 +18,7 @@ if (!menu.includes(myListNeedle)) throw new Error('Library safeguard failed: My 
 
 menu = menu.replace(
   myListNeedle,
-  `${myListNeedle}\n              <Link to="/app/my-applications">My Applications</Link>`,
+  `${myListNeedle}\n              <Link to="/app/applications">My Applications</Link>`,
 )
 
 const notificationsNeedle = '<Link to="/app/notifications">Notifications</Link>'
@@ -29,8 +29,8 @@ if (menu.includes(notificationsNeedle)) {
   )
 } else {
   menu = menu.replace(
-    '<Link to="/app/my-applications">My Applications</Link>',
-    '<Link to="/app/my-applications">My Applications</Link>\n              <a href="https://forms.ebgplus.app">Casting</a>',
+    '<Link to="/app/applications">My Applications</Link>',
+    '<Link to="/app/applications">My Applications</Link>\n              <a href="https://forms.ebgplus.app">Casting</a>',
   )
 }
 
