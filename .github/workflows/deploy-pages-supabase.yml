@@ -94,6 +94,8 @@ jobs:
         run: node scripts/apply-phase128-studio-pages.mjs
       - name: Apply Phase 1.29 Studio workspace flow
         run: node scripts/apply-phase129-studio-workspace-flow.mjs
+      - name: Apply Phase 1.30 combined Production Workspace
+        run: node scripts/apply-phase130-production-workspace.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
