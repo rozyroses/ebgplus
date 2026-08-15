@@ -1,0 +1,86 @@
+/* EBG+ Phase 1.25 — episode publishing workflow */
+
+.episode-publish-meta,
+.episode-media-actions,
+.episode-publish-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .65rem;
+}
+
+.episode-publish-meta {
+  margin: .7rem 0 1rem;
+  color: rgba(255,255,255,.68);
+  font-size: .9rem;
+}
+
+.episode-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: .2rem .7rem;
+  border: 1px solid rgba(214,172,73,.28);
+  border-radius: 999px;
+  background: rgba(214,172,73,.08);
+  color: #e7c66c;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.episode-status-pill.live {
+  border-color: rgba(106, 220, 152, .32);
+  background: rgba(106, 220, 152, .10);
+  color: #a8efc3;
+}
+
+.episode-status-pill.draft {
+  border-color: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.72);
+}
+
+.episode-status-pill.archived {
+  opacity: .62;
+}
+
+.episode-media-actions {
+  margin: 1rem 0;
+}
+
+.episode-file-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.episode-file-button input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.episode-publish-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  margin-top: .25rem;
+}
+
+@media (max-width: 700px) {
+  .episode-media-actions,
+  .episode-publish-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .episode-media-actions .btn,
+  .episode-publish-actions .btn,
+  .episode-file-button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
