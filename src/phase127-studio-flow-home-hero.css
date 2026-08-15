@@ -1,0 +1,99 @@
+/* EBG+ Phase 1.27 — guided Studio workflow + calmer homepage hero copy */
+
+.home-v2 .home-featured-hero .overlay {
+  justify-content: flex-end !important;
+  padding-top: clamp(4.5rem, 9vw, 7rem) !important;
+  padding-bottom: clamp(2.25rem, 4vw, 3.5rem) !important;
+}
+
+.home-v2 .home-featured-hero .hero-copy {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 520px;
+  line-height: 1.55;
+}
+
+.home-v2 .home-featured-hero .home-hero-title-logo {
+  width: min(190px, 68%) !important;
+  max-height: 96px !important;
+}
+
+.ebg-studio-head {
+  align-items: end;
+}
+
+.ebg-studio-tabs {
+  position: sticky;
+  top: 86px;
+  z-index: 8;
+  padding: .7rem;
+  border: 1px solid rgba(216,181,109,.14);
+  border-radius: 18px;
+  background: rgba(7,7,8,.92);
+  backdrop-filter: blur(18px);
+}
+
+.studio-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.studio-flow-card {
+  min-height: 170px;
+  padding: 22px;
+  text-align: left;
+  border: 1px solid rgba(216,181,109,.16);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(45,29,18,.34), rgba(12,10,10,.88));
+  color: inherit;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.studio-flow-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(216,181,109,.42);
+  background: linear-gradient(145deg, rgba(65,43,24,.42), rgba(15,12,12,.92));
+}
+
+.studio-flow-card span {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 26px;
+  border-radius: 999px;
+  background: rgba(216,181,109,.12);
+  color: #d8b56d;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.studio-flow-card strong {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 1.15rem;
+}
+
+.studio-flow-card small {
+  display: block;
+  color: #aaa29d;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .studio-flow-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .ebg-studio-tabs { top: 72px; overflow-x: auto; flex-wrap: nowrap; }
+}
+
+@media (max-width: 620px) {
+  .studio-flow-grid { grid-template-columns: 1fr; }
+  .studio-flow-card { min-height: 145px; }
+  .home-v2 .home-featured-hero .hero-copy { -webkit-line-clamp: 3; }
+  .home-v2 .home-featured-hero .home-hero-title-logo { width: min(165px, 58vw) !important; }
+}
