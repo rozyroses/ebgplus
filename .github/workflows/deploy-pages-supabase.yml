@@ -80,6 +80,8 @@ jobs:
         run: node scripts/apply-phase122-notifications2.mjs
       - name: Apply Phase 1.22 build cleanup
         run: node scripts/apply-phase122-buildfix.mjs
+      - name: Apply Phase 1.23 automatic casting alerts
+        run: node scripts/apply-phase123-casting-status-alerts.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
