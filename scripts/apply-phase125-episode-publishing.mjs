@@ -39,8 +39,8 @@ must(
 )
 
 must(
-  `        thumbnail: thumbnail || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80',\n        videoUrl,`,
-  `        thumbnail: thumbnail || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80',\n        videoUrl,\n        publishStatus: action,`,
+  /(const episode: Episode = \{[\s\S]*?\n\s*videoUrl,)(\n\s*\})/,
+  `$1\n        publishStatus: action,$2`,
   'episode status creation',
 )
 
