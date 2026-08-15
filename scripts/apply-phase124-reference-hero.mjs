@@ -11,8 +11,8 @@ const must = (pattern, replacement, label) => {
 }
 
 must(
-  "import './phase123-casting-status-alerts.css'",
-  "import './phase123-casting-status-alerts.css'\nimport './phase124-reference-hero.css'\n\n// EBG_PHASE124_REFERENCE_HERO",
+  "import './phase122-notifications2.css'",
+  "import './phase122-notifications2.css'\nimport './phase124-reference-hero.css'\n\n// EBG_PHASE124_REFERENCE_HERO",
   'styles import',
 )
 
