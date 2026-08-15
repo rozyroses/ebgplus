@@ -16,12 +16,11 @@ must(
   'styles import',
 )
 
-// Phase 1.28 changes only the Studio path text while preserving the original
-// multiline <Route> structure. Match that actual generated route instead of
-// assuming the route is rendered on one line.
+// Insert Management beside a stable AppLayout route that is not rewritten by
+// the Studio transformation chain. This avoids depending on Studio JSX shape.
 must(
-  /(\s*<Route\s+path="studio\/:studioSection\?"\s+element=\{[\s\S]*?<StudioPage[\s\S]*?<\/Route>)/,
-  `\n        <Route path="management" element={<ManagementPage account={account} cms={cms} castingApps={castingApps} onUpdateCms={onUpdateCms} onUpdateCastingStatus={onUpdateCastingStatus} />} />$1`,
+  '<Route path="partnerships" element={<PartnershipsPage />} />',
+  '<Route path="partnerships" element={<PartnershipsPage />} />\n        <Route path="management" element={<ManagementPage account={account} cms={cms} castingApps={castingApps} onUpdateCms={onUpdateCms} onUpdateCastingStatus={onUpdateCastingStatus} />} />',
   'Management route',
 )
 
