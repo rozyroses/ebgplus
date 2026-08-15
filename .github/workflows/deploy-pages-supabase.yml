@@ -131,6 +131,12 @@ jobs:
         run: |
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_ANON_KEY"
+      - name: Diagnose transformed App syntax
+        run: |
+          echo '--- App.tsx 2360-2420 ---'
+          nl -ba src/App.tsx | sed -n '2360,2420p'
+          echo '--- App.tsx 2421-2460 ---'
+          nl -ba src/App.tsx | sed -n '2421,2460p'
       - name: Build
         run: npm run build -- --base=/
       - name: Add SPA fallback
