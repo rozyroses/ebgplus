@@ -104,6 +104,8 @@ jobs:
         run: node scripts/apply-phase133-management-cleanup.mjs
       - name: Apply Phase 1.34 Studio syntax rebuild
         run: node scripts/apply-phase134-studio-syntax-rebuild.mjs
+      - name: Apply Phase 1.35 Studio render fix
+        run: node scripts/apply-phase135-studio-render-fix.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
