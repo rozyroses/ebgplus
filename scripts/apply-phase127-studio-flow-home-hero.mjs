@@ -16,6 +16,15 @@ must(
   'styles import',
 )
 
+// Keep the homepage hero clean: title art + metadata + actions only.
+source = source.replace(/\n\s*<p className="hero-copy">\{hero\.description\}<\/p>/, '')
+
+// Keep My Applications on the canonical viewer route.
+source = source.replace(
+  '<Link to="/app/my-applications">My Applications →</Link>',
+  '<Link to="/app/applications">My Applications →</Link>',
+)
+
 source = source.replace(
   'Create and schedule new episodes in the existing Episode Manager below. This workspace keeps each series organized.',
   'Episode publishing tools are available in the dedicated Episodes workspace.'
