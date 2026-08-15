@@ -100,6 +100,8 @@ jobs:
         run: node scripts/apply-phase131-studio-visual-redesign.mjs
       - name: Apply Phase 1.32 EBG Studio 2.0
         run: node scripts/apply-phase132-studio2.mjs
+      - name: Apply Phase 1.33 Management cleanup
+        run: node scripts/apply-phase133-management-cleanup.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
