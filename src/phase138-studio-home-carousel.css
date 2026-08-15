@@ -1,0 +1,130 @@
+/* EBG+ Phase 1.38 — final Studio cleanup + rotating homepage hero */
+
+/* The legacy Studio UI is structurally removed by the Phase 1.38 script.
+   Keep this safeguard so no old manager can flash during routing. */
+.studio-route > .grid-2,
+.studio-route > .legacy-home-manager,
+.studio-route > .legacy-casting-manager,
+.studio-route > .legacy-show-manager,
+.studio-route > .legacy-episode-manager {
+  display: none !important;
+}
+
+.home-carousel-hero {
+  position: relative;
+  min-height: min(76vh, 760px);
+  overflow: hidden;
+  background-repeat: no-repeat;
+  isolation: isolate;
+  animation: ebgHeroFade .42s ease both;
+}
+
+.home-carousel-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, rgba(4,4,5,.94) 0%, rgba(4,4,5,.72) 32%, rgba(4,4,5,.18) 66%, rgba(4,4,5,.36) 100%),
+    linear-gradient(0deg, rgba(4,4,5,.9) 0%, transparent 42%);
+  pointer-events: none;
+}
+
+.home-carousel-overlay {
+  position: relative;
+  z-index: 1;
+  min-height: min(76vh, 760px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 680px;
+  padding: clamp(48px, 8vw, 104px);
+}
+
+.home-carousel-logo {
+  display: block;
+  width: min(460px, 75vw);
+  max-height: 220px;
+  object-fit: contain;
+  object-position: left center;
+  margin: 16px 0 14px;
+  filter: drop-shadow(0 10px 28px rgba(0,0,0,.52));
+}
+
+.home-carousel-title-fallback {
+  max-width: 620px;
+  margin: 16px 0 10px;
+  font-size: clamp(3rem, 7vw, 6.8rem);
+  line-height: .9;
+}
+
+.home-carousel-controls {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 999px;
+  background: rgba(5,5,6,.58);
+  backdrop-filter: blur(14px);
+}
+
+.home-carousel-arrow {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.home-carousel-arrow:hover { background: rgba(216,181,109,.2); }
+
+.home-carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.home-carousel-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.38);
+  cursor: pointer;
+  transition: width .18s ease, background .18s ease;
+}
+
+.home-carousel-dots button.active {
+  width: 24px;
+  background: #d8b56d;
+}
+
+@keyframes ebgHeroFade {
+  from { opacity: .55; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel-hero { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .home-carousel-hero,
+  .home-carousel-overlay { min-height: 66vh; }
+  .home-carousel-overlay { padding: 46px 22px 88px; }
+  .home-carousel-logo { width: min(320px, 78vw); max-height: 160px; }
+  .home-carousel-controls { bottom: 16px; }
+}
