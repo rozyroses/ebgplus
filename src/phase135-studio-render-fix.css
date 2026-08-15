@@ -1,0 +1,13 @@
+/* EBG+ Phase 1.35 — make the deployed Studio 2.0 shell visible and let routed legacy managers surface */
+
+/* Phase 1.33 hid the entire legacy manager parent. Keep the parent available so
+   Show Manager / Episode Manager can be revealed on their routed workspaces. */
+.studio-route > .grid-2 {
+  display: block !important;
+}
+
+/* Homepage and casting operations now live in Library → Management. */
+.studio-route .legacy-home-manager,
+.studio-route .legacy-casting-manager {
+  display: none !important;
+}
