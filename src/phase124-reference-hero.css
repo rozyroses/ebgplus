@@ -1,0 +1,99 @@
+/* EBG+ Phase 1.24 — reference-style featured hero */
+
+.home-v2 .home-featured-hero {
+  position: relative;
+  min-height: clamp(360px, 42vw, 520px);
+  margin: 0 1.4rem;
+  border-radius: 28px;
+  overflow: hidden;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-color: #050505;
+}
+
+.home-v2 .home-featured-hero::before {
+  background:
+    linear-gradient(90deg, rgba(3,3,4,.97) 0%, rgba(3,3,4,.88) 22%, rgba(3,3,4,.58) 42%, rgba(3,3,4,.16) 68%, rgba(3,3,4,.03) 100%),
+    linear-gradient(0deg, rgba(3,3,4,.52) 0%, rgba(3,3,4,0) 38%) !important;
+}
+
+.home-v2 .home-featured-hero .overlay {
+  position: relative;
+  z-index: 2;
+  width: min(520px, 44%);
+  padding: clamp(2rem, 5vw, 4.25rem);
+  padding-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.home-hero-floating-logo {
+  display: none !important;
+}
+
+.home-hero-title-logo {
+  display: block;
+  width: min(220px, 76%);
+  max-height: 112px;
+  object-fit: contain;
+  object-position: left center;
+  margin: 0 0 1rem;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.5));
+}
+
+.home-v2 .home-featured-hero .overlay h1 {
+  max-width: 440px;
+  margin-bottom: .9rem;
+}
+
+.home-v2 .home-featured-hero .overlay p {
+  max-width: 470px;
+}
+
+.home-v2 .home-featured-hero .overlay .actions {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+
+@media (max-width: 980px) {
+  .home-v2 .home-featured-hero .overlay {
+    width: min(560px, 62%);
+    padding: 2.4rem;
+  }
+
+  .home-hero-title-logo {
+    width: min(200px, 72%);
+    max-height: 100px;
+  }
+}
+
+@media (max-width: 700px) {
+  .home-v2 .home-featured-hero {
+    min-height: 470px;
+    margin: 0 .85rem;
+    border-radius: 22px;
+    background-position: 62% center !important;
+  }
+
+  .home-v2 .home-featured-hero::before {
+    background:
+      linear-gradient(0deg, rgba(3,3,4,.98) 0%, rgba(3,3,4,.84) 42%, rgba(3,3,4,.34) 70%, rgba(3,3,4,.08) 100%) !important;
+  }
+
+  .home-v2 .home-featured-hero .overlay {
+    width: 100%;
+    min-height: 470px;
+    padding: 2rem 1.35rem;
+    justify-content: flex-end;
+  }
+
+  .home-hero-title-logo {
+    width: min(180px, 60vw);
+    max-height: 88px;
+  }
+}
