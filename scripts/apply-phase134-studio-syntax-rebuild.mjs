@@ -8,6 +8,17 @@ const importNeedle = "import './phase133-management-cleanup.css'"
 if (!source.includes(importNeedle)) throw new Error('Phase 1.34 requires Phase 1.33 styles import')
 source = source.replace(importNeedle, `${importNeedle}\n\n// EBG_PHASE134_STUDIO_SYNTAX_REBUILD`)
 
+// Studio 2.0 no longer creates/updates/deletes polls directly. Keep the
+// viewer-side poll helpers, but remove the three stale imports so strict
+// TypeScript builds do not fail on unused symbols.
+source = source.replace(
+  'createPoll, deletePoll, ',
+  '',
+).replace(
+  ', updatePoll',
+  '',
+)
+
 const hubStart = source.indexOf('function EbgStudioHub(')
 const hubEnd = source.indexOf('\nfunction ManagementPage(', hubStart)
 if (hubStart < 0 || hubEnd < 0) throw new Error('Phase 1.34 could not locate Studio hub boundaries')
