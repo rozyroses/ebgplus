@@ -112,6 +112,8 @@ jobs:
         run: node scripts/apply-phase137-studio-buildfix.mjs
       - name: Apply Phase 1.38 Studio cleanup and homepage carousel
         run: node scripts/apply-phase138-studio-home-carousel.mjs
+      - name: Apply Phase 1.39 legacy waitlist cleanup
+        run: node scripts/apply-phase139-remove-legacy-waitlist.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
