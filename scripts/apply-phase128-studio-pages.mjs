@@ -34,38 +34,36 @@ const seriesNeedle = `      {tab === 'series' &&`
 const overview = `      {tab === 'overview' && <div className="studio-page-overview">\n        <div className="studio-page-title"><div><p className="eyebrow">EBG Studio</p><h3>Choose a workspace</h3><p>Every part of EBG+ now has its own Studio page so you can focus on one job at a time.</p></div></div>\n        <div className="studio-page-launcher">\n          {tabs.filter(([id]) => id !== 'overview').map(([id,label], index) => <button className="studio-page-launch-card" type="button" key={id} onClick={() => setTab(id)}><span>{String(index + 1).padStart(2,'0')}</span><strong>{label}</strong><small>{id === 'series' ? 'Create and manage shows.' : id === 'episodes' ? 'Upload, publish, schedule, and archive episodes.' : id === 'cast' ? 'Manage cast and talent profiles.' : id === 'polls' ? 'Build polls and control fan voting.' : id === 'casting' ? 'Review applications and update statuses.' : id === 'media' ? 'Manage posters, banners, logos, thumbnails, and video.' : id === 'notifications' ? 'Draft, schedule, and send viewer updates.' : 'Control featured homepage content.'}</small></button>)}\n        </div>\n      </div>}\n\n${seriesNeedle}`
 must(seriesNeedle, overview, 'Studio overview page')
 
-must(
-  `  const [castingFilter, setCastingFilter] = useState<CastingApplication['status'] | 'All'>('All')`,
-  `  const [castingFilter, setCastingFilter] = useState<CastingApplication['status'] | 'All'>('All')\n  const { studioSection } = useParams()`,
-  'Studio page route state',
-)
+// Route state for the legacy Studio manager wrapper.
+const studioStart = source.indexOf('function StudioPage(')
+const studioEnd = source.indexOf('\nfunction CastingPage', studioStart)
+if (studioStart < 0 || studioEnd < 0) throw new Error('Phase 1.28 patch failed: StudioPage not found')
+let studio = source.slice(studioStart, studioEnd)
 
-must(
-  '<main className="page">\n      <h1>EBG Studio</h1>',
-  `<main className={\`page studio-route studio-route-\${studioSection || 'overview'}\`}>\n      <h1>EBG Studio</h1>`,
-  'Studio route class',
-)
+const castingState = `  const [castingFilter, setCastingFilter] = useState<CastingApplication['status'] | 'All'>('All')`
+if (!studio.includes(castingState)) throw new Error('Phase 1.28 patch failed: Studio page route state')
+studio = studio.replace(castingState, `${castingState}\n  const { studioSection } = useParams()`)
 
-source = source.replace(
-  '<section className="panel">\n          <h2>Home Page</h2>',
-  '<section className="panel legacy-home-manager">\n          <h2>Home Page</h2>',
-)
-source = source.replace(
-  '<section className="panel">\n          <h2>Casting Pipeline</h2>',
-  '<section className="panel legacy-casting-manager">\n          <h2>Casting Pipeline</h2>',
-)
-source = source.replace(
-  '<section className="panel">\n        <h2>Show Manager</h2>',
-  '<section className="panel legacy-show-manager">\n        <h2>Show Manager</h2>',
-)
-source = source.replace(
-  '<section className="panel">\n        <h2>Episode Manager & Scheduler</h2>',
-  '<section className="panel legacy-episode-manager">\n        <h2>Episode Manager & Scheduler</h2>',
-)
+const mainRegex = /<main className=(?:"[^"]*"|\{`[^`]*`\})(?=\s*>)/
+const mainMatch = studio.match(mainRegex)
+if (!mainMatch) throw new Error('Phase 1.28 patch failed: Studio route class')
+studio = studio.replace(mainRegex, `<main className={\`page studio-route studio-route-\${studioSection || 'overview'}\`}`)
 
-if (!source.includes('legacy-show-manager') || !source.includes('legacy-episode-manager')) {
-  throw new Error('Phase 1.28 could not classify the legacy Studio managers.')
+const classify = (heading, className) => {
+  const pattern = new RegExp(`<section className="panel(?: [^"]*)?">\\s*<h2>${heading.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}<\\/h2>`)
+  const match = studio.match(pattern)
+  if (!match) return false
+  studio = studio.replace(match[0], match[0].replace('className="panel', `className="panel ${className}`))
+  return true
 }
+
+classify('Home Page', 'legacy-home-manager')
+classify('Casting Pipeline', 'legacy-casting-manager')
+const showClassified = classify('Show Manager', 'legacy-show-manager')
+const episodeClassified = classify('Episode Manager & Scheduler', 'legacy-episode-manager')
+if (!showClassified || !episodeClassified) throw new Error('Phase 1.28 could not classify the legacy Studio managers.')
+
+source = source.slice(0, studioStart) + studio + source.slice(studioEnd)
 
 fs.writeFileSync(path, source)
 console.log('Applied EBG+ Phase 1.28 routed Studio pages.')
