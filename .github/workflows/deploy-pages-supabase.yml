@@ -106,6 +106,8 @@ jobs:
         run: node scripts/apply-phase134-studio-syntax-rebuild.mjs
       - name: Apply Phase 1.35 Studio render fix
         run: node scripts/apply-phase135-studio-render-fix.mjs
+      - name: Apply Phase 1.36 complete Studio migration
+        run: node scripts/apply-phase136-studio-complete.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
