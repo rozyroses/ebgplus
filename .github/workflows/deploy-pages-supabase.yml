@@ -84,6 +84,8 @@ jobs:
         run: node scripts/apply-phase123-casting-status-alerts.mjs
       - name: Apply Phase 1.24 reference-style homepage hero
         run: node scripts/apply-phase124-reference-hero.mjs
+      - name: Apply Phase 1.25 episode publishing controls
+        run: node scripts/apply-phase125-episode-publishing.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
