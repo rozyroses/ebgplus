@@ -1,4 +1,4 @@
-/* EBG+ Phase 1.27 — guided Studio workflow + calmer homepage hero copy */
+/* EBG+ Phase 1.27 — dedicated Studio pages + calmer homepage hero copy */
 
 .home-v2 .home-featured-hero .overlay {
   justify-content: flex-end !important;
@@ -20,19 +20,49 @@
   max-height: 96px !important;
 }
 
-.ebg-studio-head {
-  align-items: end;
+.studio-page {
+  max-width: 1480px;
+  margin: 0 auto;
 }
 
-.ebg-studio-tabs {
+.ebg-studio-hub {
+  display: block;
+  margin-top: 22px;
+}
+
+.ebg-studio-head {
+  align-items: end;
+  gap: 18px;
+}
+
+.studio-route-nav {
   position: sticky;
   top: 86px;
   z-index: 8;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 20px 0 28px;
   padding: .7rem;
   border: 1px solid rgba(216,181,109,.14);
   border-radius: 18px;
-  background: rgba(7,7,8,.92);
+  background: rgba(7,7,8,.94);
   backdrop-filter: blur(18px);
+}
+
+.studio-route-nav a {
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: #b9b1ab;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.studio-route-nav a:hover,
+.studio-route-nav a.active {
+  color: #fff7e8;
+  background: rgba(216,181,109,.13);
 }
 
 .studio-flow-grid {
@@ -43,14 +73,15 @@
 }
 
 .studio-flow-card {
+  display: block;
   min-height: 170px;
   padding: 22px;
   text-align: left;
+  text-decoration: none;
   border: 1px solid rgba(216,181,109,.16);
   border-radius: 22px;
   background: linear-gradient(145deg, rgba(45,29,18,.34), rgba(12,10,10,.88));
   color: inherit;
-  cursor: pointer;
   transition: transform .2s ease, border-color .2s ease, background .2s ease;
 }
 
@@ -86,9 +117,37 @@
   line-height: 1.5;
 }
 
+/* The legacy managers stay mounted so we preserve all existing create/edit/media logic,
+   but only the manager relevant to the current Studio route is visible. */
+.studio-legacy-summary-grid,
+.studio-legacy-series-manager,
+.studio-legacy-episode-manager {
+  display: none !important;
+}
+
+.studio-route-overview .studio-legacy-summary-grid {
+  display: grid !important;
+  margin-top: 28px;
+}
+
+.studio-route-series .studio-legacy-series-manager,
+.studio-route-media .studio-legacy-series-manager,
+.studio-route-episodes .studio-legacy-episode-manager {
+  display: block !important;
+  margin-top: 28px;
+}
+
+.studio-route-series .ebg-studio-grid,
+.studio-route-episodes .studio-stack,
+.studio-route-cast .studio-stack,
+.studio-route-casting .studio-stack,
+.studio-route-notifications .studio-stack {
+  margin-top: 18px;
+}
+
 @media (max-width: 900px) {
   .studio-flow-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .ebg-studio-tabs { top: 72px; overflow-x: auto; flex-wrap: nowrap; }
+  .studio-route-nav { top: 72px; overflow-x: auto; flex-wrap: nowrap; }
 }
 
 @media (max-width: 620px) {
