@@ -1,0 +1,47 @@
+/* EBG+ Phase 1.40 — carousel logo visibility fix */
+
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-overlay {
+  width: min(680px, 58%) !important;
+  min-height: 100% !important;
+  padding: clamp(2.5rem, 5vw, 4.5rem) !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  overflow: visible !important;
+}
+
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-logo {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: min(420px, 72vw) !important;
+  max-width: 100% !important;
+  max-height: 190px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  margin: 12px 0 16px !important;
+  position: relative;
+  z-index: 5;
+  filter: drop-shadow(0 8px 30px rgba(0,0,0,.7));
+}
+
+.home-v2 .home-featured-hero.home-carousel-hero .hero-kicker,
+.home-v2 .home-featured-hero.home-carousel-hero .hero-meta,
+.home-v2 .home-featured-hero.home-carousel-hero .actions,
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-title-fallback {
+  position: relative;
+  z-index: 5;
+}
+
+@media (max-width: 700px) {
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-overlay {
+    width: 100% !important;
+    min-height: 100% !important;
+    padding: 2rem 1.35rem 5.5rem !important;
+    justify-content: flex-end !important;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-logo {
+    width: min(300px, 72vw) !important;
+    max-height: 140px !important;
+  }
+}
