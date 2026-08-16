@@ -1,0 +1,57 @@
+/* EBG+ Phase 1.44 — Studio Series action bar */
+
+.studio44-series-head {
+  align-items: flex-start !important;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.studio44-series-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.studio44-action {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(216,181,109,.22);
+  border-radius: 10px;
+  background: rgba(216,181,109,.055);
+  color: #f2e7cf;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.studio44-action:hover,
+.studio44-action:focus-visible {
+  border-color: rgba(216,181,109,.52);
+  background: rgba(216,181,109,.12);
+  color: #fff8ea;
+}
+
+.studio44-series-actions .studio36-danger {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .studio44-series-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .studio44-action,
+  .studio44-series-actions .studio36-danger {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
