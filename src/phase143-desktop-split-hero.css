@@ -1,0 +1,105 @@
+/* EBG+ Phase 1.43 — desktop-only split cinematic homepage hero */
+
+@media (min-width: 901px) {
+  .home-v2 .home-featured-hero.home-carousel-hero {
+    min-height: 560px !important;
+    display: grid !important;
+    grid-template-columns: minmax(340px, 38%) minmax(0, 62%) !important;
+    align-items: stretch !important;
+    background-image: none !important;
+    background-color: #070708 !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    border-radius: 26px !important;
+    margin: 0 1.4rem 2.2rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 32px 90px rgba(0,0,0,.44) !important;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero::before,
+  .home-v2 .home-featured-hero.home-carousel-hero::after {
+    display: none !important;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .desktop-hero-visual {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 560px;
+    background-repeat: no-repeat;
+    background-color: #080808;
+    position: relative;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .desktop-hero-visual::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7,7,8,.62) 0%, rgba(7,7,8,.08) 24%, transparent 52%);
+    pointer-events: none;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-stage {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 5 !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    padding: clamp(36px, 5vw, 72px) !important;
+    background:
+      radial-gradient(circle at 20% 18%, rgba(95,55,112,.12), transparent 38%),
+      linear-gradient(180deg, #0c0b0d 0%, #070708 100%);
+    pointer-events: auto !important;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .desktop-hero-panel {
+    width: 100%;
+    max-width: 430px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-stage .home-carousel-brand-link {
+    width: min(100%, 390px) !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-stage .home-carousel-brand-logo {
+    width: 100% !important;
+    max-height: 190px !important;
+    object-position: left center !important;
+  }
+
+  .desktop-hero-meta {
+    margin: 0;
+    color: rgba(255,255,255,.66);
+    font-size: .92rem;
+    font-weight: 650;
+    letter-spacing: .015em;
+  }
+
+  .desktop-hero-button {
+    margin-top: 2px;
+    min-width: 132px;
+    justify-content: center;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-controls {
+    left: calc(38% + 31%) !important;
+    bottom: 20px !important;
+    transform: translateX(-50%) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .desktop-hero-visual,
+  .desktop-hero-meta,
+  .desktop-hero-button {
+    display: none !important;
+  }
+}
