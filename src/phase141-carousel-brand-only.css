@@ -1,0 +1,63 @@
+/* EBG+ Phase 1.41 — brand-only homepage carousel layer */
+
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-overlay {
+  display: none !important;
+}
+
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-link {
+  position: absolute !important;
+  z-index: 6 !important;
+  left: clamp(28px, 5vw, 72px) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: block !important;
+  width: min(440px, 38vw) !important;
+  max-width: calc(100% - 56px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+}
+
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-logo {
+  display: block !important;
+  width: 100% !important;
+  max-height: 210px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: drop-shadow(0 12px 34px rgba(0,0,0,.72));
+}
+
+.home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-fallback {
+  display: block;
+  color: #fff7e8;
+  font-size: clamp(2.6rem, 6vw, 6rem);
+  font-weight: 900;
+  line-height: .92;
+  text-shadow: 0 8px 30px rgba(0,0,0,.75);
+}
+
+@media (max-width: 900px) {
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-link {
+    width: min(360px, 46vw) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-link {
+    left: 22px !important;
+    top: auto !important;
+    bottom: 82px !important;
+    width: min(300px, 72vw) !important;
+    transform: none !important;
+    max-width: calc(100% - 44px) !important;
+  }
+
+  .home-v2 .home-featured-hero.home-carousel-hero .home-carousel-brand-logo {
+    max-height: 145px !important;
+  }
+}
