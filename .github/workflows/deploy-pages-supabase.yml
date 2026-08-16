@@ -116,6 +116,8 @@ jobs:
         run: node scripts/apply-phase139-remove-legacy-waitlist.mjs
       - name: Apply Phase 1.40 carousel logo visibility fix
         run: node scripts/apply-phase140-carousel-logo-visibility.mjs
+      - name: Apply Phase 1.41 brand-only carousel layer
+        run: node scripts/apply-phase141-carousel-brand-only.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
