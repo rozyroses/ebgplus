@@ -124,6 +124,8 @@ jobs:
         run: node scripts/apply-phase143-desktop-split-hero.mjs
       - name: Apply Phase 1.44 Studio Series actions
         run: node scripts/apply-phase144-studio-series-actions.mjs
+      - name: Apply Phase 1.45 Studio Episode actions
+        run: node scripts/apply-phase145-studio-episode-actions.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
