@@ -122,6 +122,8 @@ jobs:
         run: node scripts/apply-phase142-desktop-brand-mobile-waffle.mjs
       - name: Apply Phase 1.43 desktop split hero
         run: node scripts/apply-phase143-desktop-split-hero.mjs
+      - name: Apply Phase 1.44 Studio Series actions
+        run: node scripts/apply-phase144-studio-series-actions.mjs
       - name: Safeguard Library menu links
         run: node scripts/apply-library-links-safeguard.mjs
       - name: Remove legacy auth leftovers
