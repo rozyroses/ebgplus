@@ -1,0 +1,79 @@
+/* EBG+ Phase 1.45 — Studio Episode actions */
+
+.studio45-episode-card {
+  grid-template-columns: 170px minmax(0, 1fr) minmax(250px, 360px) !important;
+}
+
+.studio45-episode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.studio45-action {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 9px;
+  background: rgba(255,255,255,.04);
+  color: #ddd2ca;
+  font-size: .72rem;
+  font-weight: 760;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.studio45-action:hover,
+.studio45-action:focus-visible {
+  border-color: rgba(216,181,109,.28);
+  background: rgba(216,181,109,.08);
+  color: #fff4da;
+}
+
+.studio45-upload {
+  position: relative;
+  overflow: hidden;
+}
+
+.studio45-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .studio45-episode-card {
+    grid-template-columns: 150px minmax(0, 1fr) !important;
+  }
+
+  .studio45-episode-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .studio45-episode-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .studio45-episode-card > img {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+  }
+
+  .studio45-episode-actions {
+    grid-column: auto;
+  }
+
+  .studio45-action,
+  .studio45-episode-actions .studio36-danger {
+    flex: 1 1 calc(50% - 7px);
+  }
+}
