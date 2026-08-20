@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "studio:dev": "vite --config studio/vite.config.ts",
+    "studio:build": "vite build --config studio/vite.config.ts",
+    "studio:preview": "vite preview --config studio/vite.config.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
