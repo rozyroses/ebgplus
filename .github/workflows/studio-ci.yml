@@ -1,0 +1,60 @@
+name: EBG Studio CI
+
+on:
+  push:
+    branches:
+      - feat/ebg-studio-app
+    paths:
+      - 'studio/**'
+      - 'src/lib/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/studio-ci.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'studio/**'
+      - 'src/lib/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/studio-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-studio:
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+      VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build EBG Studio
+        run: npm run studio:build
+
+      - name: Verify Studio artifact
+        run: |
+          test -f dist-studio/index.html
+          test -d dist-studio/assets
+
+      - name: Upload Studio build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebg-studio-build
+          path: dist-studio
+          if-no-files-found: error
+          retention-days: 7
