@@ -29,20 +29,44 @@ export default function StudioLumi() {
   }, [])
 
   useEffect(() => {
-    const nav = document.querySelector('.sidebar nav')
-    if (!nav || nav.querySelector('[data-studio-lumi-nav]')) return
-    const button = document.createElement('button')
-    button.type = 'button'
-    button.dataset.studioLumiNav = 'true'
-    button.innerHTML = '<span>✦</span>Lumi'
-    button.addEventListener('click', () => { window.location.hash = 'lumi' })
-    nav.appendChild(button)
-    const sync = () => button.classList.toggle('active', isLumiTab())
-    sync()
-    window.addEventListener('hashchange', sync)
+    let button: HTMLButtonElement | null = null
+
+    const syncActive = () => button?.classList.toggle('active', isLumiTab())
+
+    const mountLumiNav = () => {
+      const nav = document.querySelector('.sidebar nav')
+      if (!nav) return false
+
+      const existing = nav.querySelector<HTMLButtonElement>('[data-studio-lumi-nav]')
+      if (existing) {
+        button = existing
+        syncActive()
+        return true
+      }
+
+      button = document.createElement('button')
+      button.type = 'button'
+      button.dataset.studioLumiNav = 'true'
+      button.innerHTML = '<span>✦</span>Lumi'
+      button.addEventListener('click', () => { window.location.hash = 'lumi' })
+      nav.appendChild(button)
+      syncActive()
+      return true
+    }
+
+    const observer = new MutationObserver(() => {
+      if (mountLumiNav()) observer.disconnect()
+    })
+
+    if (!mountLumiNav()) {
+      observer.observe(document.documentElement, { childList: true, subtree: true })
+    }
+
+    window.addEventListener('hashchange', syncActive)
     return () => {
-      window.removeEventListener('hashchange', sync)
-      button.remove()
+      observer.disconnect()
+      window.removeEventListener('hashchange', syncActive)
+      button?.remove()
     }
   }, [])
 
