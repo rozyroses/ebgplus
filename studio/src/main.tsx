@@ -7,6 +7,7 @@ import StudioSeriesManagerV2 from './StudioSeriesManagerV2'
 import StudioEpisodesManagerV2 from './StudioEpisodesManagerV2'
 import StudioCastTalentManagerV2 from './StudioCastTalentManagerV2'
 import StudioBrandAssetDeleteControls from './StudioBrandAssetDeleteControls'
+import StudioMusicManagerV1 from './StudioMusicManagerV1'
 import './styles.css'
 import './teamAccess.css'
 import './studioLumi.css'
@@ -15,6 +16,7 @@ import './studioSeriesManagerV2.css'
 import './studioEpisodesManagerV2.css'
 import './studioCastTalentManagerV2.css'
 import './studioBrandAssetDelete.css'
+import './studioMusicManagerV1.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -25,5 +27,6 @@ createRoot(document.getElementById('root')!).render(
     <StudioEpisodesManagerV2 />
     <StudioCastTalentManagerV2 />
     <StudioBrandAssetDeleteControls />
+    <StudioMusicManagerV1 />
   </StrictMode>,
 )
