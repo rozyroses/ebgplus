@@ -4,12 +4,21 @@ import react from '@vitejs/plugin-react'
 
 const studioRoot = fileURLToPath(new URL('.', import.meta.url))
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
+const scopedStudioData = fileURLToPath(new URL('./src/lib/studioData.ts', import.meta.url))
 
 export default defineConfig({
   root: studioRoot,
   envDir: repoRoot,
   base: '/',
   plugins: [react()],
+  resolve: {
+    alias: [
+      {
+        find: /^\.\.\/\.\.\/src\/lib\/studioData$/,
+        replacement: scopedStudioData,
+      },
+    ],
+  },
   server: {
     fs: {
       allow: [repoRoot],
