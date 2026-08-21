@@ -13,5 +13,4 @@ if (source.includes(oldLine)) {
 }
 
 await import('./apply-phase152-music-detail-pages.mjs')
-await import('./apply-phase153-built-in-players.mjs')
-await import('./apply-phase153-use-ref-guard.mjs')
+await import('./apply-phase153-built-in-players-safe.mjs')
