@@ -4,11 +4,13 @@ import App from './App'
 import TeamAccessPanel from './TeamAccessPanel'
 import StudioLumi from './StudioLumi'
 import StudioSeriesManagerV2 from './StudioSeriesManagerV2'
+import StudioEpisodesManagerV2 from './StudioEpisodesManagerV2'
 import './styles.css'
 import './teamAccess.css'
 import './studioLumi.css'
 import './lumiGlow.css'
 import './studioSeriesManagerV2.css'
+import './studioEpisodesManagerV2.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -16,5 +18,6 @@ createRoot(document.getElementById('root')!).render(
     <TeamAccessPanel />
     <StudioLumi />
     <StudioSeriesManagerV2 />
+    <StudioEpisodesManagerV2 />
   </StrictMode>,
 )
