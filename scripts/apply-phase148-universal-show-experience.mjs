@@ -34,3 +34,4 @@ if (!source.includes('// EBG_PHASE148_UNIVERSAL_SHOW_EXPERIENCE')) {
 }
 
 await import('./apply-phase149-shows-catalog.mjs')
+await import('./apply-phase150-external-studio-link.mjs')
