@@ -24,3 +24,5 @@ if (!source.includes('// EBG_PHASE150_EXTERNAL_STUDIO')) {
   fs.writeFileSync(path, source)
   console.log('Applied EBG+ Phase 1.50 external Studio navigation and legacy redirect.')
 }
+
+await import('./apply-phase151-music-catalog.mjs')
