@@ -26,3 +26,4 @@ if (!source.includes('// EBG_PHASE150_EXTERNAL_STUDIO')) {
 }
 
 await import('./apply-phase151-music-catalog.mjs')
+await import('./apply-phase152-music-detail-pages.mjs')
