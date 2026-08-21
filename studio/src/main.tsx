@@ -6,6 +6,7 @@ import StudioLumi from './StudioLumi'
 import './styles.css'
 import './teamAccess.css'
 import './studioLumi.css'
+import './lumiGlow.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
