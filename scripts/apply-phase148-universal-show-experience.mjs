@@ -32,3 +32,5 @@ if (!source.includes('// EBG_PHASE148_UNIVERSAL_SHOW_EXPERIENCE')) {
   fs.writeFileSync(path, source)
   console.log('Applied EBG+ Phase 1.48 universal show and movie experience.')
 }
+
+await import('./apply-phase149-shows-catalog.mjs')
