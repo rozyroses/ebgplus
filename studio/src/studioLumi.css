@@ -1,0 +1,49 @@
+.studio-lumi-overlay {
+  position: fixed;
+  inset: 92px 0 0 248px;
+  z-index: 31;
+  overflow: auto;
+  background: radial-gradient(circle at 80% 0%, rgba(213,175,88,.08), transparent 30rem), #080808;
+  padding: clamp(1rem, 3vw, 2.2rem);
+}
+.studio-lumi-shell { width: min(1280px, 100%); margin: 0 auto; min-height: calc(100vh - 140px); display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 1rem; }
+.studio-lumi-context, .studio-lumi-chat { border: 1px solid var(--line); border-radius: 18px; background: rgba(17,17,17,.9); }
+.studio-lumi-context { padding: 1.25rem; display: grid; align-content: start; gap: 1rem; }
+.studio-lumi-context h2 { margin: .2rem 0 0; font-size: 2rem; line-height: 1; }
+.studio-lumi-context > p:not(.eyebrow) { margin: 0; color: var(--muted); line-height: 1.55; }
+.lumi-production-card { display: grid; gap: .4rem; padding: 1rem; border: 1px solid rgba(213,175,88,.2); border-radius: 12px; background: rgba(213,175,88,.05); }
+.lumi-production-card span, .lumi-production-card small { color: #9f9a91; }
+.lumi-production-card p { margin: .2rem 0; color: #d7d1c6; line-height: 1.45; }
+.lumi-quick-prompts { display: grid; gap: .5rem; }
+.lumi-quick-prompts button { text-align: left; border: 1px solid var(--line); border-radius: 10px; background: #0d0d0d; color: #ddd7cb; padding: .75rem; cursor: pointer; }
+.lumi-quick-prompts button:hover { border-color: rgba(213,175,88,.35); color: var(--gold-soft); }
+.lumi-readonly-note { color: #77736d; line-height: 1.45; }
+.studio-lumi-chat { min-height: 650px; display: grid; grid-template-rows: auto 1fr auto auto; overflow: hidden; }
+.studio-lumi-chat-head { padding: 1rem 1.2rem; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.studio-lumi-chat-head > div { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: .65rem; }
+.studio-lumi-chat-head strong { font-size: 1.05rem; }
+.studio-lumi-chat-head small { grid-column: 2; color: var(--muted); }
+.lumi-spark { grid-row: 1 / 3; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: rgba(213,175,88,.12); color: var(--gold-soft); border: 1px solid rgba(213,175,88,.2); }
+.lumi-safe-pill { color: #d7c17f; border: 1px solid rgba(213,175,88,.22); border-radius: 999px; padding: .4rem .65rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+.studio-lumi-messages { overflow: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: .85rem; }
+.studio-lumi-messages article { max-width: min(760px, 88%); border: 1px solid var(--line); border-radius: 14px; padding: .8rem 1rem; background: #0d0d0d; }
+.studio-lumi-messages article.user { align-self: flex-end; background: rgba(213,175,88,.09); border-color: rgba(213,175,88,.22); }
+.studio-lumi-messages article span { color: var(--gold); font-size: .68rem; font-weight: 900; text-transform: uppercase; letter-spacing: .09em; }
+.studio-lumi-messages article p { margin: .35rem 0 0; white-space: pre-wrap; line-height: 1.55; color: #ece7de; }
+.studio-lumi-messages article.thinking p { color: var(--muted); font-style: italic; }
+.studio-lumi-error { margin: 0 1.2rem .75rem; border: 1px solid rgba(232,120,120,.35); background: rgba(232,120,120,.08); color: #ffb1b1; border-radius: 10px; padding: .75rem; }
+.studio-lumi-composer { border-top: 1px solid var(--line); padding: 1rem; display: grid; grid-template-columns: 1fr auto; gap: .65rem; background: #0b0b0b; }
+.studio-lumi-composer input { min-height: 46px; }
+@media (max-width: 900px) {
+  .studio-lumi-overlay { inset: 76px 0 0 0; }
+  .studio-lumi-shell { grid-template-columns: 1fr; }
+  .studio-lumi-context { order: 2; }
+  .studio-lumi-chat { min-height: 70vh; }
+}
+@media (max-width: 560px) {
+  .studio-lumi-overlay { padding: .75rem; }
+  .studio-lumi-chat-head { align-items: flex-start; }
+  .lumi-safe-pill { display: none; }
+  .studio-lumi-composer { grid-template-columns: 1fr; }
+  .studio-lumi-messages article { max-width: 95%; }
+}

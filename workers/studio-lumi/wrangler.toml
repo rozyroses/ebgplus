@@ -1,0 +1,10 @@
+name = "ebg-studio-lumi"
+main = "src/index.ts"
+compatibility_date = "2026-08-20"
+
+[vars]
+ALLOWED_ORIGIN = "https://studio.ebgplus.app"
+# Set these in Cloudflare before deploy:
+# SUPABASE_URL
+# SUPABASE_PUBLISHABLE_KEY
+# LUMI_GATEWAY_URL = "https://luni-gateway.roosevelt-wooden.workers.dev/chat"
