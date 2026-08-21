@@ -1,0 +1,188 @@
+/* EBG+ Phase 1.47 — homepage v2 card + Coming Soon polish */
+
+.home-v2 .rail {
+  padding-block: .75rem 1.35rem;
+  scroll-padding-inline: 1rem;
+}
+
+.home-v2 .rail .content-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(20,20,22,.96), rgba(10,10,12,.98));
+  box-shadow: 0 10px 34px rgba(0,0,0,.22);
+  transform-origin: center center;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.home-v2 .rail .content-card > a {
+  display: block;
+  overflow: hidden;
+  background: #0b0b0d;
+}
+
+.home-v2 .rail .content-card > a img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  transition: transform .35s ease, filter .35s ease;
+}
+
+.home-v2 .rail .content-card > div {
+  position: relative;
+  padding: .9rem 1rem 1rem;
+  background:
+    linear-gradient(180deg, rgba(18,18,20,.94), rgba(9,9,11,.99));
+}
+
+.home-v2 .rail .content-card > div::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(223,184,92,.52), transparent);
+  opacity: .45;
+  transition: opacity .22s ease;
+}
+
+.home-v2 .rail .content-card h3 {
+  margin: 0 0 .28rem;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.home-v2 .rail .content-card p {
+  margin: 0 0 .75rem;
+  color: rgba(255,255,255,.62);
+  font-size: .78rem;
+}
+
+.home-v2 .rail .content-card .actions {
+  display: flex;
+  gap: .45rem;
+  flex-wrap: wrap;
+  opacity: .78;
+  transform: translateY(2px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.home-v2 .home-coming-grid {
+  gap: 1.15rem;
+}
+
+.home-v2 .home-coming-card {
+  min-height: clamp(285px, 32vw, 410px);
+  border-radius: 24px;
+  border-color: rgba(223,184,92,.14);
+  background-position: center;
+  box-shadow: 0 20px 54px rgba(0,0,0,.28);
+  isolation: isolate;
+  transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+}
+
+.home-v2 .home-coming-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(5,5,7,.02) 25%, rgba(5,5,7,.22) 58%, rgba(5,5,7,.96) 100%),
+    radial-gradient(circle at 80% 10%, rgba(223,184,92,.09), transparent 34%);
+}
+
+.home-v2 .home-coming-card::after {
+  background: linear-gradient(0deg, rgba(4,4,5,.98) 0%, rgba(4,4,5,.66) 31%, transparent 72%);
+}
+
+.home-v2 .home-coming-card > div {
+  z-index: 2;
+  inset: auto 1.2rem 1.2rem;
+  display: grid;
+  gap: .18rem;
+}
+
+.home-v2 .home-coming-card h3 {
+  margin: .35rem 0 .08rem;
+  font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+  line-height: 1.1;
+  text-shadow: 0 4px 20px rgba(0,0,0,.55);
+}
+
+.home-v2 .home-coming-card p {
+  margin: 0;
+  color: rgba(255,255,255,.68);
+  font-size: .82rem;
+  letter-spacing: .01em;
+}
+
+.home-v2 .home-coming-card .pulse-badge {
+  background: rgba(8,8,10,.72);
+  border-color: rgba(223,184,92,.42);
+  box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-v2 .rail .content-card:hover,
+  .home-v2 .rail .content-card:focus-within {
+    z-index: 6;
+    transform: translateY(-6px) scale(1.035);
+    border-color: rgba(223,184,92,.36);
+    box-shadow: 0 24px 62px rgba(0,0,0,.46), 0 0 0 1px rgba(223,184,92,.08);
+  }
+
+  .home-v2 .rail .content-card:hover > a img,
+  .home-v2 .rail .content-card:focus-within > a img {
+    transform: scale(1.055);
+    filter: saturate(1.05) contrast(1.03);
+  }
+
+  .home-v2 .rail .content-card:hover > div::before,
+  .home-v2 .rail .content-card:focus-within > div::before {
+    opacity: 1;
+  }
+
+  .home-v2 .rail .content-card:hover .actions,
+  .home-v2 .rail .content-card:focus-within .actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .home-v2 .home-coming-card:hover,
+  .home-v2 .home-coming-card:focus-visible {
+    transform: translateY(-6px);
+    border-color: rgba(223,184,92,.4);
+    box-shadow: 0 28px 70px rgba(0,0,0,.46), 0 0 36px rgba(223,184,92,.08);
+  }
+}
+
+@media (max-width: 900px) {
+  .home-v2 .home-coming-card {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 700px) {
+  .home-v2 .rail {
+    padding-block: .45rem 1rem;
+  }
+
+  .home-v2 .rail .content-card {
+    border-radius: 16px;
+  }
+
+  .home-v2 .home-coming-card {
+    min-height: 230px;
+    border-radius: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-v2 .rail .content-card,
+  .home-v2 .rail .content-card > a img,
+  .home-v2 .home-coming-card,
+  .home-v2 .rail .content-card .actions {
+    transition: none;
+  }
+}
