@@ -19,6 +19,13 @@ const quickPrompts = [
   'Check episode continuity',
 ]
 
+const getGreetingName = () => {
+  const email = readStoredSession()?.user?.email?.trim() || ''
+  const local = email.split('@')[0] || 'there'
+  const readable = local.replace(/[._-]+/g, ' ').trim()
+  return readable ? readable.replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'there'
+}
+
 export default function StudioLumi() {
   const [active, setActive] = useState(isLumiTab)
   const [cms, setCms] = useState<CmsSlice>({ shows: [], episodes: [] })
@@ -26,6 +33,7 @@ export default function StudioLumi() {
   const [messages, setMessages] = useState<LumiMessage[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const greetingName = useMemo(getGreetingName, [active])
 
   useEffect(() => {
     const sync = () => setActive(isLumiTab())
@@ -181,8 +189,8 @@ export default function StudioLumi() {
             <div className="lumi-ambient-glow" aria-hidden="true" />
             <div className="lumi-welcome-copy">
               <span className="lumi-kicker">LUMI ✦ STUDIO</span>
-              <h1>What are we creating today?</h1>
-              <p>{selectedShow ? `I’m locked into ${selectedShow.title}. Let’s build, polish, plan, or rethink anything around this production.` : 'Choose a production and we can start creating.'}</p>
+              <h1>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></h1>
+              <p>Lumi’s ready. Pick up where you left off, shape something new, or ask anything about this production.</p>
             </div>
 
             <form className="studio-lumi-composer hero-composer" onSubmit={send}>

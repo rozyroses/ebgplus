@@ -69,41 +69,10 @@
   text-shadow: 0 0 8px rgba(213,175,88,.7);
 }
 
-/* Personalized Lumi welcome without changing the conversation layout. */
-.studio-lumi-welcome .lumi-welcome-copy h1 {
-  font-size: 0;
-}
-
-.studio-lumi-welcome .lumi-welcome-copy h1::before {
-  content: "Let’s jump in, ";
-  font-size: clamp(2.5rem, 5vw, 4.8rem);
-  line-height: 1.02;
-  font-weight: 500;
-  color: #f4efe5;
-  letter-spacing: -.045em;
-}
-
-.studio-lumi-welcome .lumi-welcome-copy h1::after {
-  content: "wolfpark.";
-  font-size: clamp(2.5rem, 5vw, 4.8rem);
-  line-height: 1.02;
-  font-weight: 500;
+/* Dynamic signed-in greeting. */
+.studio-lumi-welcome .lumi-greeting-name {
   color: #f0d58d;
-  letter-spacing: -.045em;
   text-shadow: 0 0 24px rgba(213,175,88,.22);
-}
-
-.studio-lumi-welcome .lumi-welcome-copy > p {
-  font-size: 0;
-}
-
-.studio-lumi-welcome .lumi-welcome-copy > p::after {
-  content: "Lumi’s ready. Pick up where you left off, shape something new, or ask anything about this production.";
-  display: block;
-  margin-top: .9rem;
-  font-size: clamp(.95rem, 1.4vw, 1.08rem);
-  line-height: 1.65;
-  color: rgba(235,229,217,.7);
 }
 
 @keyframes lumi-nav-glow {
