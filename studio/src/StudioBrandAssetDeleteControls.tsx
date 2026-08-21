@@ -15,6 +15,7 @@ type CmsData = {
 
 const fields = ['artwork', 'banner', 'logoImage'] as const
 type AssetField = (typeof fields)[number]
+const selectedShowStorageKey = 'ebgStudioSelectedShowId'
 
 const assetLabel = (field: AssetField) => field === 'artwork' ? 'poster' : field === 'banner' ? 'banner' : 'logo'
 
@@ -31,6 +32,18 @@ export default function StudioBrandAssetDeleteControls() {
   useEffect(() => {
     let observer: MutationObserver | null = null
 
+    const restoreSelectedShow = () => {
+      const savedShowId = window.sessionStorage.getItem(selectedShowStorageKey)
+      if (!savedShowId) return
+      const select = document.querySelector<HTMLSelectElement>('.top-actions select')
+      if (!select || !Array.from(select.options).some((option) => option.value === savedShowId)) return
+      if (select.value !== savedShowId) {
+        select.value = savedShowId
+        select.dispatchEvent(new Event('change', { bubbles: true }))
+      }
+      window.sessionStorage.removeItem(selectedShowStorageKey)
+    }
+
     const addDeleteButton = (host: HTMLElement, field: AssetField, getShowId: () => string | undefined, className: string) => {
       if (host.querySelector(`.${className}`)) return
       const button = document.createElement('button')
@@ -45,6 +58,7 @@ export default function StudioBrandAssetDeleteControls() {
         if (!window.confirm(`Delete this ${assetLabel(field)} from the selected title?`)) return
         try {
           await clearAsset(showId, field)
+          window.sessionStorage.setItem(selectedShowStorageKey, showId)
           window.location.reload()
         } catch (error) {
           window.alert(error instanceof Error ? error.message : 'Asset could not be deleted.')
@@ -85,6 +99,7 @@ export default function StudioBrandAssetDeleteControls() {
     }
 
     const enhance = () => {
+      restoreSelectedShow()
       const tab = window.location.hash.replace(/^#\/?/, '')
       if (tab === 'series') enhanceSeries()
       if (tab === 'media') enhanceMedia()
