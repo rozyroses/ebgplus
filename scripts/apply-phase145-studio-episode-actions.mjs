@@ -30,3 +30,5 @@ must(oldEpisodeCard, newEpisodeCard, 'episode action bar')
 
 fs.writeFileSync(path, source)
 console.log('Applied EBG+ Phase 1.45 Studio Episode actions.')
+
+await import('./apply-phase146-home-news-position.mjs')
