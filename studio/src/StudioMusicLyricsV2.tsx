@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
 import { loadCmsData, saveCmsData } from '../../src/lib/studioData'
 
+type TimedLyric = { start: number; end: number; text: string }
 type MusicArtist = { id: string; name: string }
 type MusicRelease = { id: string; artistId: string; title: string; genre?: string }
 type MusicTrack = {
@@ -14,6 +15,7 @@ type MusicTrack = {
   duration?: string
   explicit?: boolean
   lyrics?: string
+  timedLyrics?: TimedLyric[]
 }
 type MusicCatalog = {
   artists: MusicArtist[]
@@ -22,13 +24,13 @@ type MusicCatalog = {
   videos: unknown[]
   featuredReleaseId?: string
 }
-type CmsData = Record<string, unknown> & {
-  shows?: Array<{ id: string; title: string }>
-  music?: MusicCatalog
-}
+type CmsData = Record<string, unknown> & { music?: MusicCatalog }
 
-const endpoint = import.meta.env.VITE_STUDIO_LUMI_URL || ''
+const endpoint = import.meta.env.VITE_STUDIO_LYRICS_URL || ''
 const isMusicTab = () => window.location.hash.replace(/^#\/?/, '') === 'music'
+const cleanTimedLyrics = (value?: TimedLyric[]) => Array.isArray(value)
+  ? value.filter((line) => line && Number.isFinite(line.start) && Number.isFinite(line.end) && String(line.text || '').trim())
+  : []
 
 export default function StudioMusicLyricsV2() {
   const [active, setActive] = useState(isMusicTab)
@@ -36,7 +38,7 @@ export default function StudioMusicLyricsV2() {
   const [cms, setCms] = useState<CmsData | null>(null)
   const [trackId, setTrackId] = useState('')
   const [lyrics, setLyrics] = useState('')
-  const [direction, setDirection] = useState('')
+  const [timedLyrics, setTimedLyrics] = useState<TimedLyric[]>([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -61,6 +63,7 @@ export default function StudioMusicLyricsV2() {
       if (selected) {
         setTrackId(selected.id)
         setLyrics(selected.lyrics ?? '')
+        setTimedLyrics(cleanTimedLyrics(selected.timedLyrics))
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Lyrics workspace could not load Music Studio.')
@@ -82,69 +85,89 @@ export default function StudioMusicLyricsV2() {
     if (!track) return
     setTrackId(id)
     setLyrics(track.lyrics ?? '')
+    setTimedLyrics(cleanTimedLyrics(track.timedLyrics))
     setMessage('')
   }
 
-  const generateLyrics = async () => {
+  const generateTimedLyrics = async () => {
     if (!selectedTrack || busy) return
+    if (!selectedTrack.audioUrl) {
+      setMessage('This track does not have an uploaded audio file yet.')
+      return
+    }
     if (!endpoint) {
-      setMessage('Set VITE_STUDIO_LUMI_URL before using Generate with Lumi.')
+      setMessage('Set VITE_STUDIO_LYRICS_URL to the EBG Studio timed-lyrics Worker first.')
       return
     }
     const session = readStoredSession()
     if (!session) {
-      setMessage('Sign in to EBG Studio again before using Lumi.')
+      setMessage('Sign in to EBG Studio again before generating timed lyrics.')
       return
     }
-    const showId = cms?.shows?.[0]?.id
-    if (!showId) {
-      setMessage('Lumi needs at least one accessible Studio production to verify your staff access.')
-      return
-    }
-
-    const prompt = [
-      'Write completely original song lyrics for EBG+ Music Studio.',
-      'Track title: ' + selectedTrack.title,
-      'Artist: ' + (selectedArtist?.name || 'EBG Artist'),
-      'Release: ' + (selectedRelease?.title || 'Standalone single'),
-      'Genre: ' + (selectedRelease?.genre || 'unspecified'),
-      direction.trim() ? 'Creative direction from the user: ' + direction.trim() : 'Creative direction: polished, memorable, emotionally specific, and performance-ready.',
-      'Do not quote, imitate, or closely rewrite any existing copyrighted song.',
-      'Return lyrics only. Use clear section labels like [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], and [Outro] when useful.',
-    ].join('\n')
 
     setBusy(true)
-    setMessage('')
+    setMessage('Listening to the uploaded track and timing the lyrics…')
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${endpoint.replace(/\/$/, '')}/transcribe-lyrics`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          showId,
-          messages: [{ role: 'user', content: prompt }],
-        }),
+        body: JSON.stringify({ audioUrl: selectedTrack.audioUrl, trackId: selectedTrack.id }),
       })
-      const payload = await response.json().catch(() => ({})) as { reply?: string; error?: string }
-      if (!response.ok) throw new Error(payload.error || `Lumi request failed (${response.status}).`)
-      const generated = payload.reply?.trim()
-      if (!generated) throw new Error('Lumi returned an empty lyric draft. Try a more specific creative direction.')
-      setLyrics(generated)
-      setMessage('Lumi drafted original lyrics. Edit anything you want, then save.')
+      const payload = await response.json().catch(() => ({})) as {
+        text?: string
+        timedLyrics?: TimedLyric[]
+        language?: string | null
+        error?: string
+      }
+      if (!response.ok) throw new Error(payload.error || `Timed lyric transcription failed (${response.status}).`)
+      const nextLines = cleanTimedLyrics(payload.timedLyrics)
+      if (!nextLines.length) throw new Error('No vocal lyric lines were detected in this track.')
+      setTimedLyrics(nextLines)
+      setLyrics(payload.text?.trim() || nextLines.map((line) => line.text).join('\n'))
+      setMessage(`Timed lyrics generated from the uploaded audio${payload.language ? ` · ${payload.language}` : ''}. Review any misheard words, then save.`)
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Lumi could not generate lyrics right now.')
+      setMessage(error instanceof Error ? error.message : 'The uploaded song could not be transcribed right now.')
     } finally {
       setBusy(false)
     }
   }
 
+  const updateTimedLine = (index: number, patch: Partial<TimedLyric>) => {
+    setTimedLyrics((current) => {
+      const next = current.map((line, lineIndex) => lineIndex === index ? { ...line, ...patch } : line)
+      if (Object.prototype.hasOwnProperty.call(patch, 'text')) setLyrics(next.map((line) => line.text).join('\n'))
+      return next
+    })
+  }
+
+  const removeTimedLine = (index: number) => {
+    setTimedLyrics((current) => {
+      const next = current.filter((_, lineIndex) => lineIndex !== index)
+      setLyrics(next.map((line) => line.text).join('\n'))
+      return next
+    })
+  }
+
   const saveLyrics = async () => {
     if (!cms || !music || !selectedTrack || busy) return
+    const normalizedTimedLyrics = timedLyrics
+      .map((line) => ({
+        start: Math.max(0, Number(line.start) || 0),
+        end: Math.max(Number(line.end) || 0, (Number(line.start) || 0) + 0.1),
+        text: line.text.trim(),
+      }))
+      .filter((line) => line.text)
+      .sort((a, b) => a.start - b.start)
     const nextMusic: MusicCatalog = {
       ...music,
-      tracks: music.tracks.map((track) => track.id === selectedTrack.id ? { ...track, lyrics: lyrics.trim() } : track),
+      tracks: music.tracks.map((track) => track.id === selectedTrack.id ? {
+        ...track,
+        lyrics: lyrics.trim(),
+        timedLyrics: normalizedTimedLyrics,
+      } : track),
     }
     const nextCms: CmsData = { ...cms, music: nextMusic }
     setBusy(true)
@@ -152,9 +175,10 @@ export default function StudioMusicLyricsV2() {
     try {
       await saveCmsData(nextCms)
       setCms(nextCms)
-      setMessage(lyrics.trim() ? 'Lyrics saved to this track.' : 'Lyrics cleared from this track.')
+      setTimedLyrics(normalizedTimedLyrics)
+      setMessage(normalizedTimedLyrics.length ? `${normalizedTimedLyrics.length} timed lyric lines saved and synced to this track.` : 'Timed lyrics cleared from this track.')
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Lyrics could not be saved.')
+      setMessage(error instanceof Error ? error.message : 'Timed lyrics could not be saved.')
     } finally {
       setBusy(false)
     }
@@ -166,10 +190,10 @@ export default function StudioMusicLyricsV2() {
     <>
       <button type="button" className="music-lyrics-launch" onClick={() => { setOpen(true); void refresh() }}>✦ Lyrics</button>
       {open && (
-        <section className="music-lyrics-overlay" aria-label="Music Studio Lyrics Workspace">
+        <section className="music-lyrics-overlay" aria-label="Music Studio Timed Lyrics Workspace">
           <div className="music-lyrics-shell">
             <header className="music-lyrics-header">
-              <div><span>EBG STUDIO / MUSIC</span><h2>Lyrics</h2><p>Generate with Lumi, edit the draft, and publish the words that appear in EBG+ Now Playing.</p></div>
+              <div><span>EBG STUDIO / MUSIC</span><h2>Timed Lyrics</h2><p>Generate lyrics from the actual uploaded song, correct the transcription, and sync every line to EBG+ playback.</p></div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close lyrics workspace">×</button>
             </header>
 
@@ -179,7 +203,7 @@ export default function StudioMusicLyricsV2() {
                 {tracks.map((track) => (
                   <button type="button" key={track.id} className={track.id === trackId ? 'active' : ''} onClick={() => selectTrack(track.id)}>
                     <strong>{track.title}</strong>
-                    <small>{music?.artists.find((artist) => artist.id === track.artistId)?.name || 'EBG Artist'}{track.lyrics?.trim() ? ' · Lyrics saved' : ''}</small>
+                    <small>{music?.artists.find((artist) => artist.id === track.artistId)?.name || 'EBG Artist'}{cleanTimedLyrics(track.timedLyrics).length ? ' · Timed lyrics saved' : ''}</small>
                   </button>
                 ))}
                 {!tracks.length && <p>No tracks yet. Upload a song in Music Studio first.</p>}
@@ -190,19 +214,32 @@ export default function StudioMusicLyricsV2() {
                   <>
                     <div className="music-lyrics-song-head">
                       <div><span>NOW EDITING</span><h3>{selectedTrack.title}</h3><p>{selectedArtist?.name || 'EBG Artist'}{selectedRelease ? ' · ' + selectedRelease.title : ''}</p></div>
-                      <audio controls preload="none" src={selectedTrack.audioUrl} />
+                      <audio controls preload="metadata" src={selectedTrack.audioUrl} />
                     </div>
 
-                    <label className="music-lyrics-direction">Creative direction for Lumi<textarea value={direction} onChange={(event) => setDirection(event.target.value)} placeholder="Dark 90s R&B, jealous but vulnerable, huge singable chorus…" /></label>
-                    <div className="music-lyrics-actions">
-                      <button className="button secondary" type="button" disabled={busy} onClick={() => void generateLyrics()}>{busy ? 'Lumi is writing…' : '✦ Generate with Lumi'}</button>
-                      <button className="button" type="button" disabled={busy} onClick={() => void saveLyrics()}>Save Lyrics</button>
+                    <div className="music-lyrics-actions transcription-actions">
+                      <button className="button secondary" type="button" disabled={busy} onClick={() => void generateTimedLyrics()}>{busy ? 'Listening & timing…' : '✦ Generate Timed Lyrics from Audio'}</button>
+                      <button className="button" type="button" disabled={busy} onClick={() => void saveLyrics()}>Save & Sync Lyrics</button>
                     </div>
 
                     {message && <div className="music-lyrics-message">{message}</div>}
-                    <label className="music-lyrics-field">Lyrics<textarea value={lyrics} onChange={(event) => setLyrics(event.target.value)} placeholder="[Verse 1]\n…" /></label>
+
+                    <section className="music-timed-editor">
+                      <div className="music-timed-editor-head"><div><span>SYNCED LINES</span><h4>{timedLyrics.length ? `${timedLyrics.length} lyric lines` : 'No timed lyrics yet'}</h4></div><small>Times are in seconds. Edit any word or timing before saving.</small></div>
+                      {timedLyrics.map((line, index) => (
+                        <div className="music-timed-line" key={`${index}-${line.start}`}>
+                          <label>Start<input type="number" min="0" step="0.1" value={line.start} onChange={(event) => updateTimedLine(index, { start: Number(event.target.value) })} /></label>
+                          <label>End<input type="number" min="0" step="0.1" value={line.end} onChange={(event) => updateTimedLine(index, { end: Number(event.target.value) })} /></label>
+                          <label className="lyric-text">Lyric<input value={line.text} onChange={(event) => updateTimedLine(index, { text: event.target.value })} /></label>
+                          <button type="button" onClick={() => removeTimedLine(index)} aria-label="Remove lyric line">×</button>
+                        </div>
+                      ))}
+                      {!timedLyrics.length && <div className="music-timed-empty">Generate timed lyrics and Studio will listen to the uploaded audio, transcribe the vocals, and place each detected line on the track timeline.</div>}
+                    </section>
+
+                    <label className="music-lyrics-field">Plain lyrics fallback<textarea value={lyrics} onChange={(event) => setLyrics(event.target.value)} placeholder="The plain lyric transcript is also saved as a fallback for devices without timed-lyrics support." /></label>
                   </>
-                ) : <div className="music-lyrics-empty">Choose a track to start writing.</div>}
+                ) : <div className="music-lyrics-empty">Choose a track to start syncing lyrics.</div>}
               </main>
             </div>
           </div>
