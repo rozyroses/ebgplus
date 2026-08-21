@@ -3,12 +3,18 @@ import fs from 'node:fs'
 const appPath = new URL('../src/App.tsx', import.meta.url)
 let source = fs.readFileSync(appPath, 'utf8')
 
-if (!source.includes('// EBG_PHASE151_MUSIC_CATALOG')) {
-  const cmsAnchor = '  comingSoon: string[]'
-  if (!source.includes(cmsAnchor)) throw new Error('Phase 1.51 patch failed: CmsData anchor not found')
-  source = source.replace(cmsAnchor, `${cmsAnchor}\n  music?: any`)
+if (source.includes('// EBG_PHASE151_MUSIC_CATALOG')) process.exit(0)
 
-  const musicPage = `// EBG_PHASE151_MUSIC_CATALOG
+const cmsStart = source.indexOf('type CmsData = {')
+if (cmsStart < 0) throw new Error('Phase 1.51 patch failed: CmsData type not found')
+const cmsEnd = source.indexOf('\n}\n\ntype ', cmsStart)
+if (cmsEnd < 0) throw new Error('Phase 1.51 patch failed: CmsData type boundary not found')
+const cmsBlock = source.slice(cmsStart, cmsEnd)
+if (!/\bmusic\s*\?:/.test(cmsBlock)) {
+  source = source.slice(0, cmsEnd) + '\n  music?: any' + source.slice(cmsEnd)
+}
+
+const musicPage = `// EBG_PHASE151_MUSIC_CATALOG
 function MusicPage({ cms }: { cms: CmsData }) {
   const music = cms.music ?? { artists: [], releases: [], tracks: [], videos: [] }
   const now = Date.now()
@@ -26,12 +32,12 @@ function MusicPage({ cms }: { cms: CmsData }) {
     <main className="page music-v2-page">
       {featured && (
         <section className="music-v2-hero">
-          <div className="music-v2-cover">{featured.cover ? <img src={featured.cover} alt={`${featured.title} cover`} /> : <span>♫</span>}</div>
+          <div className="music-v2-cover">{featured.cover ? <img src={featured.cover} alt={featured.title + ' cover'} /> : <span>♫</span>}</div>
           <div className="music-v2-hero-copy">
             <p className="eyebrow">FEATURED {String(featured.type || 'release').toUpperCase()}</p>
             <h1>{featured.title}</h1>
             <p className="music-v2-artist">{artistName(featured.artistId)}</p>
-            <p>{featured.genre || 'Music'}{featured.releaseDate ? ` · ${new Date(featured.releaseDate).getFullYear()}` : ''}{featured.explicit ? ' · Explicit' : ''}</p>
+            <p>{featured.genre || 'Music'}{featured.releaseDate ? ' · ' + new Date(featured.releaseDate).getFullYear() : ''}{featured.explicit ? ' · Explicit' : ''}</p>
             {featuredTracks[0]?.audioUrl && <audio controls preload="metadata" src={featuredTracks[0].audioUrl} />}
           </div>
         </section>
@@ -79,14 +85,19 @@ function MusicPage({ cms }: { cms: CmsData }) {
   )
 }`
 
-  const musicBoundary = /function MusicPage\([\s\S]*?\n\}\n\nfunction /
-  if (!musicBoundary.test(source)) throw new Error('Phase 1.51 patch failed: Music page boundary not found')
-  source = source.replace(musicBoundary, musicPage + '\n\nfunction ')
+const musicStart = source.indexOf('function MusicPage(')
+if (musicStart < 0) throw new Error('Phase 1.51 patch failed: MusicPage not found')
+const musicEnd = source.indexOf('\nfunction ', musicStart + 'function MusicPage('.length)
+if (musicEnd < 0) throw new Error('Phase 1.51 patch failed: MusicPage boundary not found')
+source = source.slice(0, musicStart) + musicPage + '\n' + source.slice(musicEnd)
 
-  const styleAnchor = "import './phase149-shows-catalog.css'"
-  if (!source.includes(styleAnchor)) throw new Error('Phase 1.51 patch failed: stylesheet anchor not found')
-  source = source.replace(styleAnchor, styleAnchor + "\nimport './phase151-music-catalog.css'")
-
-  fs.writeFileSync(appPath, source)
-  console.log('Applied EBG+ Phase 1.51 Music catalog publishing.')
+if (!source.includes("import './phase151-music-catalog.css'")) {
+  const cssImports = [...source.matchAll(/^import ['"]\.\/[^'"]+\.css['"]$/gm)]
+  const lastCss = cssImports.at(-1)
+  if (!lastCss || lastCss.index == null) throw new Error('Phase 1.51 patch failed: CSS import anchor not found')
+  const insertAt = lastCss.index + lastCss[0].length
+  source = source.slice(0, insertAt) + "\nimport './phase151-music-catalog.css'" + source.slice(insertAt)
 }
+
+fs.writeFileSync(appPath, source)
+console.log('Applied EBG+ Phase 1.51 Music catalog publishing.')
