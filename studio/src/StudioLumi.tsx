@@ -11,14 +11,19 @@ type LumiMessage = { role: 'user' | 'lumi'; text: string }
 
 const isLumiTab = () => window.location.hash.replace(/^#\/?/, '') === 'lumi'
 const endpoint = import.meta.env.VITE_STUDIO_LUMI_URL || ''
+const quickPrompts = [
+  'Summarize this production',
+  'Give me 5 episode ideas',
+  'Draft promo copy',
+  'Create a fan poll',
+  'Check episode continuity',
+]
 
 export default function StudioLumi() {
   const [active, setActive] = useState(isLumiTab)
   const [cms, setCms] = useState<CmsSlice>({ shows: [], episodes: [] })
   const [showId, setShowId] = useState('')
-  const [messages, setMessages] = useState<LumiMessage[]>([
-    { role: 'lumi', text: 'Hey ✦ I’m Lumi for Studio. Pick a production and I can help brainstorm, summarize, write promo copy, shape polls, or check episode continuity.' },
-  ])
+  const [messages, setMessages] = useState<LumiMessage[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -99,6 +104,14 @@ export default function StudioLumi() {
 
   const selectedShow = useMemo(() => cms.shows?.find((show) => show.id === showId) ?? null, [cms.shows, showId])
   const selectedEpisodes = useMemo(() => cms.episodes?.filter((episode) => episode.showId === showId) ?? [], [cms.episodes, showId])
+  const hasConversation = messages.length > 0 || busy
+
+  const fillPrompt = (prompt: string) => {
+    const input = document.querySelector<HTMLInputElement>('#studio-lumi-input')
+    if (!input) return
+    input.value = prompt
+    input.focus()
+  }
 
   const send = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -143,38 +156,96 @@ export default function StudioLumi() {
 
   return (
     <section className="studio-lumi-overlay" aria-label="Lumi for EBG Studio">
-      <div className="studio-lumi-shell">
-        <aside className="studio-lumi-context">
-          <p className="eyebrow">LUMI ✦ STUDIO</p>
-          <h2>Your production copilot.</h2>
-          <p>Lumi receives only the production data your signed-in EBG+ account is allowed to access.</p>
-          <label>Production
+      <div className={`studio-lumi-shell ${hasConversation ? 'conversation-active' : ''}`}>
+        <header className="studio-lumi-topbar">
+          <div className="studio-lumi-brand">
+            <span className="lumi-orb">✦</span>
+            <div>
+              <strong>Lumi</strong>
+              <small>EBG Studio AI</small>
+            </div>
+          </div>
+
+          <div className="studio-lumi-production-picker">
+            <span>Production</span>
             <select value={showId} onChange={(event) => setShowId(event.target.value)}>
               {(cms.shows ?? []).map((show) => <option value={show.id} key={show.id}>{show.title}</option>)}
             </select>
-          </label>
-          {selectedShow && <div className="lumi-production-card"><strong>{selectedShow.title}</strong><span>{selectedShow.genre || 'Series'} · {selectedShow.status || 'Production'}</span><p>{selectedShow.description || 'No description yet.'}</p><small>{selectedEpisodes.length} episode{selectedEpisodes.length === 1 ? '' : 's'} in your accessible Studio slice</small></div>}
-          <div className="lumi-quick-prompts">
-            {['Summarize this production', 'Give me 5 episode ideas', 'Draft promo copy', 'Create a fan poll', 'Check episode continuity'].map((prompt) => <button type="button" key={prompt} onClick={() => {
-              const input = document.querySelector<HTMLInputElement>('#studio-lumi-input')
-              if (input) { input.value = prompt; input.focus() }
-            }}>{prompt}</button>)}
           </div>
-          <small className="lumi-readonly-note">Suggestion-only v1 · Lumi cannot publish or edit EBG+ yet.</small>
-        </aside>
 
-        <div className="studio-lumi-chat">
-          <div className="studio-lumi-chat-head"><div><span className="lumi-spark">✦</span><strong>Lumi</strong><small>{selectedShow ? `working on ${selectedShow.title}` : 'waiting for a production'}</small></div><span className="lumi-safe-pill">permission scoped</span></div>
-          <div className="studio-lumi-messages">
-            {messages.map((message, index) => <article className={message.role} key={`${message.role}-${index}`}><span>{message.role === 'lumi' ? 'Lumi ✦' : 'You'}</span><p>{message.text}</p></article>)}
-            {busy && <article className="lumi thinking"><span>Lumi ✦</span><p>thinking with your production context…</p></article>}
-          </div>
-          {error && <div className="studio-lumi-error">{error}</div>}
-          <form className="studio-lumi-composer" onSubmit={send}>
-            <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}…` : 'No accessible production selected'} autoComplete="off" disabled={!showId || busy} />
-            <button className="button" type="submit" disabled={!showId || busy}>{busy ? 'Thinking…' : 'Send ✦'}</button>
-          </form>
-        </div>
+          <span className="lumi-safe-pill">permission scoped</span>
+        </header>
+
+        {!hasConversation && (
+          <main className="studio-lumi-welcome">
+            <div className="lumi-ambient-glow" aria-hidden="true" />
+            <div className="lumi-welcome-copy">
+              <span className="lumi-kicker">LUMI ✦ STUDIO</span>
+              <h1>What are we creating today?</h1>
+              <p>{selectedShow ? `I’m locked into ${selectedShow.title}. Let’s build, polish, plan, or rethink anything around this production.` : 'Choose a production and we can start creating.'}</p>
+            </div>
+
+            <form className="studio-lumi-composer hero-composer" onSubmit={send}>
+              <span className="composer-spark" aria-hidden="true">✦</span>
+              <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : 'Choose a production first'} autoComplete="off" disabled={!showId || busy} />
+              <button className="lumi-send-button" type="submit" disabled={!showId || busy} aria-label="Send to Lumi">➜</button>
+            </form>
+
+            <div className="lumi-quick-prompts">
+              {quickPrompts.map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
+            </div>
+
+            {selectedShow && (
+              <div className="lumi-production-strip">
+                <div>
+                  <span>{selectedShow.genre || 'Series'} · {selectedShow.status || 'Production'}</span>
+                  <strong>{selectedShow.title}</strong>
+                </div>
+                <p>{selectedShow.description || 'No description yet.'}</p>
+                <small>{selectedEpisodes.length} episode{selectedEpisodes.length === 1 ? '' : 's'} available in your Studio access</small>
+              </div>
+            )}
+
+            {error && <div className="studio-lumi-error welcome-error">{error}</div>}
+            <small className="lumi-readonly-note">Suggestion-only v1 · Lumi cannot publish or edit EBG+ yet.</small>
+          </main>
+        )}
+
+        {hasConversation && (
+          <main className="studio-lumi-chat">
+            <div className="studio-lumi-chat-context">
+              <span className="lumi-spark">✦</span>
+              <div>
+                <strong>{selectedShow?.title || 'Lumi Studio'}</strong>
+                <small>{selectedShow ? `${selectedShow.genre || 'Series'} · ${selectedEpisodes.length} episode${selectedEpisodes.length === 1 ? '' : 's'}` : 'Production context'}</small>
+              </div>
+            </div>
+
+            <div className="studio-lumi-messages">
+              {messages.map((message, index) => (
+                <article className={message.role} key={`${message.role}-${index}`}>
+                  <span>{message.role === 'lumi' ? 'Lumi ✦' : 'You'}</span>
+                  <p>{message.text}</p>
+                </article>
+              ))}
+              {busy && <article className="lumi thinking"><span>Lumi ✦</span><p>thinking with your production context…</p></article>}
+            </div>
+
+            {error && <div className="studio-lumi-error">{error}</div>}
+
+            <div className="lumi-conversation-footer">
+              <div className="lumi-quick-prompts compact">
+                {quickPrompts.slice(0, 3).map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
+              </div>
+              <form className="studio-lumi-composer" onSubmit={send}>
+                <span className="composer-spark" aria-hidden="true">✦</span>
+                <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : 'No accessible production selected'} autoComplete="off" disabled={!showId || busy} />
+                <button className="lumi-send-button" type="submit" disabled={!showId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
+              </form>
+              <small className="lumi-readonly-note">Lumi only receives production data this signed-in account can access.</small>
+            </div>
+          </main>
+        )}
       </div>
     </section>
   )
