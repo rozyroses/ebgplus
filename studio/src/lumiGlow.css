@@ -1,0 +1,89 @@
+/* Lumi gets a distinct AI treatment in the Studio navigation. */
+.sidebar nav button[data-studio-lumi-nav] {
+  position: relative;
+  margin-top: .45rem;
+  overflow: visible;
+  border: 1px solid rgba(230, 233, 238, .72);
+  background:
+    linear-gradient(135deg, rgba(213,175,88,.16), rgba(18,18,18,.92) 58%, rgba(236,239,244,.05));
+  color: #f1d889;
+  text-shadow: 0 0 10px rgba(213,175,88,.9), 0 0 22px rgba(213,175,88,.42);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.08) inset,
+    0 0 10px rgba(226,230,236,.34),
+    0 0 20px rgba(213,175,88,.16);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.sidebar nav button[data-studio-lumi-nav]::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: 12px;
+  background: linear-gradient(120deg, rgba(239,242,247,.8), rgba(213,175,88,.34), rgba(247,248,250,.72));
+  filter: blur(7px);
+  opacity: .38;
+  pointer-events: none;
+}
+
+.sidebar nav button[data-studio-lumi-nav] span {
+  color: #ffd975;
+  text-shadow: 0 0 8px rgba(255,214,103,.95), 0 0 18px rgba(213,175,88,.75);
+}
+
+.sidebar nav button[data-studio-lumi-nav]:hover {
+  transform: translateY(-1px);
+  border-color: rgba(248,250,252,.92);
+  background: linear-gradient(135deg, rgba(213,175,88,.24), rgba(20,20,20,.96) 55%, rgba(236,239,244,.08));
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.12) inset,
+    0 0 14px rgba(232,235,241,.5),
+    0 0 28px rgba(213,175,88,.28);
+}
+
+.sidebar nav button[data-studio-lumi-nav].active {
+  color: #ffe49b;
+  border-color: rgba(246,248,252,.98);
+  background:
+    radial-gradient(circle at 18% 50%, rgba(255,220,126,.19), transparent 32%),
+    linear-gradient(90deg, rgba(213,175,88,.3), rgba(23,23,23,.98) 62%, rgba(239,242,247,.09));
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.16) inset,
+    0 0 16px rgba(236,239,244,.62),
+    0 0 34px rgba(213,175,88,.38);
+  animation: lumi-nav-glow 2.4s ease-in-out infinite;
+}
+
+.sidebar nav button[data-studio-lumi-nav].active::after {
+  content: 'AI';
+  margin-left: auto;
+  padding: .14rem .38rem;
+  border: 1px solid rgba(241,244,248,.62);
+  border-radius: 999px;
+  color: #f4e4b1;
+  background: rgba(255,255,255,.05);
+  font-size: .55rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-shadow: 0 0 8px rgba(213,175,88,.7);
+}
+
+@keyframes lumi-nav-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.16) inset,
+      0 0 13px rgba(236,239,244,.48),
+      0 0 28px rgba(213,175,88,.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.2) inset,
+      0 0 20px rgba(236,239,244,.74),
+      0 0 42px rgba(213,175,88,.46);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar nav button[data-studio-lumi-nav].active { animation: none; }
+}
