@@ -1,0 +1,269 @@
+.team-access-overlay {
+  position: fixed;
+  inset: 92px 0 0 248px;
+  z-index: 30;
+  overflow: auto;
+  background: #080808;
+  padding: clamp(1rem, 3vw, 2.2rem);
+}
+
+.team-access-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.team-access-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(17,17,17,.9);
+}
+
+.team-access-heading h2 {
+  margin: .25rem 0 .45rem;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+}
+
+.team-access-heading p:not(.eyebrow) {
+  margin: 0;
+  color: var(--muted);
+  max-width: 720px;
+  line-height: 1.55;
+}
+
+.team-access-message {
+  border: 1px solid rgba(213,175,88,.24);
+  border-radius: 12px;
+  background: rgba(213,175,88,.08);
+  color: #e9d9ab;
+  padding: .85rem 1rem;
+}
+
+.team-access-empty {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: .5rem;
+  text-align: center;
+  border: 1px dashed rgba(213,175,88,.2);
+  border-radius: 16px;
+  background: #0d0d0d;
+  color: var(--muted);
+  padding: 2rem;
+}
+
+.team-access-empty strong {
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.team-access-empty p {
+  max-width: 560px;
+  margin: 0;
+}
+
+.team-access-list {
+  display: grid;
+  gap: .85rem;
+}
+
+.team-access-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(17,17,17,.9);
+  overflow: hidden;
+}
+
+.team-member-head {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .85rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.team-member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg,#3a3221,#171717);
+  color: var(--gold-soft);
+  font-weight: 900;
+  font-size: 1.2rem;
+}
+
+.team-member-copy {
+  display: grid;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.team-member-copy strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.team-member-copy span {
+  color: var(--muted);
+  text-transform: capitalize;
+  font-size: .8rem;
+}
+
+.global-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .55rem .7rem;
+  border: 1px solid #343434;
+  border-radius: 10px;
+  background: #0c0c0c;
+  color: #ddd7cb;
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.global-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+}
+
+.global-toggle.locked {
+  color: var(--gold-soft);
+  border-color: rgba(213,175,88,.24);
+  background: rgba(213,175,88,.07);
+  cursor: default;
+}
+
+.team-show-access {
+  padding: 1rem;
+  display: grid;
+  gap: .85rem;
+}
+
+.team-show-title {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.access-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: .25rem .55rem;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.access-pill.global {
+  color: var(--gold-soft);
+  border: 1px solid rgba(213,175,88,.25);
+  background: rgba(213,175,88,.08);
+}
+
+.assignment-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.assignment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px auto;
+  align-items: center;
+  gap: .7rem;
+  padding: .7rem;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #0c0c0c;
+}
+
+.assignment-row > div {
+  display: grid;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.assignment-row > div strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-row > div span,
+.no-assignments {
+  color: var(--muted);
+  font-size: .75rem;
+}
+
+.assignment-row select {
+  min-width: 0;
+}
+
+.button.compact {
+  min-height: 38px;
+  padding: .55rem .75rem;
+}
+
+.assignment-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 160px auto;
+  align-items: end;
+  gap: .7rem;
+  padding-top: .2rem;
+}
+
+.no-assignments {
+  margin: .1rem 0;
+}
+
+@media (max-width: 900px) {
+  .team-access-overlay {
+    inset: 92px 0 0 0;
+  }
+
+  .team-member-head,
+  .assignment-row,
+  .assignment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .team-member-head {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .global-toggle {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .assignment-row .button,
+  .assignment-form .button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .team-access-overlay {
+    inset: 78px 0 0 0;
+    padding: .8rem;
+  }
+
+  .team-access-heading {
+    display: grid;
+  }
+}
