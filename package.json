@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "studio:dev": "vite --config studio/vite.config.ts",
-    "studio:build": "node scripts/apply-phase157-studio-founder-news.mjs && node scripts/apply-phase160-studio-forms-network.mjs && vite build --config studio/vite.config.ts",
+    "studio:build": "node scripts/apply-phase157-studio-founder-news.mjs && node scripts/apply-phase160-studio-forms-network.mjs && node scripts/apply-phase161-studio-inbox.mjs && vite build --config studio/vite.config.ts",
     "studio:preview": "vite preview --config studio/vite.config.ts"
   },
   "dependencies": {
