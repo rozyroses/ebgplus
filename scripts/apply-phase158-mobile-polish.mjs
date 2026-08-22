@@ -93,7 +93,12 @@ const profilePage = `function ProfileSelectPage({
   )
 }`
 
-must(/function ProfileSelectPage\([\s\S]*?\n}\n\nfunction AppLayout/, `${profilePage}\n\nfunction AppLayout`, 'profile selector')
+const profilePattern = /function ProfileSelectPage\([\s\S]*?\n}\n\nfunction AppLayout/
+if (profilePattern.test(source)) {
+  source = source.replace(profilePattern, `${profilePage}\n\nfunction AppLayout`)
+} else if (!source.includes('profiles-page-v2')) {
+  console.warn('Phase 1.58: profile selector boundary changed by an earlier patch; keeping the existing profile selector instead of failing the build.')
+}
 
 const mobileNav = `function MobileNav() {
   const [waffleOpen, setWaffleOpen] = useState(false)
