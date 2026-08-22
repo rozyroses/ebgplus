@@ -6,6 +6,7 @@ export type AuthAccount = {
   id: string
   email: string
   role: EbgRole
+  verified_badge?: 'artist' | 'founder' | null
 }
 
 export type AuthProfile = {
