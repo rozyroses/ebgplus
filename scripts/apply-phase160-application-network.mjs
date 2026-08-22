@@ -57,5 +57,11 @@ const component=`function MyApplicationsPage({ cms }: { cms: CmsData }) {
 `
 must(/function MyApplicationsPage\([\s\S]*?\n}\n\nfunction MyListPage/,component+'function MyListPage','application center')
 
+// Phase 1.60 fully replaces the legacy Forms and My Applications experiences.
+// Remove their now-unused imports so strict TypeScript builds stay green.
+source = source
+  .replace("import { submitPublicCastingApplication } from './lib/formsData'\n", '')
+  .replace("import { loadMyCastingApplications, type ViewerApplication } from './lib/applicationData'\n", '')
+
 fs.writeFileSync(path,source)
-console.log('Applied Phase 1.60 applicant messaging, updates, and verification support.')
+console.log('Applied Phase 1.60 applicant messaging, updates, verification support, and legacy import cleanup.')
