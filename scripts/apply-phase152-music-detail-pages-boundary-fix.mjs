@@ -22,4 +22,14 @@ await import('./apply-phase157-platform-refresh.mjs')
 await import('./apply-phase158-mobile-polish.mjs')
 await import('./apply-phase159-forms-v2.mjs')
 await import('./apply-phase160-application-network.mjs')
+
+const phase161Path = new URL('./apply-phase161-inbox-notifications.mjs', import.meta.url)
+let phase161Source = fs.readFileSync(phase161Path, 'utf8')
+const phase161BadInterpolation = '${unreadNetwork+unreadCms} unread update'
+if (phase161Source.includes(phase161BadInterpolation)) {
+  phase161Source = phase161Source.replace(phase161BadInterpolation, '\\${unreadNetwork+unreadCms} unread update')
+  fs.writeFileSync(phase161Path, phase161Source)
+  console.log('Applied Phase 1.61 notification template interpolation hotfix.')
+}
+
 await import('./apply-phase161-inbox-notifications.mjs')
