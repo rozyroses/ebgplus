@@ -23,4 +23,4 @@ await import('./apply-phase158-mobile-polish.mjs')
 await import('./apply-phase159-forms-v2.mjs')
 await import('./apply-phase160-application-network.mjs')
 
-console.log('Phase 1.61 is intentionally frozen during deployment stabilization.')
+await import('./apply-phase161-inbox-notifications.mjs')
