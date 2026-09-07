@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { restoreAuth, signIn, signOut, type AuthState } from '../../src/lib/auth'
 import { db } from '../../src/lib/supabase'
+import FormsNetworkWorkspace from './FormsNetworkWorkspace'
+import StudioInbox from './StudioInbox'
+
+// EBG_STUDIO_PHASE161_INBOX
+import { setVerifiedBadge } from './formsNetwork'
+
+// EBG_STUDIO_PHASE160_FORMS_NETWORK
 import {
   loadCmsData,
   saveCmsData,
@@ -18,7 +25,23 @@ import {
   type PollResult,
 } from '../../src/lib/pollData'
 
+// EBG_STUDIO_PHASE157_FOUNDER_NEWS
+function Logo(){return <span className="logo-art"><img src="/branding/ebgplus-ink-blue.png" alt="EBG+" width="1920" height="819" /></span>}
+
 type StaffRole = 'editor' | 'producer' | 'administrator' | 'founder'
+type NewsStatus = 'draft' | 'scheduled' | 'published'
+type NewsPost = {
+  id: string
+  headline: string
+  summary: string
+  body: string
+  category: string
+  author: string
+  image?: string
+  featured?: boolean
+  status: NewsStatus
+  publishedAt: string
+}
 type PublishStatus = 'draft' | 'scheduled' | 'live' | 'archived'
 
 type CastMember = {
@@ -81,6 +104,7 @@ type CmsData = {
   rails: Array<{ id: string; title: string; showIds: string[] }>
   comingSoon: string[]
   notifications?: NotificationItem[]
+  news?: NewsPost[]
 }
 
 type CastingApplication = {
@@ -101,10 +125,11 @@ type TeamAccount = {
   id: string
   email: string | null
   role: string
+  verified_badge?: 'artist' | 'founder' | null
   created_at?: string
 }
 
-type StudioTab = 'overview' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
+type StudioTab = 'overview' | 'series' | 'episodes' | 'talent' | 'casting' | 'forms' | 'inbox' | 'polls' | 'media' | 'news' | 'notifications' | 'team'
 
 const STAFF_ROLES = new Set<StaffRole>(['editor', 'producer', 'administrator', 'founder'])
 const CASTING_STATUSES: CastingApplication['status'][] = ['New', 'Reviewing', 'Callback', 'Interview', 'Finalist', 'Cast', 'Declined', 'Removed']
@@ -114,8 +139,11 @@ const TABS: Array<{ id: StudioTab; label: string; icon: string }> = [
   { id: 'episodes', label: 'Episodes', icon: '▶' },
   { id: 'talent', label: 'Cast & Talent', icon: '◎' },
   { id: 'casting', label: 'Casting', icon: '◇' },
+  { id: 'forms', label: 'Forms', icon: '▤' },
+  { id: 'inbox', label: 'Inbox', icon: '✉' },
   { id: 'polls', label: 'Polls & Voting', icon: '◉' },
   { id: 'media', label: 'Media', icon: '▧' },
+  { id: 'news', label: 'News', icon: 'N' },
   { id: 'notifications', label: 'Notifications', icon: '◌' },
   { id: 'team', label: 'Team', icon: '♙' },
 ]
@@ -128,6 +156,7 @@ const emptyCms: CmsData = {
   rails: [],
   comingSoon: [],
   notifications: [],
+  news: [],
 }
 
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -149,7 +178,7 @@ function App() {
   }, [])
 
   if (booting) {
-    return <main className="studio-boot"><span className="studio-mark">EBG</span><p>Opening Studio…</p></main>
+    return <main className="studio-boot"><Logo /><p>Opening Studio…</p></main>
   }
 
   if (!authState) {
@@ -160,7 +189,7 @@ function App() {
     return (
       <main className="studio-auth-page">
         <section className="auth-card denied">
-          <span className="studio-mark">EBG</span>
+          <Logo />
           <p className="eyebrow">STAFF ACCESS ONLY</p>
           <h1>This account doesn’t have Studio access.</h1>
           <p>{authState.account.email}</p>
@@ -202,7 +231,7 @@ function StudioSignIn({
   return (
     <main className="studio-auth-page">
       <section className="auth-card">
-        <span className="studio-mark">EBG</span>
+        <Logo />
         <p className="eyebrow">CREATOR · PRODUCER · STAFF</p>
         <h1>Studio</h1>
         <p>Manage the EBG+ slate, releases, talent, audience tools, and production media.</p>
@@ -471,8 +500,53 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     }
   }
 
+  const createNewsPost = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (authState.account.role !== 'founder') return setMessage('Founder access is required to publish EBG News.')
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
+    const status = String(form.get('status') ?? 'draft') as NewsStatus
+    const publishAt = String(form.get('publishAt') ?? '')
+    if (status === 'scheduled' && !publishAt) return setMessage('Choose a publish date before scheduling this story.')
+    setBusy(true)
+    try {
+      const imageFile = form.get('image')
+      const image = imageFile instanceof File && imageFile.size ? await uploadStudioMedia(imageFile, 'news') : ''
+      const post: NewsPost = {
+        id: 'news-' + Date.now(),
+        headline: String(form.get('headline') ?? '').trim(),
+        summary: String(form.get('summary') ?? '').trim(),
+        body: String(form.get('body') ?? '').trim(),
+        category: String(form.get('category') ?? 'EBG News').trim() || 'EBG News',
+        author: String(form.get('author') ?? '').trim() || 'EBG',
+        image: image || undefined,
+        featured: form.get('featured') === 'on',
+        status,
+        publishedAt: status === 'published' ? nowIso() : publishAt ? new Date(publishAt).toISOString() : nowIso(),
+      }
+      await commitCms({ ...cms, news: [post, ...(cms.news ?? [])] }, status === 'published' ? 'News story published.' : 'News story saved.')
+      formElement.reset()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'News story could not be saved.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const updateNewsPost = (postId: string, patch: Partial<NewsPost>, success?: string) => {
+    if (authState.account.role !== 'founder') return setMessage('Founder access is required to manage EBG News.')
+    void commitCms({ ...cms, news: (cms.news ?? []).map((post) => post.id === postId ? { ...post, ...patch } : post) }, success)
+  }
+
+  const deleteNewsPost = (post: NewsPost) => {
+    if (authState.account.role !== 'founder') return setMessage('Founder access is required to manage EBG News.')
+    if (!window.confirm('Delete “' + post.headline + '”?')) return
+    void commitCms({ ...cms, news: (cms.news ?? []).filter((item) => item.id !== post.id) }, 'News story deleted.')
+  }
+
   const createNotification = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (authState.account.role !== 'founder') return setMessage('Founder access is required to publish notifications.')
     const formElement = event.currentTarget
     const form = new FormData(formElement)
     const status = String(form.get('status') ?? 'draft') as NotificationItem['status']
@@ -498,7 +572,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   }
 
   if (busy && !cms.shows.length) {
-    return <main className="studio-boot"><span className="studio-mark">EBG</span><p>Loading production data…</p></main>
+    return <main className="studio-boot"><Logo /><p>Loading production data…</p></main>
   }
 
   const activeEpisodes = cms.episodes.filter((episode) => episode.publishStatus === 'live').length
@@ -508,10 +582,10 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   return (
     <div className="studio-shell">
       <aside className="sidebar">
-        <button className="brand-button" type="button" onClick={() => setTab('overview')}><span className="studio-mark">EBG</span><strong>STUDIO</strong></button>
-        <nav>
-          {TABS.map((item) => (
-            <button key={item.id} type="button" className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>
+        <button className="brand-button" type="button" onClick={() => setTab('overview')}><Logo /><strong>Studio</strong></button>
+        <p className="nav-caption">YOUR WORKSPACE</p><nav aria-label="Studio workspaces">
+          {TABS.filter((item) => authState.account.role === 'founder' || !['news', 'notifications'].includes(item.id)).map((item) => (
+            <button key={item.id} type="button" aria-current={tab === item.id ? 'page' : undefined} className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>
               <span>{item.icon}</span>{item.label}
             </button>
           ))}
@@ -526,7 +600,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         <header className="topbar">
           <div><p className="eyebrow">EBG STUDIO / {TABS.find((item) => item.id === tab)?.label}</p><h1>{TABS.find((item) => item.id === tab)?.label}</h1></div>
           <div className="top-actions">
-            {cms.shows.length > 0 && <select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select>}
+            {cms.shows.length > 0 && <select aria-label="Current series" value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select>}
             <a className="button secondary" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
           </div>
         </header>
@@ -536,14 +610,14 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         <main className="workspace">
           {tab === 'overview' && (
             <>
-              <section className="hero-panel"><div><p className="eyebrow">PRODUCTION HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Publish releases, manage talent, review casting, and shape what viewers see.</p><div className="hero-actions"><button className="button" onClick={() => setTab('episodes')}>Upload episode</button><button className="button secondary" onClick={() => setTab('series')}>Manage series</button></div></div><div className="hero-stat"><strong>{cms.shows.length}</strong><span>series in slate</span></div></section>
+              <section className="hero-panel"><div><p className="eyebrow">PRODUCTION HQ</p><h2>Big ideas.<br /><em>Next chapter.</em></h2><p>Your stories, your people, your next release. Make something worth watching.</p><div className="hero-actions"><button className="button" onClick={() => setTab('episodes')}>Upload episode</button><button className="button secondary" onClick={() => setTab('series')}>Manage series</button></div></div><div className="studio-today"><span>READY WHEN YOU ARE</span><strong>{cms.episodes.filter(episode=>episode.publishStatus === 'draft').length}</strong><p>episodes in draft</p><button onClick={()=>setTab('episodes')}>Continue creating ↗</button></div></section>
               <section className="stats-grid">
                 <Stat label="Series" value={cms.shows.length} detail={`${cms.shows.filter((show) => show.status === 'Now Streaming' || show.status === 'Current').length} active`} />
                 <Stat label="Episodes" value={cms.episodes.length} detail={`${activeEpisodes} live`} />
                 <Stat label="Casting" value={openCasting} detail={`${casting.length} total`} />
                 <Stat label="Live polls" value={openPolls} detail={`${polls.length} total`} />
               </section>
-              <section className="panel"><PanelHeading eyebrow="WORKSPACES" title="Where do you want to work?" /><div className="launch-grid">{TABS.filter((item) => item.id !== 'overview').map((item, index) => <button type="button" key={item.id} onClick={() => setTab(item.id)}><span>{String(index + 1).padStart(2, '0')}</span><strong>{item.label}</strong><b>→</b></button>)}</div></section>
+              <section className="panel"><PanelHeading eyebrow="WORKSPACES" title="Make your next move." /><div className="launch-grid">{TABS.filter((item) => item.id !== 'overview' && (authState.account.role === 'founder' || !['news', 'notifications'].includes(item.id))).map((item, index) => <button type="button" key={item.id} onClick={() => setTab(item.id)}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{item.label}</strong><small>{{overview:'Your workspace',series:'Shape your slate',episodes:'Prepare the next release',talent:'Meet your cast',casting:'Find your next star',forms:'Build an opportunity',inbox:'Keep conversations moving',polls:'Hear from your audience',media:'Organize your assets',news:'Share the latest',notifications:'Keep viewers in the loop',team:'Manage your team'}[item.id]}</small></div><b>↗</b></button>)}</div></section>
               <section className="two-column">
                 <div className="panel"><PanelHeading eyebrow="RECENT RELEASES" title="Episodes" /><div className="compact-list">{[...cms.episodes].sort((a, b) => Date.parse(b.releaseDate) - Date.parse(a.releaseDate)).slice(0, 5).map((episode) => <article key={episode.id}><img src={episode.thumbnail || cms.shows.find((show) => show.id === episode.showId)?.artwork} alt="" /><div><strong>{episode.title}</strong><span>{cms.shows.find((show) => show.id === episode.showId)?.title} · S{episode.season}E{episode.number}</span></div><em>{episode.publishStatus ?? 'scheduled'}</em></article>)}</div></div>
                 <div className="panel"><PanelHeading eyebrow="CURRENT SLATE" title="Series" /><div className="poster-grid">{cms.shows.slice(0, 6).map((show) => <button key={show.id} type="button" onClick={() => { setShowId(show.id); setTab('series') }}><div className="poster-image">{show.artwork ? <img src={show.artwork} alt="" /> : <span>{show.title.slice(0, 1)}</span>}</div><strong>{show.title}</strong><span>{show.status}</span></button>)}</div></div>
@@ -573,6 +647,10 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
             </>
           )}
 
+          {tab === 'forms' && <FormsNetworkWorkspace />}
+
+          {tab === 'inbox' && <StudioInbox />}
+
           {tab === 'casting' && (
             <section className="panel"><PanelHeading eyebrow="CASTING PIPELINE" title="Applications" /><div className="table-wrap"><table><thead><tr><th>Name</th><th>Series</th><th>Location</th><th>Email</th><th>Status</th></tr></thead><tbody>{casting.map((application) => <tr key={application.id}><td><strong>{application.legal_name}</strong><span>{application.age} years old</span></td><td>{cms.shows.find((show) => show.id === application.show_id)?.title ?? application.show_id ?? 'General'}</td><td>{application.city_state}</td><td>{application.email}</td><td><select value={application.status} onChange={(event) => void changeCastingStatus(application, event.target.value as CastingApplication['status'])}>{CASTING_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></td></tr>)}</tbody></table></div></section>
           )}
@@ -588,7 +666,15 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
             <section className="panel"><PanelHeading eyebrow="BRAND ASSETS" title={selectedShow.title} /><div className="media-grid"><MediaCard label="Poster" src={selectedShow.artwork} onFile={(file) => void replaceShowMedia('artwork', file)} /><MediaCard label="Banner" src={selectedShow.banner || selectedShow.artwork} onFile={(file) => void replaceShowMedia('banner', file)} wide /><MediaCard label="Logo" src={selectedShow.logoImage} fallback={selectedShow.logo} onFile={(file) => void replaceShowMedia('logoImage', file)} /></div></section>
           )}
 
-          {tab === 'notifications' && (
+          {tab === 'news' && authState.account.role === 'founder' && (
+            <>
+              <section className="panel studio-news-hero"><PanelHeading eyebrow="FOUNDER NEWSROOM" title="EBG News" /><p>Publish official announcements, artist updates, premieres, casting news, platform updates, and stories from across the EBG universe. Published stories appear on the EBG+ News page and can surface on the homepage.</p></section>
+              <section className="panel"><PanelHeading eyebrow="NEWS DESK" title="Stories" /><div className="studio-news-list">{(cms.news ?? []).length ? (cms.news ?? []).map((post) => <article key={post.id}><div className="studio-news-thumb">{post.image ? <img src={post.image} alt="" /> : <span>N</span>}</div><div><span className="eyebrow">{post.category} · {post.status}</span><h3>{post.headline}</h3><p>{post.summary}</p><small>{post.author} · {new Date(post.publishedAt).toLocaleString()}</small></div><div className="studio-news-actions"><select value={post.status} onChange={(event) => updateNewsPost(post.id, { status: event.target.value as NewsStatus, publishedAt: event.target.value === 'published' ? nowIso() : post.publishedAt }, 'News status updated.')}><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select><button className="button secondary" type="button" onClick={() => updateNewsPost(post.id, { featured: !post.featured }, post.featured ? 'Story removed from featured.' : 'Story featured.')}>{post.featured ? 'Unfeature' : 'Feature'}</button><button className="button danger" type="button" onClick={() => deleteNewsPost(post)}>Delete</button></div></article>) : <p>No news stories yet. Publish the first one below.</p>}</div></section>
+              <section className="panel"><PanelHeading eyebrow="PUBLISH" title="New story" /><form className="form-grid" onSubmit={createNewsPost}><label>Headline<input name="headline" required /></label><label>Category<input name="category" defaultValue="EBG News" /></label><label>Author / byline<input name="author" defaultValue="EBG" /></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="scheduled">Schedule</option><option value="published">Publish now</option></select></label><label>Publish at<input name="publishAt" type="datetime-local" /></label><label>Story image<input name="image" type="file" accept="image/*" /></label><label className="studio-news-featured"><input name="featured" type="checkbox" /> Feature this story</label><label className="full">Summary<textarea name="summary" required placeholder="A short description for cards and the homepage." /></label><label className="full">Article<textarea name="body" required placeholder="Write the full EBG News story here." /></label><div className="full"><button className="button" disabled={busy}>{busy ? 'Publishing…' : 'Save story'}</button></div></form></section>
+            </>
+          )}
+
+          {tab === 'notifications' && authState.account.role === 'founder' && (
             <>
               <section className="panel"><PanelHeading eyebrow="AUDIENCE UPDATES" title="Notifications" /><div className="notification-list">{(cms.notifications ?? []).map((item) => <article key={item.id}><div><span className="eyebrow">{item.status ?? 'sent'} · {item.audience ?? 'all'}</span><h3>{item.title || 'EBG+ Update'}</h3><p>{item.text}</p></div><time>{new Date(item.date).toLocaleString()}</time></article>)}</div></section>
               <section className="panel"><PanelHeading eyebrow="PUBLISH" title="New notification" /><form className="form-grid" onSubmit={createNotification}><label>Title<input name="title" required /></label><label>Audience<select name="audience"><option value="all">Everyone</option><option value="subscribers">Subscribers</option><option value="staff">Staff</option></select></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="sent">Send now</option></select></label><label>Publish at<input name="publishAt" type="datetime-local" /></label><label className="full">Message<textarea name="text" required /></label><label className="full">Link<input name="link" placeholder="/app/shows/..." /></label><div className="full"><button className="button">Save notification</button></div></form></section>
@@ -596,7 +682,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
           )}
 
           {tab === 'team' && (
-            <section className="panel"><PanelHeading eyebrow="ACCESS" title="EBG Studio team" /><p className="muted-copy">Roles are currently read from the shared EBG+ accounts table. Granular role permissions are the next backend migration.</p><div className="team-grid">{team.filter((account) => STAFF_ROLES.has(account.role as StaffRole)).map((account) => <article key={account.id}><div className="avatar-fallback">{account.email?.slice(0, 1).toUpperCase() ?? 'E'}</div><div><strong>{account.email ?? account.id}</strong><span>{account.role}</span></div></article>)}</div></section>
+            <section className="panel"><PanelHeading eyebrow="ACCESS & IDENTITY" title="EBG Studio team" /><p className="muted-copy">Founders can assign official Artist or Founder verification. Founder accounts are verified automatically.</p><div className="team-grid">{team.filter((account) => STAFF_ROLES.has(account.role as StaffRole) || account.verified_badge === 'artist').map((account) => <article key={account.id}><div className="avatar-fallback">{account.email?.slice(0, 1).toUpperCase() ?? 'E'}</div><div><strong>{account.email ?? account.id} {account.verified_badge && <span className="verified-badge" title={account.verified_badge + ' verified'}>✓</span>}</strong><span>{account.role}{account.verified_badge ? ' · ' + account.verified_badge + ' verified' : ''}</span>{authState.account.role === 'founder' && <select value={account.verified_badge ?? ''} onChange={(event) => { const badge=(event.target.value || null) as 'artist'|'founder'|null; void setVerifiedBadge(account.id,badge).then(refreshAuxiliary).then(()=>setMessage('Verification updated.')) }}><option value="">Not verified</option><option value="artist">Artist verified</option><option value="founder">Founder verified</option></select>}</div></article>)}</div></section>
           )}
         </main>
       </div>

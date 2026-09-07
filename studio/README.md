@@ -84,3 +84,14 @@ After the first deployment, add `studio.ebgplus.app` as a custom domain on the `
 8. Remove the deploy-time Studio mutation scripts after feature parity is confirmed.
 
 The old embedded Studio remains untouched during the initial cutover.
+
+
+## September 2026 interface redesign
+
+Studio now uses the approved ink EBG+ wordmark and blue plus, with a white workspace, blue dashboard, compact navigation, responsive content panels, and redesigned Forms and Inbox surfaces. Existing authentication, staff roles, CMS, uploads, and submission services remain in place.
+
+Forms includes a visual question builder with answer types, optional/required controls, reordering, dropdown choices, and a local applicant preview. Response search and status filters work on loaded submissions. No production data was changed during development.
+
+The previous build-time phases 157, 160 and 161 are materialized in the source. `npm run studio:build` builds that source directly, avoiding CSS imports being reapplied after the redesign. Original layout styles are consolidated into a low-priority `legacy.css` layer; `redesign.css` supplies the shared interface.
+
+Validation: production Vite build and TypeScript check of the Studio entrypoint. Authenticated browser flows and live database writes have not been exercised. Review against `feat/ebg-studio-app`; the standalone Cloudflare deployment remains manual.
