@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
   <title id="title">EBG+ favicon</title>
   <defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff1bd"/>
-      <stop offset="0.45" stop-color="#d6ae52"/>
-      <stop offset="1" stop-color="#9a7025"/>
+    <linearGradient id="pastel" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6f73f6"/>
+      <stop offset=".5" stop-color="#8ea7ff"/>
+      <stop offset="1" stop-color="#c38bdc"/>
     </linearGradient>
   </defs>
-  <path fill="url(#gold)" d="M8 10h30v9H19v8h17v9H19v9h20v9H8z"/>
-  <path fill="url(#gold)" d="M47 18h7v9h9v7h-9v9h-7v-9h-9v-7h9z"/>
+  <rect x="3" y="3" width="58" height="58" rx="18" fill="#f8f9ff"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="17.5" fill="none" stroke="#e3e7ff"/>
+  <path fill="url(#pastel)" d="M9 12h29v8H19v7h17v8H19v9h20v8H9z"/>
+  <path fill="url(#pastel)" d="M46 18h7v9h8v7h-8v9h-7v-9h-8v-7h8z"/>
 </svg>
