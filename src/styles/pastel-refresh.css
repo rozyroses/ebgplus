@@ -755,3 +755,137 @@ body .setting-row { border-color: rgba(66,72,113,.1); }
   body .content-card:hover,
   body .continue-card-v2:hover { transform: none; }
 }
+
+
+/* EBG_TOP_NAV_REFRESH */
+.viewer-sidebar {
+  display: none !important;
+}
+
+@media (min-width: 901px) {
+  body .app-shell {
+    padding-left: 0 !important;
+  }
+
+  body .app-shell > .topbar.app {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    min-height: 72px;
+    width: 100%;
+    padding: 10px clamp(18px, 3vw, 44px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: rgba(255,255,255,.82);
+    border-bottom: 1px solid rgba(255,255,255,.94);
+    box-shadow: 0 10px 32px rgba(68,76,122,.07);
+    backdrop-filter: blur(22px) saturate(1.12);
+  }
+
+  body .app-shell > .topbar.app > .wordmark {
+    display: block !important;
+    flex: 0 0 auto;
+    width: 96px;
+    height: 38px;
+    margin-right: 6px;
+  }
+
+  body .app-shell > .topbar.app > .primary-nav {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  body .app-shell > .topbar.app .primary-nav > a,
+  body .app-shell > .topbar.app .primary-nav > .nav-menu > summary,
+  body .app-shell > .topbar.app .right-nav > a,
+  body .app-shell > .topbar.app .right-nav > .nav-menu > summary {
+    min-height: 38px;
+    padding: 9px 10px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 680;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  body .app-shell > .topbar.app .primary-nav > a:hover,
+  body .app-shell > .topbar.app .primary-nav > a.active,
+  body .app-shell > .topbar.app .primary-nav > .nav-menu > summary:hover,
+  body .app-shell > .topbar.app .right-nav > a:hover,
+  body .app-shell > .topbar.app .right-nav > .nav-menu > summary:hover {
+    background: linear-gradient(135deg, var(--sky), var(--lilac));
+    color: var(--brand-hover);
+  }
+
+  body .app-shell > .topbar.app .primary-nav > a.active {
+    box-shadow: inset 0 0 0 1px rgba(123,121,255,.12);
+  }
+
+  body .app-shell > .topbar.app .right-nav {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+
+  body .app-shell > .topbar.app .profile-menu-trigger {
+    padding: 5px 8px 5px 6px;
+    gap: 4px;
+  }
+
+  body .app-shell > .topbar.app .nav-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  body .app-shell > .topbar.app .nav-dropdown {
+    margin-top: 8px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.97);
+    box-shadow: var(--shadow);
+  }
+
+  body .app-shell .page {
+    width: min(1380px, 100%);
+    padding-top: 28px;
+  }
+
+  body .app-shell .ebg-music-dock {
+    left: 16px !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1120px) {
+  body .app-shell > .topbar.app {
+    padding-inline: 16px;
+    gap: 8px;
+  }
+
+  body .app-shell > .topbar.app > .wordmark {
+    width: 82px;
+    margin-right: 0;
+  }
+
+  body .app-shell > .topbar.app .primary-nav > a,
+  body .app-shell > .topbar.app .primary-nav > .nav-menu > summary,
+  body .app-shell > .topbar.app .right-nav > a,
+  body .app-shell > .topbar.app .right-nav > .nav-menu > summary {
+    padding-inline: 7px;
+    font-size: 11px;
+  }
+}
