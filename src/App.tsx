@@ -2727,7 +2727,6 @@ function EbgStudioHub({
 
   const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   const selectedEpisodes = cms.episodes.filter((episode) => episode.showId === show.id)
-  const liveEpisodes = selectedEpisodes.filter((episode) => episode.publishStatus === 'live')
   const scheduledEpisodes = selectedEpisodes.filter((episode) => episode.publishStatus === 'scheduled')
   const activePolls = polls.filter((poll) => poll.status === 'open')
   const title = workspaces.find(([id]) => id === tab)?.[1] ?? 'Overview'
