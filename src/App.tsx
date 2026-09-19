@@ -494,6 +494,13 @@ function AvatarVisual({ avatar, nav = false }: { avatar: string; nav?: boolean }
 }
 
 function App() {
+  useEffect(() => {
+    if (window.location.hostname === 'studio.ebgplus.app') {
+      const suffix = window.location.pathname.startsWith('/app/studio') ? window.location.pathname : '/app/studio/overview'
+      window.location.replace('https://ebgplus.app' + suffix + window.location.search + window.location.hash)
+    }
+  }, [])
+
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Shell />
@@ -788,11 +795,6 @@ function ProtectedRoute({
 }) {
   const location = useLocation()
 
-  useEffect(() => {
-    if (location.pathname === '/app/studio') {
-      window.location.replace('https://studio.ebgplus.app')
-    }
-  }, [location.pathname])
   if (!account) {
     if (location.pathname.startsWith('/app/')) sessionStorage.setItem('ebg.returnTo.v1', location.pathname)
     return <Navigate to="/auth/sign-in" replace />
@@ -1631,7 +1633,7 @@ function AppLayout({
               <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}</strong><small>{account.email}</small></div></div>
               <Link to="/app/settings">Settings</Link>
               <Link to="/profiles">Switch Profile</Link>
-              {['founder', 'administrator', 'producer', 'editor'].includes(account.role) && <a href="https://studio.ebgplus.app" target="_blank" rel="noreferrer">EBG Studio</a>}
+              {['founder', 'administrator', 'producer', 'editor'].includes(account.role) && <Link to="/app/studio/overview">EBG Studio</Link>}
               <button type="button" onClick={onSignOut}>Sign Out</button>
             </div>
           </details>
