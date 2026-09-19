@@ -32,7 +32,7 @@ button, input, textarea, select { font: inherit; }
   overflow: hidden;
   color: transparent !important;
   font-size: 0;
-  background: url('/ebgplus/ebgplus-logo.png') center / contain no-repeat;
+  background: url('/ebgplus-logo.png') center / contain no-repeat;
   flex: 0 0 auto;
 }
 
