@@ -7,6 +7,7 @@ import './phase17-force-fixes.css'
 import './branding.css'
 import SplashScreen from './components/SplashScreen.tsx'
 import './styles/viewer-theme.css'
+import './styles/pastel-refresh.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
