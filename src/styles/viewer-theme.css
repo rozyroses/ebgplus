@@ -1,0 +1,127 @@
+/* Current EBG+ identity. Change these tokens for the next visual direction.
+   Loaded last so historical phase styles never become the theme entry point. */
+:root {
+  --brand: #2455f5;
+  --brand-hover: #153ecc;
+  --ink: #121a2c;
+  --surface: #ffffff;
+  --canvas: #f4f6fb;
+  --subtle: #eaf0ff;
+  --border: #dce2ed;
+  --radius: 20px;
+  --sidebar: 232px;
+  --bg: var(--canvas);
+  --panel: var(--surface);
+  --panel-2: var(--subtle);
+  --text: var(--ink);
+  --muted: #5c677c;
+  --gold: var(--brand);
+  --gold-light: #b8caff;
+  --gold-deep: var(--brand-hover);
+  --line: var(--border);
+  --line-strong: #aabce9;
+  color-scheme: light;
+}
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+body { background: var(--canvas); color: var(--ink); }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 4px; }
+body .wordmark { background-image: url('/branding/ebgplus-ink-blue.png') !important; mix-blend-mode: normal; width: 110px; height: 42px; }
+body .ebg-splash { background: var(--canvas); }
+body .ebg-splash__logo { mix-blend-mode: normal; }
+body .ebg-splash__line { background: var(--brand); }
+body .topbar { background: rgba(255,255,255,.97); border-bottom: 1px solid var(--border); box-shadow: none; }
+body .topbar a, body .topbar summary { color: var(--ink); }
+body .topbar a.active { color: var(--brand); }
+body .btn { border: 1px solid var(--brand); border-radius: 12px; background: var(--brand); color: white; min-height: 44px; box-shadow: none; font-weight: 650; }
+body .btn:hover { background: var(--brand-hover); color: white; }
+body .btn.muted { background: var(--surface); color: var(--ink); border-color: var(--border); }
+body .btn:disabled { opacity: .55; cursor: wait; }
+body .eyebrow { color: var(--brand); letter-spacing: .12em; font-size: 11px; font-weight: 750; }
+body input, body textarea, body select { background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 10px; }
+body input::placeholder, body textarea::placeholder { color: var(--muted); }
+body .panel, body .auth-card, body .settings-section .panel { background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 12px 40px #12245308; }
+body .nav-dropdown { background: var(--surface); color: var(--ink); border: 1px solid var(--border); box-shadow: 0 15px 45px #121a2c1a; }
+body .nav-dropdown a:hover, body .nav-dropdown button:hover { background: var(--subtle); color: var(--brand); }
+body .footer { background: var(--surface); color: var(--muted); border-top: 1px solid var(--border); }
+body .footer a { color: var(--ink); }
+/* Public discovery */
+body .public-landing-v2 { background: var(--canvas); color: var(--ink); }
+body .public-topbar { padding: 18px 5vw; }
+body .public-hero { background: var(--canvas); min-height: 640px; padding: 80px 7vw; display: grid; grid-template-columns: 1.1fr 1fr; gap: 50px; align-items: center; }
+body .public-hero::before, body .public-hero::after { display: none; }
+body .public-hero-copy { max-width: 650px; }
+body .public-hero h1 { font-family: inherit; font-size: clamp(58px,7.6vw,108px); letter-spacing: -.075em; line-height: .98; color: var(--ink); margin: 24px 0; }
+body .public-hero h1 em { font-style: normal; color: var(--brand); }
+body .public-hero-lead { color: var(--muted); max-width: 510px; font-size: 17px; line-height: 1.8; }
+body .public-hero-orbit { position: relative; width: 100%; height: 450px; inset: auto; border: 0; border-radius: 32px; transform: rotate(3deg); background: var(--brand); box-shadow: 16px 18px 0 #dfe7ff; display: grid; place-items: center; }
+body .public-hero-orbit::before, body .public-hero-orbit::after { display: none; }
+.brand-feature { padding: 44px; width: 100%; color: white; transform: rotate(-3deg); }
+.brand-feature img { width: 140px; background: white; border-radius: 12px; padding: 14px; }
+.brand-feature p { font-size: clamp(30px,3.7vw,55px); letter-spacing: -.05em; line-height: 1.08; font-weight: 750; }
+body .public-hero-orbit .brand-feature span { position: static; display: block; background: none; border: 0; padding: 0; transform: none; color: #e3eaff; font-size: 11px; letter-spacing: .15em; }
+body .public-intro-section, body .public-founders-section, body .public-preview-section { padding: 70px 7vw; background: var(--surface); }
+body .public-founders-section { background: var(--canvas); }
+body .public-section-heading h2 { font-family: inherit; color: var(--ink); font-size: clamp(30px,4vw,48px); letter-spacing: -.055em; }
+body .public-section-heading p, body .public-benefit-grid p, body .founder-world-card p { color: var(--muted); }
+body .public-benefit-grid article, body .founder-world-card { background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: none; }
+body .public-benefit-grid h3, body .founder-world-card h3 { color: var(--ink); font-family: inherit; }
+body .public-benefit-grid article > span, body .founder-world-number, body .founder-link { color: var(--brand); }
+body .founder-tags span { background: var(--subtle); color: var(--brand); border-color: var(--border); }
+/* Sign in and profiles */
+body .auth-page { background: var(--canvas); color: var(--ink); }
+body .auth-page .auth-card { background: var(--surface); border: 1px solid var(--border); padding: 36px; box-shadow: 0 24px 70px #1224530c; width: min(460px,100%); }
+body .auth-page h1 { color: var(--ink); font-family: inherit; font-size: 38px; letter-spacing: -.05em; }
+body .auth-page input { color: var(--ink); background: var(--canvas); border-color: var(--border); }
+body .auth-page label, body .auth-page .split-links a { color: var(--muted); }
+body .error { color: #b42332; }
+/* Viewer navigation */
+.viewer-sidebar { display: none; }
+body .app-shell .page { color: var(--ink); }
+body .app-shell h1, body .app-shell h2 { font-family: inherit; letter-spacing: -.045em; }
+body .settings-profile-card p, body .setting-row p { color: var(--muted); }
+body .shows-catalog-head, body .applications-hero { background: var(--subtle); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); }
+body .applications-hero h1, body .applications-hero p { color: var(--ink); }
+body .application-network-card, body .application-notice-panel, body .applications-empty { background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); }
+/* Keep imagery and player surfaces dark with readable foreground text. */
+body .home-carousel-hero, body .desktop-hero-panel { color: white; background-color: #111a30; }
+body .desktop-hero-meta { color: #dce5ff; }
+@media (min-width: 1050px) {
+  body .app-shell { padding-left: var(--sidebar); }
+  .viewer-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 70; width: var(--sidebar); padding: 32px 22px 22px; display: flex; flex-direction: column; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); }
+  .sidebar-caption { color: var(--muted); font-size: 9px; letter-spacing: .12em; margin: 30px 8px 12px; line-height: 1.6; }
+  .viewer-sidebar nav { display: grid; gap: 4px; }
+  .viewer-sidebar nav a { min-height: 41px; display: flex; gap: 13px; align-items: center; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: var(--muted); }
+  .viewer-sidebar nav a span { font-size: 19px; width: 18px; }
+  .viewer-sidebar nav a.active { background: var(--brand); color: white; font-weight: 650; }
+  .viewer-sidebar nav a:hover:not(.active) { background: var(--subtle); color: var(--brand); }
+  .sidebar-profile { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 30px; font-size: 13px; }
+  .sidebar-profile small { display: block; color: var(--muted); margin-top: 4px; font-size: 11px; }
+  body .app-shell > .topbar { min-height: 78px; justify-content: flex-end; }
+  body .app-shell > .topbar > .wordmark, body .app-shell > .topbar > .primary-nav { display: none; }
+  body .app-shell .ebg-music-dock { left: calc(var(--sidebar) + 16px); }
+}
+@media (max-width: 1049px) {
+  body .public-hero { padding: 55px 6vw; gap: 28px; min-height: auto; }
+  body .public-hero-orbit { height: 370px; }
+}
+@media (max-width: 700px) {
+  body .public-topbar { padding: 12px 5vw; gap: 12px; }
+  body .public-topbar nav { gap: 12px; }
+  body .public-topbar nav > a[href^='#'], body .public-topbar nav > a[href='/auth/create-account'] { display: none; }
+  body .public-hero { grid-template-columns: 1fr; padding: 48px 6vw 60px; }
+  body .public-hero h1 { font-size: 64px; }
+  body .public-hero-orbit { height: 300px; margin-top: 20px; }
+  .brand-feature { padding: 30px; }
+  .brand-feature p { font-size: 38px; margin: 20px 0; }
+  body .public-intro-section, body .public-founders-section { padding: 48px 6vw; }
+  body .public-benefit-grid, body .founder-world-grid { grid-template-columns: 1fr; }
+  body .auth-page .auth-card { padding: 28px 22px; }
+  body .mobile-nav-v2 { background: var(--surface); border-top: 1px solid var(--border); padding-bottom: max(8px,env(safe-area-inset-bottom)); }
+  body .mobile-nav-v2 a { color: var(--muted); min-height: 48px; }
+  body .mobile-nav-v2 a[aria-current='page'] { color: var(--brand); background: var(--subtle); border-radius: 10px; }
+  body .mobile-waffle-drawer { background: var(--surface); color: var(--ink); }
+  body .mobile-waffle-drawer a, body .mobile-waffle-head, body .mobile-waffle-label { color: var(--ink); }
+  body .mobile-waffle-button { background: var(--brand); border-color: var(--brand); }
+  body .mobile-waffle-drawer a:hover { background: var(--subtle); }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

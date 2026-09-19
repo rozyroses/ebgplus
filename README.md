@@ -56,3 +56,13 @@ base `feat/ebg-studio-app`); Forms has its own repository/deployment. This repai
 stabilizes the main viewer repository and does not merge those separate apps or
 change their live domains. It also does not import the separately hosted website
 redesign into this GitHub application.
+
+## Update the visual identity
+
+The current cool-white / ink / electric-blue viewer theme is in
+`src/styles/viewer-theme.css`, imported last by `src/main.tsx`. Adjust its opening
+CSS tokens for palette, corner radius and sidebar width. The existing approved
+ink-blue logo is `public/branding/ebgplus-ink-blue.png`. The viewer has desktop
+sidebar navigation and active mobile tabs; authentication and CMS services stay
+in their existing modules. Keep imagery and media-player foregrounds readable
+when changing the theme.

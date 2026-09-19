@@ -4,6 +4,7 @@ import {
   BrowserRouter,
   Link,
   Navigate,
+  NavLink,
   Route,
   Routes,
   useLocation,
@@ -1068,8 +1069,9 @@ function LandingPage({ cms }: { cms: CmsData }) {
     <main className="landing public-landing-v2">
       <header className="topbar public-topbar">
         <Link className="wordmark" to="/">EBG+</Link>
-        <nav>
-          <Link to="/coming-soon">Coming Soon</Link>
+        <nav aria-label="Main navigation">
+          <a href="#discover">Discover</a>
+          <a href="#universe">The universe</a>
           <Link to="/auth/create-account">Join EBG+</Link>
           <Link to="/auth/sign-in" className="btn">Sign In</Link>
         </nav>
@@ -1077,20 +1079,20 @@ function LandingPage({ cms }: { cms: CmsData }) {
 
       <section className="hero public-hero" aria-label="EBG+ introduction">
         <div className="public-hero-copy">
-          <p className="eyebrow">EBG Original Network</p>
-          <h1>{cms.slogan}</h1>
+          <p className="eyebrow">ORIGINAL ENTERTAINMENT. DISTINCTLY EBG.</p>
+          <h1>Your next<br /><em>obsession.</em></h1>
           <p className="public-hero-lead">Premium series, reality television, cinematic music performances, artist stories, and the evolving EBG universe — all in one place.</p>
           <div className="actions">
-            <Link className="btn" to="/coming-soon">Get Launch Updates</Link>
+            <Link className="btn" to="/auth/create-account">Find your world <span aria-hidden="true">↗</span></Link>
             <Link className="btn muted" to="/auth/sign-in">Sign In</Link>
           </div>
         </div>
         <div className="public-hero-orbit" aria-hidden="true">
-          <span>EBG+</span><span>ORIGINALS</span><span>MUSIC</span><span>STORIES</span>
+          <div className="brand-feature"><img src="/branding/ebgplus-ink-blue.png" alt="" /><p>One universe.<br />Endless possibilities.</p><span>ORIGINALS · MUSIC · STORIES</span></div>
         </div>
       </section>
 
-      <section className="public-intro-section">
+      <section id="discover" className="public-intro-section">
         <div className="public-section-heading">
           <p className="eyebrow">Inside EBG+</p>
           <h2>Watch the story. Then step inside it.</h2>
@@ -1104,7 +1106,7 @@ function LandingPage({ cms }: { cms: CmsData }) {
         </div>
       </section>
 
-      <section className="public-founders-section founder-world-v3">
+      <section id="universe" className="public-founders-section founder-world-v3">
         <div className="public-section-heading compact">
           <p className="eyebrow">Inside the EBG Universe</p>
           <h2>Three creative forces. One universe that keeps expanding.</h2>
@@ -1199,6 +1201,7 @@ function AuthLayout({ title, children }: { title: string; children: ReactNode })
         EBG+
       </Link>
       <section className="auth-card">
+        <p className="eyebrow">YOUR WORLD STARTS HERE</p>
         <h1>{title}</h1>
         {children}
       </section>
@@ -1238,7 +1241,7 @@ function SignInPage({ onSignIn }: { onSignIn: (email: string, password: string) 
           Password
           <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required autoComplete="current-password" />
         </label>
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error" role="alert">{error}</p>}
         <button className="btn" type="submit" disabled={loading}>
           {loading ? 'Signing In…' : 'Sign In'}
         </button>
@@ -1300,7 +1303,7 @@ function CreateAccountPage({
           Confirm Password
           <input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type="password" required autoComplete="new-password" />
         </label>
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error" role="alert">{error}</p>}
         {message && <p>{message}</p>}
         <button className="btn" type="submit" disabled={loading}>
           {loading ? 'Creating Account…' : 'Create Account'}
@@ -1338,7 +1341,7 @@ function ForgotPasswordPage() {
           Email
           <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required autoComplete="email" />
         </label>
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error" role="alert">{error}</p>}
         {state && <p>{state}</p>}
         <button className="btn" type="submit" disabled={loading}>
           {loading ? 'Sending…' : 'Send Reset Link'}
@@ -1385,7 +1388,7 @@ function ResetPasswordPage() {
           Confirm Password
           <input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type="password" required autoComplete="new-password" />
         </label>
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error" role="alert">{error}</p>}
         {state && <p>{state}</p>}
         <button className="btn" type="submit" disabled={loading}>
           {loading ? 'Updating…' : 'Update Password'}
@@ -1555,6 +1558,18 @@ function AppLayout({
 
   return (
     <div className="app-shell">
+      <aside className="viewer-sidebar" aria-label="EBG+ sidebar">
+        <Link className="wordmark" to="/app/home" aria-label="EBG+ home">EBG+</Link>
+        <p className="sidebar-caption">YOUR ENTERTAINMENT. YOUR WORLD.</p>
+        <nav aria-label="Browse">
+          {[["Discover", "/app/home", "⌂"], ["Originals", "/app/originals", "✦"], ["Shows", "/app/shows", "▤"], ["Music", "/app/music", "♫"], ["The universe", "/app/universe", "◎"], ["Search", "/app/search", "⌕"]].map(([label, to, icon]) => <NavLink key={to} to={to}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
+        </nav>
+        <p className="sidebar-caption">YOUR SPACE</p>
+        <nav aria-label="Your library">
+          {[["My list", "/app/my-list"], ["Applications", "/app/applications"], ["Messages", "/app/inbox"], ["Notifications", "/app/notifications"], ["Settings", "/app/settings"]].map(([label, to]) => <NavLink key={to} to={to}>{label}</NavLink>)}
+        </nav>
+        <Link className="sidebar-profile" to="/profiles"><AvatarVisual avatar={profile.avatar} nav /><span>{profile.name}<small>Switch profile</small></span></Link>
+      </aside>
       <header className="topbar app">
         <Link className="wordmark" to="/app/home" aria-label="EBG+ Home">EBG+</Link>
         <nav className="primary-nav" aria-label="Primary navigation">
@@ -1582,6 +1597,7 @@ function AppLayout({
             <div className="nav-dropdown nav-dropdown-right">
               <Link to="/app/my-list">My List</Link>
               <Link to="/app/applications">My Applications</Link>
+              <Link to="/app/inbox">Messages</Link>
               <Link to="/app/notifications">Notifications</Link>
               <a href="https://forms.ebgplus.app">Casting</a>
             </div>
@@ -3318,6 +3334,7 @@ function NotFoundPage() {
 }
 
 function MobileNav() {
+  const location = useLocation()
   const [waffleOpen, setWaffleOpen] = useState(false)
   const closeWaffle = () => setWaffleOpen(false)
 
@@ -3334,7 +3351,7 @@ function MobileNav() {
           <div className="mobile-waffle-section mobile-waffle-section-last"><span className="mobile-waffle-label">Account</span><Link to="/app/settings" onClick={closeWaffle}>Profile & Settings</Link></div>
         </nav></>}
       </div>
-      <nav className="mobile-nav mobile-nav-v2" aria-label="Mobile quick navigation"><Link to="/app/home"><span>⌂</span>Home</Link><Link to="/app/originals"><span>✦</span>Originals</Link><Link to="/app/music"><span>♫</span>Music</Link><Link to="/app/search"><span>⌕</span>Search</Link><Link to="/app/settings"><span>◎</span>Profile</Link></nav>
+      <nav className="mobile-nav mobile-nav-v2" aria-label="Mobile quick navigation">{[["Home", "/app/home", "⌂"], ["Originals", "/app/originals", "✦"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"], ["Profile", "/app/settings", "◎"]].map(([label, to, icon]) => <Link key={to} to={to} aria-current={location.pathname.startsWith(to) ? 'page' : undefined} onClick={closeWaffle}><span aria-hidden="true">{icon}</span>{label}</Link>)}</nav>
     </>
   )
 }
