@@ -47,7 +47,7 @@ body .footer a { color: var(--ink); }
 /* Public discovery */
 body .public-landing-v2 { background: var(--canvas); color: var(--ink); }
 body .public-topbar { padding: 18px 5vw; }
-body .public-hero { background: var(--canvas); min-height: 640px; padding: 80px 7vw; display: grid; grid-template-columns: 1.1fr 1fr; gap: 50px; align-items: center; }
+body .landing .public-hero { background: var(--canvas); min-height: 640px; padding: 80px 7vw; display: grid; grid-template-columns: 1.1fr 1fr; gap: 50px; align-items: center; }
 body .public-hero::before, body .public-hero::after { display: none; }
 body .public-hero-copy { max-width: 650px; }
 body .public-hero h1 { font-family: inherit; font-size: clamp(58px,7.6vw,108px); letter-spacing: -.075em; line-height: .98; color: var(--ink); margin: 24px 0; }
@@ -101,14 +101,14 @@ body .desktop-hero-meta { color: #dce5ff; }
   body .app-shell .ebg-music-dock { left: calc(var(--sidebar) + 16px); }
 }
 @media (max-width: 1049px) {
-  body .public-hero { padding: 55px 6vw; gap: 28px; min-height: auto; }
+  body .landing .public-hero { padding: 55px 6vw; gap: 28px; min-height: auto; }
   body .public-hero-orbit { height: 370px; }
 }
 @media (max-width: 700px) {
   body .public-topbar { padding: 12px 5vw; gap: 12px; }
   body .public-topbar nav { gap: 12px; }
   body .public-topbar nav > a[href^='#'], body .public-topbar nav > a[href='/auth/create-account'] { display: none; }
-  body .public-hero { grid-template-columns: 1fr; padding: 48px 6vw 60px; }
+  body .landing .public-hero { grid-template-columns: 1fr; padding: 48px 6vw 60px; }
   body .public-hero h1 { font-size: 64px; }
   body .public-hero-orbit { height: 300px; margin-top: 20px; }
   .brand-feature { padding: 30px; }
@@ -125,3 +125,6 @@ body .desktop-hero-meta { color: #dce5ff; }
   body .mobile-waffle-drawer a:hover { background: var(--subtle); }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Override the historical topbar-link color on primary actions. */
+body .topbar a.btn:not(.muted) { color: white; }
