@@ -2680,20 +2680,28 @@ function EbgStudioHub({
   const [polls, setPolls] = useState<Poll[]>([])
   const [pollResults, setPollResults] = useState<Record<string, PollResult[]>>({})
 
-  const sections = [
-    ['overview', 'Overview', '⌂'],
-    ['production', 'Production', '◆'],
-    ['series', 'Series', '▣'],
-    ['episodes', 'Episodes', '▶'],
-    ['cast', 'Cast & Talent', '◎'],
-    ['polls', 'Polls & Voting', '◉'],
-    ['media', 'Media', '▧'],
-    ['notifications', 'Notifications', '◌'],
+  const workspaces = [
+    ['overview', 'Overview', '✦'],
+    ['content', 'Content', '▤'],
+    ['audience', 'Audience', '◎'],
+    ['settings', 'Settings', '⚙'],
   ] as const
-  const allowed = sections.map(([id]) => id)
-  const tab = allowed.includes((studioSection ?? 'overview') as typeof allowed[number])
-    ? (studioSection as typeof allowed[number])
-    : 'overview'
+  type StudioWorkspace = typeof workspaces[number][0]
+  const aliases: Record<string, StudioWorkspace> = {
+    production: 'content',
+    series: 'content',
+    episodes: 'content',
+    media: 'content',
+    cast: 'audience',
+    polls: 'audience',
+    notifications: 'audience',
+    casting: 'audience',
+    homepage: 'settings',
+  }
+  const requested = studioSection ?? 'overview'
+  const tab: StudioWorkspace = workspaces.some(([id]) => id === requested)
+    ? requested as StudioWorkspace
+    : aliases[requested] ?? 'overview'
   const show = cms.shows.find((item) => item.id === showId) ?? cms.shows[0]
 
   useEffect(() => {
@@ -2722,7 +2730,10 @@ function EbgStudioHub({
   const liveEpisodes = selectedEpisodes.filter((episode) => episode.publishStatus === 'live')
   const scheduledEpisodes = selectedEpisodes.filter((episode) => episode.publishStatus === 'scheduled')
   const activePolls = polls.filter((poll) => poll.status === 'open')
-  const title = sections.find(([id]) => id === tab)?.[1] ?? 'Overview'
+  const title = workspaces.find(([id]) => id === tab)?.[1] ?? 'Overview'
+  const draftEpisodes = selectedEpisodes.filter((episode) => episode.publishStatus === 'draft')
+  const showPolls = polls.filter((poll) => poll.show_id === show.id)
+  const recentEpisodes = [...selectedEpisodes].sort((a,b) => Date.parse(b.releaseDate) - Date.parse(a.releaseDate)).slice(0,4)
 
   const updateShow = (showId: string, patch: Partial<Show>) => {
     onUpdateCms({ ...cms, shows: cms.shows.map((item) => item.id === showId ? { ...item, ...patch } : item) })
@@ -2951,53 +2962,242 @@ function EbgStudioHub({
   }
 
   return (
-    <section className={`studio36 studio36-${tab}`}>
-      <aside className="studio36-sidebar">
-        <Link className="studio36-brand" to="/app/studio/overview"><span>EBG</span><strong>STUDIO</strong></Link>
-        <nav aria-label="EBG Studio navigation">
-          {sections.map(([id, label, icon]) => (
-            <Link key={id} to={`/app/studio/${id}`} className={tab === id ? 'active' : ''}>
-              <span className="studio36-nav-icon">{icon}</span><span>{label}</span>
+    <section className={`studio3 studio3-${tab}`}>
+      <header className="studio3-header">
+        <div className="studio3-brand-wrap">
+          <Link className="studio3-brand" to="/app/studio/overview"><strong>EBG+</strong><span>Studio</span></Link>
+          <span className="studio3-live-dot">Live CMS</span>
+        </div>
+
+        <nav className="studio3-nav" aria-label="EBG Studio">
+          {workspaces.map(([id,label,icon]) => (
+            <Link key={id} to={`/app/studio/${id}`} className={tab===id?'active':''}>
+              <span>{icon}</span><strong>{label}</strong>
             </Link>
           ))}
         </nav>
-        <div className="studio36-side-foot"><span>LIVE CMS</span><strong>{cms.shows.length} series</strong><small>{cms.episodes.length} episodes</small></div>
-      </aside>
 
-      <div className="studio36-main">
-        <header className="studio36-topbar">
-          <div><p>EBG Studio / {title}</p><h1>{title}</h1><span>{tab === 'overview' ? 'Your production headquarters.' : tab === 'production' ? 'Everything active across the selected production.' : `Manage ${title.toLowerCase()} without leaving Studio.`}</span></div>
-          <div className="studio36-top-actions"><select value={show.id} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select><Link className="btn muted" to="/app/home">View EBG+</Link></div>
-        </header>
-        {message && <div className="studio36-message">{message}<button type="button" onClick={() => setMessage('')}>×</button></div>}
+        <div className="studio3-header-actions">
+          <label className="studio3-project-picker">
+            <span>Working on</span>
+            <select value={show.id} onChange={(event)=>setShowId(event.target.value)}>
+              {cms.shows.map((item)=><option key={item.id} value={item.id}>{item.title}</option>)}
+            </select>
+          </label>
+          <Link className="studio3-view-site" to="/app/home">View EBG+</Link>
+        </div>
+      </header>
 
-        {tab === 'overview' && <div className="studio36-dashboard">
-          <section className="studio36-hero"><div><span>PUBLISHING HQ</span><h2>Run EBG+ from one place.</h2><p>Create series, upload episodes, manage talent, publish media, run polls, and notify viewers.</p><div className="actions"><Link className="btn" to="/app/studio/episodes">Upload Episode</Link><Link className="btn muted" to="/app/studio/series">Create Series</Link></div></div><div className="studio36-orb"><strong>{cms.shows.length}</strong><span>SERIES</span></div></section>
-          <section className="studio36-stats"><article><span>Episodes</span><strong>{cms.episodes.length}</strong></article><article><span>Live</span><strong>{cms.episodes.filter((e) => e.publishStatus === 'live').length}</strong></article><article><span>Scheduled</span><strong>{cms.episodes.filter((e) => e.publishStatus === 'scheduled').length}</strong></article><article><span>Open Polls</span><strong>{activePolls.length}</strong></article></section>
-          <section className="studio36-launch">{sections.filter(([id]) => !['overview'].includes(id)).map(([id, label, icon]) => <Link key={id} to={`/app/studio/${id}`}><span>{icon}</span><strong>{label}</strong><b>→</b></Link>)}</section>
+      {message && <div className="studio3-toast"><span>{message}</span><button type="button" onClick={()=>setMessage('')}>×</button></div>}
+
+      <main className="studio3-main">
+        <section className="studio3-page-intro">
+          <div><p>EBG Studio</p><h1>{title}</h1><span>{tab==='overview'?'Everything important, without the clutter.':tab==='content'?'Build, publish, and package every production in one workspace.':tab==='audience'?'Manage the people, participation, and updates around your shows.':'Control homepage placement and production-level settings.'}</span></div>
+          <div className="studio3-intro-status"><span>{show.status}</span><strong>{show.title}</strong></div>
+        </section>
+
+        {tab==='overview' && <div className="studio3-stack">
+          <section className="studio3-overview-hero">
+            <div className="studio3-overview-copy">
+              <span className="studio3-kicker">TODAY IN STUDIO</span>
+              <h2>Run the whole platform without digging through menus.</h2>
+              <p>{show.title} is selected. Jump straight into publishing, audience tools, or homepage controls.</p>
+              <div className="studio3-actions">
+                <Link className="btn" to="/app/studio/content">Open Content</Link>
+                <Link className="btn muted" to="/app/studio/audience">Audience tools</Link>
+              </div>
+            </div>
+            <div className="studio3-featured-show" style={{backgroundImage:`linear-gradient(180deg,transparent,rgba(30,33,61,.82)),url(${show.banner||show.artwork})`}}>
+              <span>{show.category}</span><strong>{show.title}</strong><small>{show.genre} · {show.year}</small>
+            </div>
+          </section>
+
+          <section className="studio3-metrics">
+            <article className="sky"><span>Series</span><strong>{cms.shows.length}</strong><small>{cms.shows.filter(item=>item.homeVisible!==false).length} visible on Home</small></article>
+            <article className="mint"><span>Live episodes</span><strong>{cms.episodes.filter(e=>e.publishStatus==='live').length}</strong><small>{scheduledEpisodes.length} scheduled for {show.title}</small></article>
+            <article className="blush"><span>Drafts</span><strong>{cms.episodes.filter(e=>e.publishStatus==='draft').length}</strong><small>{draftEpisodes.length} in this production</small></article>
+            <article className="lilac"><span>Open polls</span><strong>{activePolls.length}</strong><small>{showPolls.length} total for this show</small></article>
+          </section>
+
+          <section className="studio3-overview-grid">
+            <article className="studio3-panel studio3-quick-panel">
+              <div className="studio3-panel-head"><div><span>QUICK ACTIONS</span><h2>What do you want to do?</h2></div></div>
+              <div className="studio3-quick-grid">
+                <Link to="/app/studio/content#upload-episode"><span>▶</span><div><strong>Upload episode</strong><small>Draft, schedule, or publish.</small></div><b>→</b></Link>
+                <Link to="/app/studio/content#create-series"><span>＋</span><div><strong>Create series</strong><small>Start a new production.</small></div><b>→</b></Link>
+                <Link to="/app/studio/audience#create-poll"><span>◉</span><div><strong>Launch poll</strong><small>Ask the audience something.</small></div><b>→</b></Link>
+                <Link to="/app/studio/audience#send-update"><span>✦</span><div><strong>Send update</strong><small>Notify viewers or applicants.</small></div><b>→</b></Link>
+              </div>
+            </article>
+
+            <article className="studio3-panel">
+              <div className="studio3-panel-head"><div><span>RECENT RELEASES</span><h2>{show.title}</h2></div><Link to="/app/studio/content">Manage</Link></div>
+              <div className="studio3-recent-list">
+                {recentEpisodes.map((episode)=><div key={episode.id}><img src={episode.thumbnail} alt=""/><div><strong>{episode.title}</strong><small>S{episode.season}E{episode.number} · {episode.publishStatus}</small></div><span>{new Date(episode.releaseDate).toLocaleDateString()}</span></div>)}
+                {!recentEpisodes.length&&<p className="studio3-empty">No episodes yet. Content is ready when you are.</p>}
+              </div>
+            </article>
+          </section>
+
+          <section className="studio3-workspace-cards">
+            <Link to="/app/studio/content"><span>▤</span><strong>Content</strong><p>Series, episodes, artwork, banners, and release controls.</p></Link>
+            <Link to="/app/studio/audience"><span>◎</span><strong>Audience</strong><p>Cast, polls, notifications, and application shortcuts.</p></Link>
+            <Link to="/app/studio/settings"><span>⚙</span><strong>Settings</strong><p>Homepage visibility, featured placement, and production controls.</p></Link>
+          </section>
         </div>}
 
-        {tab === 'production' && <div className="studio36-content"><section className="studio36-production-hero" style={{ backgroundImage: `linear-gradient(90deg,rgba(5,5,6,.96),rgba(5,5,6,.28)),url(${show.banner || show.artwork})` }}><span>{show.category}</span><h2>{show.title}</h2><p>{show.genre} · {show.year} · {show.maturity}</p><div className="actions"><Link className="btn" to="/app/studio/episodes">Upload Episode</Link><Link className="btn muted" to="/app/studio/media">Media</Link></div></section><section className="studio36-stats"><article><span>Episodes</span><strong>{selectedEpisodes.length}</strong></article><article><span>Live</span><strong>{liveEpisodes.length}</strong></article><article><span>Scheduled</span><strong>{scheduledEpisodes.length}</strong></article><article><span>Cast</span><strong>{show.cast.length}</strong></article></section></div>}
+        {tab==='content' && <div className="studio3-stack">
+          <section className="studio3-panel studio3-production-banner">
+            <div className="studio3-production-art" style={{backgroundImage:`url(${show.banner||show.artwork})`}} />
+            <div className="studio3-production-copy">
+              <span>{show.category}</span><h2>{show.title}</h2><p>{show.genre} · {show.year} · {show.maturity}</p>
+              <div className="studio3-actions"><Link className="btn muted" to={`/app/shows/${show.id}`}>View show</Link><button className="btn" type="button" onClick={()=>{onUpdateCms({...cms,heroShowId:show.id,shows:cms.shows.map(item=>item.id===show.id?{...item,homeVisible:true}:item)});setMessage(`${show.title} is now featured on Home.`)}}>Feature on Home</button></div>
+            </div>
+          </section>
 
-        {tab === 'series' && <div className="studio36-content studio36-split">
-          <section className="studio36-card"><div className="studio36-card-head"><div><span>SERIES LIBRARY</span><h2>Your shows</h2></div></div><div className="studio36-show-list">{cms.shows.map((item) => <button type="button" key={item.id} className={item.id === show.id ? 'active' : ''} onClick={() => setShowId(item.id)}><img src={item.artwork} alt=""/><span><strong>{item.title}</strong><small>{item.status}</small></span></button>)}</div></section>
-          <section className="studio36-card"><div className="studio36-card-head studio44-series-head"><div><span>EDIT SERIES</span><h2>{show.title}</h2></div><div className="studio44-series-actions"><Link className="studio44-action" to={`/app/shows/${show.id}`}>View Show</Link><button className="studio44-action" type="button" onClick={() => { onUpdateCms({ ...cms, heroShowId: show.id, shows: cms.shows.map((item) => item.id === show.id ? { ...item, homeVisible: true } : item) }); setMessage(`${show.title} is now featured on Home.`) }}>Set Featured</button><button className="studio44-action" type="button" onClick={() => { const nextVisible = show.homeVisible === false; updateShow(show.id, { homeVisible: nextVisible }); setMessage(nextVisible ? `${show.title} is visible on Home.` : `${show.title} is hidden from Home.`) }}>{show.homeVisible === false ? 'Show on Home' : 'Hide from Home'}</button><button className="studio44-action" type="button" onClick={() => duplicateShow(show)}>Duplicate</button><button className="studio36-danger" type="button" onClick={() => deleteShow(show.id)}>Delete</button></div></div><div className="studio36-form-grid"><label>Title<input value={show.title} onChange={(event) => updateShow(show.id, { title: event.target.value })}/></label><label>Status<select value={show.status} onChange={(event) => updateShow(show.id, { status: event.target.value as Show['status'] })}><option>Coming Soon</option><option>Now Streaming</option><option>Current</option></select></label><label>Genre<input value={show.genre} onChange={(event) => updateShow(show.id, { genre: event.target.value })}/></label><label>Year<input type="number" value={show.year} onChange={(event) => updateShow(show.id, { year: Number(event.target.value) })}/></label><label>Rating<input value={show.maturity} onChange={(event) => updateShow(show.id, { maturity: event.target.value as Show['maturity'] })}/></label><label>Category<input value={show.category} onChange={(event) => updateShow(show.id, { category: event.target.value })}/></label><label className="full">Description<textarea value={show.description} onChange={(event) => updateShow(show.id, { description: event.target.value })}/></label></div></section>
-          <section className="studio36-card studio36-full"><div className="studio36-card-head"><div><span>NEW SERIES</span><h2>Create a show</h2></div></div><form className="studio36-form-grid" onSubmit={addShow}><label>Title<input name="title" required/></label><label>Category<input name="category" defaultValue="EBG+ Original"/></label><label>Genre<input name="genre" required/></label><label>Year<input name="year" type="number" defaultValue={new Date().getFullYear()}/></label><label>Rating<input name="maturity" defaultValue="TV-14"/></label><label>Status<select name="status" defaultValue="Coming Soon"><option>Coming Soon</option><option>Now Streaming</option></select></label><label>Poster<input name="artworkFile" type="file" accept="image/*"/></label><label className="full">Description<textarea name="description" required/></label><div className="full actions"><button className="btn" disabled={busy}>{busy ? 'Creating…' : 'Create Series'}</button></div></form></section>
+          <section className="studio3-content-grid">
+            <article className="studio3-panel">
+              <div className="studio3-panel-head"><div><span>SERIES</span><h2>Production library</h2></div><strong>{cms.shows.length}</strong></div>
+              <div className="studio3-show-rail">{cms.shows.map(item=><button key={item.id} type="button" className={item.id===show.id?'active':''} onClick={()=>setShowId(item.id)}><img src={item.artwork} alt=""/><span><strong>{item.title}</strong><small>{item.status}</small></span></button>)}</div>
+            </article>
+
+            <article className="studio3-panel">
+              <div className="studio3-panel-head"><div><span>DETAILS</span><h2>Edit {show.title}</h2></div><div className="studio3-mini-actions"><button type="button" onClick={()=>duplicateShow(show)}>Duplicate</button><button type="button" className="danger" onClick={()=>deleteShow(show.id)}>Delete</button></div></div>
+              <div className="studio3-form-grid">
+                <label>Title<input value={show.title} onChange={e=>updateShow(show.id,{title:e.target.value})}/></label>
+                <label>Status<select value={show.status} onChange={e=>updateShow(show.id,{status:e.target.value as Show['status']})}><option>Coming Soon</option><option>Now Streaming</option><option>Current</option></select></label>
+                <label>Genre<input value={show.genre} onChange={e=>updateShow(show.id,{genre:e.target.value})}/></label>
+                <label>Year<input type="number" value={show.year} onChange={e=>updateShow(show.id,{year:Number(e.target.value)})}/></label>
+                <label>Rating<input value={show.maturity} onChange={e=>updateShow(show.id,{maturity:e.target.value as Show['maturity']})}/></label>
+                <label>Category<input value={show.category} onChange={e=>updateShow(show.id,{category:e.target.value})}/></label>
+                <label className="full">Description<textarea value={show.description} onChange={e=>updateShow(show.id,{description:e.target.value})}/></label>
+              </div>
+            </article>
+          </section>
+
+          <details className="studio3-composer" id="create-series">
+            <summary><span>＋</span><div><strong>Create a new series</strong><small>Start a production without leaving Content.</small></div><b>Open</b></summary>
+            <form className="studio3-form-grid studio3-composer-body" onSubmit={addShow}>
+              <label>Title<input name="title" required/></label><label>Category<input name="category" defaultValue="EBG+ Original"/></label>
+              <label>Genre<input name="genre" required/></label><label>Year<input name="year" type="number" defaultValue={new Date().getFullYear()}/></label>
+              <label>Rating<input name="maturity" defaultValue="TV-14"/></label><label>Status<select name="status" defaultValue="Coming Soon"><option>Coming Soon</option><option>Now Streaming</option></select></label>
+              <label>Poster<input name="artworkFile" type="file" accept="image/*"/></label><label className="full">Description<textarea name="description" required/></label>
+              <div className="full studio3-actions"><button className="btn" disabled={busy}>{busy?'Creating…':'Create Series'}</button></div>
+            </form>
+          </details>
+
+          <section className="studio3-panel">
+            <div className="studio3-panel-head"><div><span>EPISODES</span><h2>Release library</h2></div><strong>{selectedEpisodes.length}</strong></div>
+            <div className="studio3-episode-list">
+              {selectedEpisodes.map(episode=><article key={episode.id}>
+                <img src={episode.thumbnail} alt=""/>
+                <div className="studio3-episode-info"><span>S{episode.season}E{episode.number}</span><h3>{episode.title}</h3><p>{episode.runtime} · {new Date(episode.releaseDate).toLocaleString()}</p><select value={episode.publishStatus??'scheduled'} onChange={e=>updateEpisode(episode.id,{publishStatus:e.target.value as Episode['publishStatus'],releaseDate:e.target.value==='live'?new Date().toISOString():episode.releaseDate})}><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="live">Live</option><option value="archived">Archived</option></select></div>
+                <div className="studio3-row-actions">
+                  {episode.videoUrl&&<a href={episode.videoUrl} target="_blank" rel="noreferrer">Preview</a>}
+                  <button type="button" onClick={()=>{const live=episode.publishStatus==='live';updateEpisode(episode.id,{publishStatus:live?'draft':'live',releaseDate:live?episode.releaseDate:new Date().toISOString()});setMessage(live?`${episode.title} moved to Draft.`:`${episode.title} published.`)}}>{episode.publishStatus==='live'?'Unpublish':'Publish'}</button>
+                  <button type="button" onClick={()=>rescheduleEpisode(episode)}>Schedule</button>
+                  <button type="button" onClick={()=>duplicateEpisode(episode)}>Duplicate</button>
+                  <label>Thumbnail<input type="file" accept="image/*" onChange={e=>{const file=e.target.files?.[0];if(file)void replaceEpisodeMedia(episode.id,'thumbnail',file);e.currentTarget.value=''}}/></label>
+                  <label>Video<input type="file" accept="video/*" onChange={e=>{const file=e.target.files?.[0];if(file)void replaceEpisodeMedia(episode.id,'videoUrl',file);e.currentTarget.value=''}}/></label>
+                  <button className="danger" type="button" onClick={()=>{if(window.confirm(`Delete "${episode.title}"? This cannot be undone.`)){onUpdateCms({...cms,episodes:cms.episodes.filter(item=>item.id!==episode.id)});setMessage('Episode deleted.')}}}>Delete</button>
+                </div>
+              </article>)}
+              {!selectedEpisodes.length&&<p className="studio3-empty">No episodes in this production yet.</p>}
+            </div>
+          </section>
+
+          <details className="studio3-composer" id="upload-episode">
+            <summary><span>▶</span><div><strong>Upload an episode</strong><small>Draft it, schedule it, or publish immediately.</small></div><b>Open</b></summary>
+            <form className="studio3-form-grid studio3-composer-body" onSubmit={addEpisode}>
+              <label>Season<input name="season" type="number" min="1" defaultValue="1" required/></label><label>Episode<input name="number" type="number" min="1" defaultValue={selectedEpisodes.length+1} required/></label>
+              <label className="full">Title<input name="title" required/></label><label>Runtime<input name="runtime" placeholder="42 min" required/></label>
+              <label>Release date & time<input name="releaseAt" type="datetime-local"/></label><label>Thumbnail<input name="thumbnailFile" type="file" accept="image/*"/></label>
+              <label>Video<input name="videoFile" type="file" accept="video/*" required/></label><label className="full">Synopsis<textarea name="synopsis" required/></label>
+              <div className="full studio3-publish-actions"><button className="btn muted" type="submit" value="draft" disabled={busy}>Save Draft</button><button className="btn muted" type="submit" value="scheduled" disabled={busy}>Schedule</button><button className="btn" type="submit" value="live" disabled={busy}>{busy?'Uploading…':'Publish Now'}</button></div>
+            </form>
+          </details>
+
+          <section className="studio3-panel">
+            <div className="studio3-panel-head"><div><span>MEDIA</span><h2>Brand assets</h2></div></div>
+            <div className="studio3-assets">
+              <article><span>Poster</span><img src={show.artwork} alt=""/><label>Replace poster<input type="file" accept="image/*" onChange={e=>{const file=e.target.files?.[0];if(file)void replaceShowMedia('artwork',file);e.currentTarget.value=''}}/></label></article>
+              <article className="wide"><span>Banner</span><img src={show.banner||show.artwork} alt=""/><label>{show.banner?'Replace banner':'Upload banner'}<input type="file" accept="image/*" onChange={e=>{const file=e.target.files?.[0];if(file)void replaceShowMedia('banner',file);e.currentTarget.value=''}}/></label></article>
+              <article><span>Logo</span>{show.logoImage?<img src={show.logoImage} alt=""/>:<div className="studio3-logo-placeholder">{show.logo}</div>}<label>{show.logoImage?'Replace logo':'Upload logo'}<input type="file" accept="image/png,image/webp,image/svg+xml" onChange={e=>{const file=e.target.files?.[0];if(file)void replaceShowMedia('logoImage',file);e.currentTarget.value=''}}/></label></article>
+            </div>
+          </section>
         </div>}
 
-        {tab === 'episodes' && <div className="studio36-content">
-          <section className="studio36-card"><div className="studio36-card-head"><div><span>EPISODE LIBRARY</span><h2>{show.title}</h2></div><strong>{selectedEpisodes.length} episodes</strong></div><div className="studio36-episode-list">{selectedEpisodes.map((episode) => <article key={episode.id} className="studio45-episode-card"><img src={episode.thumbnail} alt=""/><div className="studio36-episode-copy"><span>S{episode.season}E{episode.number}</span><h3>{episode.title}</h3><p>{episode.runtime} · {new Date(episode.releaseDate).toLocaleString()}</p><select value={episode.publishStatus ?? 'scheduled'} onChange={(event) => updateEpisode(episode.id, { publishStatus: event.target.value as Episode['publishStatus'], releaseDate: event.target.value === 'live' ? new Date().toISOString() : episode.releaseDate })}><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="live">Live</option><option value="archived">Archived</option></select></div><div className="studio45-episode-actions">{episode.videoUrl ? <a className="studio45-action" href={episode.videoUrl} target="_blank" rel="noreferrer">Preview</a> : null}<button className="studio45-action" type="button" onClick={() => { const live = episode.publishStatus === 'live'; updateEpisode(episode.id, { publishStatus: live ? 'draft' : 'live', releaseDate: live ? episode.releaseDate : new Date().toISOString() }); setMessage(live ? `${episode.title} moved to Draft.` : `${episode.title} published.`) }}>{episode.publishStatus === 'live' ? 'Unpublish' : 'Publish Now'}</button><button className="studio45-action" type="button" onClick={() => rescheduleEpisode(episode)}>Reschedule</button><button className="studio45-action" type="button" onClick={() => duplicateEpisode(episode)}>Duplicate</button><label className="studio45-action studio45-upload">Replace Thumbnail<input type="file" accept="image/*" onChange={(event) => { const file=event.target.files?.[0]; if(file) void replaceEpisodeMedia(episode.id,'thumbnail',file); event.currentTarget.value='' }}/></label><label className="studio45-action studio45-upload">Replace Video<input type="file" accept="video/*" onChange={(event) => { const file=event.target.files?.[0]; if(file) void replaceEpisodeMedia(episode.id,'videoUrl',file); event.currentTarget.value='' }}/></label><button className="studio36-danger" type="button" onClick={() => { if(window.confirm(`Delete "${episode.title}"? This cannot be undone.`)) { onUpdateCms({ ...cms, episodes: cms.episodes.filter((item) => item.id !== episode.id) }); setMessage('Episode deleted.') } }}>Delete</button></div></article>)}</div></section>
-          <section className="studio36-card"><div className="studio36-card-head"><div><span>UPLOAD EPISODE</span><h2>New release</h2></div></div><form className="studio36-form-grid" onSubmit={addEpisode}><label>Season<input name="season" type="number" min="1" defaultValue="1" required/></label><label>Episode<input name="number" type="number" min="1" defaultValue={selectedEpisodes.length + 1} required/></label><label className="full">Title<input name="title" required/></label><label>Runtime<input name="runtime" placeholder="42 min" required/></label><label>Release date & time<input name="releaseAt" type="datetime-local"/></label><label>Thumbnail<input name="thumbnailFile" type="file" accept="image/*"/></label><label>Video<input name="videoFile" type="file" accept="video/*" required/></label><label className="full">Synopsis<textarea name="synopsis" required/></label><div className="full studio36-publish-actions"><button className="btn muted" type="submit" value="draft" disabled={busy}>Save Draft</button><button className="btn muted" type="submit" value="scheduled" disabled={busy}>Schedule</button><button className="btn" type="submit" value="live" disabled={busy}>{busy ? 'Uploading…' : 'Publish Now'}</button></div></form></section>
+        {tab==='audience' && <div className="studio3-stack">
+          <section className="studio3-audience-links">
+            <a href="https://forms.ebgplus.app" target="_blank" rel="noreferrer"><span>✦</span><div><strong>EBG Forms</strong><small>Open casting and submissions.</small></div><b>↗</b></a>
+            <Link to="/app/applications"><span>▣</span><div><strong>Applications</strong><small>Review your connected application center.</small></div><b>→</b></Link>
+            <Link to="/app/inbox"><span>✉</span><div><strong>Inbox</strong><small>Messages and applicant conversations.</small></div><b>→</b></Link>
+          </section>
+
+          <section className="studio3-panel">
+            <div className="studio3-panel-head"><div><span>PEOPLE</span><h2>Cast & talent</h2></div><strong>{show.cast.length}</strong></div>
+            <div className="studio3-cast-grid">{show.cast.map((person,index)=><article key={person.name+index}>{person.image?<img src={person.image} alt=""/>:<div className="studio3-avatar">{person.name.slice(0,1)}</div>}<div><h3>{person.name}</h3><p>{person.role} · {person.city}</p><small>{person.bio}</small><button className="studio3-danger-link" type="button" onClick={()=>updateShow(show.id,{cast:show.cast.filter((_,i)=>i!==index)})}>Remove</button></div></article>)}</div>
+            {!show.cast.length&&<p className="studio3-empty">No talent profiles attached yet.</p>}
+          </section>
+
+          <details className="studio3-composer">
+            <summary><span>＋</span><div><strong>Add talent</strong><small>Create a cast or contributor profile.</small></div><b>Open</b></summary>
+            <form className="studio3-form-grid studio3-composer-body" onSubmit={addCast}><label>Name<input name="name" required/></label><label>Role<input name="role" defaultValue="Cast"/></label><label>City / State<input name="city" required/></label><label>Status<input name="status" placeholder="Active"/></label><label>Social<input name="social" placeholder="@handle"/></label><label>Photo<input name="imageFile" type="file" accept="image/*"/></label><label className="full">Bio<textarea name="bio" required/></label><div className="full studio3-actions"><button className="btn" disabled={busy}>Add Talent</button></div></form>
+          </details>
+
+          <section className="studio3-dual">
+            <article className="studio3-panel">
+              <div className="studio3-panel-head"><div><span>POLLS</span><h2>Audience voting</h2></div><strong>{showPolls.length}</strong></div>
+              <div className="studio3-poll-list">{showPolls.map(poll=><div key={poll.id}><div><span className={`studio3-status ${poll.status}`}>{poll.status}</span><h3>{poll.question}</h3>{(pollResults[poll.id]??[]).slice(0,4).map(r=><p key={r.option_id}>{r.label}<strong>{r.percentage}%</strong></p>)}</div><div className="studio3-mini-actions"><button type="button" onClick={()=>void updatePoll(poll.id,{status:poll.status==='open'?'closed':'open'}).then(refreshPolls)}>{poll.status==='open'?'Close':'Open'}</button><button className="danger" type="button" onClick={()=>{if(window.confirm('Delete this poll?'))void deletePoll(poll.id).then(refreshPolls)}}>Delete</button></div></div>)}</div>
+              {!showPolls.length&&<p className="studio3-empty">No polls for this show.</p>}
+            </article>
+
+            <article className="studio3-panel">
+              <div className="studio3-panel-head"><div><span>UPDATES</span><h2>Notification history</h2></div><strong>{(cms.notifications??[]).length}</strong></div>
+              <div className="studio3-notice-list">{(cms.notifications??[]).slice(0,8).map(notice=><div key={notice.id}><div><span className={`studio3-status ${notice.status??'sent'}`}>{notice.status??'sent'}</span><h3>{notice.title||'EBG+ Update'}</h3><p>{notice.text}</p><small>{new Date(notice.date).toLocaleString()}</small></div><button className="studio3-danger-link" type="button" onClick={()=>onUpdateCms({...cms,notifications:(cms.notifications??[]).filter(item=>item.id!==notice.id)})}>Delete</button></div>)}</div>
+              {!(cms.notifications??[]).length&&<p className="studio3-empty">No notifications yet.</p>}
+            </article>
+          </section>
+
+          <details className="studio3-composer" id="create-poll">
+            <summary><span>◉</span><div><strong>Create a poll</strong><small>Build an audience vote for {show.title}.</small></div><b>Open</b></summary>
+            <form className="studio3-form-grid studio3-composer-body" onSubmit={createNewPoll}><label className="full">Question<input name="question" required/></label><label className="full">Description<textarea name="description"/></label><label className="full">Options — one per line<textarea name="options" required placeholder={'Option A\nOption B'}/></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="open">Open now</option><option value="closed">Closed</option></select></label><label>Results<select name="resultsVisibility" defaultValue="live"><option value="live">Live</option><option value="after_close">After close</option><option value="hidden">Staff only</option></select></label><label>Opens<input name="opensAt" type="datetime-local"/></label><label>Closes<input name="closesAt" type="datetime-local"/></label><div className="full studio3-actions"><button className="btn">Create Poll</button></div></form>
+          </details>
+
+          <details className="studio3-composer" id="send-update">
+            <summary><span>✦</span><div><strong>Send an update</strong><small>Draft, schedule, or publish a notification.</small></div><b>Open</b></summary>
+            <form className="studio3-form-grid studio3-composer-body" onSubmit={publishNotification}><label>Title<input name="title" required/></label><label>Audience<select name="audience" defaultValue="all"><option value="all">Everyone</option><option value="members">Members</option><option value="casting">Casting applicants</option></select></label><label className="full">Message<textarea name="text" required/></label><label>Schedule<input name="publishAt" type="datetime-local"/></label><label>Optional link<input name="link" placeholder="/app/shows/..."/></label><div className="full studio3-publish-actions"><button className="btn muted" type="submit" value="draft">Save Draft</button><button className="btn muted" type="submit" value="scheduled">Schedule</button><button className="btn" type="submit" value="sent">Send Now</button></div></form>
+          </details>
         </div>}
 
-        {tab === 'cast' && <div className="studio36-content"><section className="studio36-card"><div className="studio36-card-head"><div><span>CAST & TALENT</span><h2>{show.title}</h2></div><strong>{show.cast.length} people</strong></div><div className="studio36-cast-grid">{show.cast.map((person,index) => <article key={person.name+index}>{person.image ? <img src={person.image} alt=""/> : <div className="studio36-avatar">{person.name.slice(0,1)}</div>}<div><h3>{person.name}</h3><p>{person.role} · {person.city}</p><small>{person.bio}</small><button className="studio36-danger" type="button" onClick={() => updateShow(show.id, { cast: show.cast.filter((_,i) => i !== index) })}>Remove</button></div></article>)}</div></section><section className="studio36-card"><div className="studio36-card-head"><div><span>ADD TALENT</span><h2>New profile</h2></div></div><form className="studio36-form-grid" onSubmit={addCast}><label>Name<input name="name" required/></label><label>Role<input name="role" defaultValue="Cast"/></label><label>City / State<input name="city" required/></label><label>Status<input name="status" placeholder="Active"/></label><label>Social<input name="social" placeholder="@handle"/></label><label>Photo<input name="imageFile" type="file" accept="image/*"/></label><label className="full">Bio<textarea name="bio" required/></label><div className="full actions"><button className="btn" disabled={busy}>Add Talent</button></div></form></section></div>}
+        {tab==='settings' && <div className="studio3-stack">
+          <section className="studio3-settings-grid">
+            <article className="studio3-panel studio3-home-preview">
+              <div className="studio3-panel-head"><div><span>HOMEPAGE</span><h2>Viewer placement</h2></div><span className={`studio3-status ${show.homeVisible===false?'draft':'live'}`}>{show.homeVisible===false?'Hidden':'Visible'}</span></div>
+              <div className="studio3-home-card" style={{backgroundImage:`linear-gradient(180deg,rgba(27,31,60,.05),rgba(27,31,60,.86)),url(${show.banner||show.artwork})`}}><span>{cms.heroShowId===show.id?'Featured hero':'Standard placement'}</span><strong>{show.title}</strong></div>
+              <div className="studio3-settings-actions">
+                <button className="btn" type="button" onClick={()=>{onUpdateCms({...cms,heroShowId:show.id,shows:cms.shows.map(item=>item.id===show.id?{...item,homeVisible:true}:item)});setMessage(`${show.title} is now featured on Home.`)}}>Set as featured hero</button>
+                <button className="btn muted" type="button" onClick={()=>{const next=show.homeVisible===false;updateShow(show.id,{homeVisible:next});setMessage(next?`${show.title} is visible on Home.`:`${show.title} is hidden from Home.`)}}>{show.homeVisible===false?'Show on Home':'Hide from Home'}</button>
+              </div>
+            </article>
 
-        {tab === 'polls' && <div className="studio36-content studio36-split"><section className="studio36-card"><div className="studio36-card-head"><div><span>CREATE POLL</span><h2>{show.title}</h2></div></div><form className="studio36-form-grid" onSubmit={createNewPoll}><label className="full">Question<input name="question" required/></label><label className="full">Description<textarea name="description"/></label><label className="full">Options — one per line<textarea name="options" required placeholder={'Option A\nOption B'}/></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="open">Open now</option><option value="closed">Closed</option></select></label><label>Results<select name="resultsVisibility" defaultValue="live"><option value="live">Live</option><option value="after_close">After close</option><option value="hidden">Staff only</option></select></label><label>Opens<input name="opensAt" type="datetime-local"/></label><label>Closes<input name="closesAt" type="datetime-local"/></label><div className="full actions"><button className="btn">Create Poll</button></div></form></section><section className="studio36-card"><div className="studio36-card-head"><div><span>ACTIVE POLLS</span><h2>Audience voting</h2></div></div><div className="studio36-poll-list">{polls.filter((poll) => poll.show_id === show.id).map((poll) => <article key={poll.id}><div><span className={`studio36-status ${poll.status}`}>{poll.status}</span><h3>{poll.question}</h3>{(pollResults[poll.id] ?? []).map((r) => <p key={r.option_id}>{r.label} <strong>{r.percentage}%</strong></p>)}</div><div><button className="btn muted" type="button" onClick={() => void updatePoll(poll.id,{status:poll.status==='open'?'closed':'open'}).then(refreshPolls)}>{poll.status==='open'?'Close':'Open'}</button><button className="studio36-danger" type="button" onClick={() => { if(window.confirm('Delete this poll?')) void deletePoll(poll.id).then(refreshPolls) }}>Delete</button></div></article>)}</div></section></div>}
+            <article className="studio3-panel">
+              <div className="studio3-panel-head"><div><span>PRODUCTION</span><h2>Current setup</h2></div></div>
+              <dl className="studio3-definition-list"><div><dt>Series status</dt><dd>{show.status}</dd></div><div><dt>Featured</dt><dd>{cms.heroShowId===show.id?'Yes':'No'}</dd></div><div><dt>Episodes</dt><dd>{selectedEpisodes.length}</dd></div><div><dt>Cast profiles</dt><dd>{show.cast.length}</dd></div><div><dt>Open polls</dt><dd>{showPolls.filter(p=>p.status==='open').length}</dd></div><div><dt>Home visibility</dt><dd>{show.homeVisible===false?'Hidden':'Visible'}</dd></div></dl>
+            </article>
+          </section>
 
-        {tab === 'media' && <div className="studio36-content"><section className="studio36-card"><div className="studio36-card-head"><div><span>MEDIA LIBRARY</span><h2>{show.title}</h2></div></div><div className="studio36-assets"><article><span>POSTER</span><img src={show.artwork} alt=""/><label>Replace<input type="file" accept="image/*" onChange={(event)=>{const file=event.target.files?.[0];if(file)void replaceShowMedia('artwork',file);event.currentTarget.value='' }}/></label></article><article className="wide"><span>BANNER</span><img src={show.banner || show.artwork} alt=""/><label>{show.banner?'Replace':'Upload'}<input type="file" accept="image/*" onChange={(event)=>{const file=event.target.files?.[0];if(file)void replaceShowMedia('banner',file);event.currentTarget.value='' }}/></label></article><article><span>SHOW LOGO</span>{show.logoImage?<img src={show.logoImage} alt=""/>:<div className="studio36-logo-placeholder">{show.logo}</div>}<label>{show.logoImage?'Replace':'Upload'}<input type="file" accept="image/png,image/webp,image/svg+xml" onChange={(event)=>{const file=event.target.files?.[0];if(file)void replaceShowMedia('logoImage',file);event.currentTarget.value='' }}/></label></article></div></section></div>}
+          <section className="studio3-panel">
+            <div className="studio3-panel-head"><div><span>SHORTCUTS</span><h2>Platform controls</h2></div></div>
+            <div className="studio3-settings-links"><Link to={`/app/shows/${show.id}`}>Preview show page <b>→</b></Link><Link to="/app/home">Preview EBG+ Home <b>→</b></Link><a href="https://forms.ebgplus.app" target="_blank" rel="noreferrer">Open EBG Forms <b>↗</b></a><Link to="/app/applications">Application center <b>→</b></Link></div>
+          </section>
 
-        {tab === 'notifications' && <div className="studio36-content studio36-split"><section className="studio36-card"><div className="studio36-card-head"><div><span>PUBLISH UPDATE</span><h2>Notifications</h2></div></div><form className="studio36-form-grid" onSubmit={publishNotification}><label>Title<input name="title" required/></label><label>Audience<select name="audience" defaultValue="all"><option value="all">Everyone</option><option value="members">Members</option><option value="casting">Casting applicants</option></select></label><label className="full">Message<textarea name="text" required/></label><label>Schedule<input name="publishAt" type="datetime-local"/></label><label>Optional link<input name="link" placeholder="/app/shows/..."/></label><div className="full studio36-publish-actions"><button className="btn muted" type="submit" value="draft">Save Draft</button><button className="btn muted" type="submit" value="scheduled">Schedule</button><button className="btn" type="submit" value="sent">Send Now</button></div></form></section><section className="studio36-card"><div className="studio36-card-head"><div><span>HISTORY</span><h2>Published updates</h2></div></div><div className="studio36-notice-list">{(cms.notifications ?? []).map((notice) => <article key={notice.id}><div><span className={`studio36-status ${notice.status ?? 'sent'}`}>{notice.status ?? 'sent'}</span><h3>{notice.title || 'EBG+ Update'}</h3><p>{notice.text}</p><small>{new Date(notice.date).toLocaleString()}</small></div><button className="studio36-danger" type="button" onClick={() => onUpdateCms({ ...cms, notifications:(cms.notifications ?? []).filter((item)=>item.id!==notice.id) })}>Delete</button></article>)}</div></section></div>}
-      </div>
+          <section className="studio3-panel studio3-danger-zone">
+            <div><span>DANGER ZONE</span><h2>Production actions</h2><p>Duplicate this series for a new version, or permanently remove it and its episodes from the CMS.</p></div>
+            <div className="studio3-actions"><button className="btn muted" type="button" onClick={()=>duplicateShow(show)}>Duplicate series</button><button className="studio3-danger-button" type="button" onClick={()=>deleteShow(show.id)}>Delete series</button></div>
+          </section>
+        </div>}
+      </main>
     </section>
   )
 }
