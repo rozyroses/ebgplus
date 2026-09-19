@@ -889,3 +889,270 @@ body .setting-row { border-color: rgba(66,72,113,.1); }
     font-size: 11px;
   }
 }
+
+
+/* EBG_PASTEL_LEGACY_COLOR_CLEANUP
+   Final-layer overrides for older black/gold phase styles. */
+body .home-v2 .hero-pill,
+body .home-v2 .pulse-badge,
+body .coming-soon-kicker,
+body .music-v2-page .eyebrow,
+body .music-detail-page .eyebrow {
+  color: #6867c4 !important;
+  border-color: rgba(123,121,255,.2) !important;
+  background: rgba(255,255,255,.78) !important;
+  box-shadow: none !important;
+}
+
+/* Home cards: keep artwork, remove the old black/gold treatment. */
+body .home-v2 .rail .content-card {
+  background: rgba(255,255,255,.84) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+body .home-v2 .rail .content-card > a {
+  background: var(--lilac) !important;
+}
+body .home-v2 .rail .content-card > div {
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(238,242,255,.84)) !important;
+}
+body .home-v2 .rail .content-card > div::before {
+  background: linear-gradient(90deg, transparent, rgba(123,121,255,.28), transparent) !important;
+}
+body .home-v2 .rail .content-card h3,
+body .home-v2 .rail .content-card strong {
+  color: var(--ink) !important;
+}
+body .home-v2 .rail .content-card p {
+  color: var(--muted) !important;
+}
+body .home-v2 .home-coming-card::before {
+  background:
+    linear-gradient(180deg, rgba(248,249,255,.02) 26%, rgba(248,249,255,.28) 58%, rgba(248,249,255,.94) 100%),
+    radial-gradient(circle at 80% 10%, rgba(236,231,255,.2), transparent 36%) !important;
+}
+body .home-v2 .home-coming-card::after {
+  background: linear-gradient(0deg, rgba(248,249,255,.96) 0%, rgba(248,249,255,.62) 34%, transparent 76%) !important;
+}
+body .home-v2 .home-coming-card h3 {
+  color: var(--ink) !important;
+  text-shadow: none !important;
+}
+body .home-v2 .home-coming-card p {
+  color: #697089 !important;
+}
+body .home-v2 .home-coming-card .pulse-badge {
+  color: #625fe9 !important;
+  background: rgba(255,255,255,.88) !important;
+  border-color: rgba(123,121,255,.22) !important;
+  box-shadow: 0 7px 20px rgba(68,76,122,.08) !important;
+}
+
+/* Music catalog + detail pages. */
+body .music-v2-hero,
+body .music-artist-hero,
+body .music-release-hero {
+  border-color: rgba(255,255,255,.96) !important;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(223,240,255,.9), transparent 25rem),
+    radial-gradient(circle at 90% 20%, rgba(255,227,238,.7), transparent 25rem),
+    rgba(255,255,255,.82) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+body .music-v2-hero-copy h1,
+body .music-artist-hero h1,
+body .music-release-info h1,
+body .music-v2-section-head h2,
+body .music-v2-release-card h3,
+body .music-v2-artist-grid h3,
+body .music-v2-video-grid h3 {
+  color: var(--ink) !important;
+}
+body .music-v2-artist,
+body .music-release-info h2,
+body .music-detail-back {
+  color: #6867c4 !important;
+}
+body .music-v2-hero-copy > p:not(.eyebrow):not(.music-v2-artist),
+body .music-v2-release-card p,
+body .music-v2-video-grid p,
+body .music-v2-release-card small,
+body .music-v2-track-meta small,
+body .music-v2-section-head > span,
+body .music-artist-bio,
+body .music-detail-muted,
+body .music-release-info > p:last-child,
+body .music-v2-artist-grid p {
+  color: var(--muted) !important;
+}
+body .music-v2-cover,
+body .music-release-art,
+body .music-artist-avatar,
+body .music-v2-release-card > div,
+body .music-v2-artist-grid article > div {
+  background: linear-gradient(145deg, var(--sky), var(--lilac)) !important;
+  color: #6867c4 !important;
+  border: 1px solid rgba(255,255,255,.95);
+  box-shadow: var(--shadow-soft) !important;
+}
+body .music-v2-release-card {
+  padding: 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(255,255,255,.92);
+}
+body .music-v2-track-list article,
+body .music-v2-artist-grid article,
+body .music-v2-empty,
+body .music-detail-page .music-v2-track-list article {
+  background: rgba(255,255,255,.78) !important;
+  border-color: rgba(66,72,113,.1) !important;
+  color: var(--ink) !important;
+  box-shadow: var(--shadow-soft);
+}
+body .music-v2-track-number {
+  color: #868ca4 !important;
+}
+body .music-v2-empty h3 {
+  color: var(--ink) !important;
+}
+
+/* Audio player surfaces. */
+body .ebg-music-player {
+  background: rgba(255,255,255,.86) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+body .ebg-music-player-art {
+  background: linear-gradient(145deg, var(--sky), var(--lilac)) !important;
+  color: #6867c4 !important;
+  box-shadow: none !important;
+}
+body .ebg-music-player-copy strong {
+  color: var(--ink) !important;
+}
+body .ebg-music-player-copy span,
+body .ebg-music-player-timeline span {
+  color: var(--muted) !important;
+}
+body .ebg-music-player-transport button,
+body .ebg-music-player-volume-row button {
+  color: #6867c4 !important;
+}
+body .ebg-music-player-transport .primary {
+  background: linear-gradient(135deg, #7b79ff, #8ea7ff) !important;
+  color: white !important;
+  box-shadow: 0 8px 20px rgba(123,121,255,.2) !important;
+}
+body .ebg-music-player-timeline input,
+body .ebg-music-player-volume-row input,
+body .ebg-player-progress,
+body .ebg-player-volume,
+body .ebg-music-dock-progress input,
+body .ebg-now-playing-timeline input,
+body .ebg-now-playing-volume input {
+  accent-color: var(--brand) !important;
+}
+
+/* Persistent music launcher/dock + Now Playing. */
+body .ebg-track-launcher {
+  background: rgba(255,255,255,.8) !important;
+  border-color: rgba(66,72,113,.1) !important;
+  color: var(--ink) !important;
+}
+body .ebg-track-launcher:hover {
+  background: var(--lilac) !important;
+  border-color: rgba(123,121,255,.24) !important;
+}
+body .ebg-track-launcher-art,
+body .ebg-music-dock-art,
+body .ebg-now-playing-art {
+  background: linear-gradient(145deg, var(--sky), var(--lilac)) !important;
+  color: #6867c4 !important;
+}
+body .ebg-track-launcher-copy small,
+body .ebg-music-dock-copy small,
+body .ebg-now-playing-copy p {
+  color: var(--muted) !important;
+}
+body .ebg-track-launcher-play,
+body .ebg-music-dock-play,
+body .ebg-now-playing-controls .primary {
+  background: linear-gradient(135deg, #7b79ff, #8ea7ff) !important;
+  color: white !important;
+}
+body .ebg-music-dock {
+  background: rgba(255,255,255,.9) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: 0 18px 50px rgba(68,76,122,.16) !important;
+}
+body .ebg-music-dock-open,
+body .ebg-music-dock-play,
+body .ebg-music-dock-close {
+  color: var(--ink);
+}
+body .ebg-now-playing-overlay {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(223,240,255,.9), transparent 30rem),
+    radial-gradient(circle at 85% 18%, rgba(255,227,238,.72), transparent 30rem),
+    var(--canvas) !important;
+  color: var(--ink) !important;
+}
+body .ebg-now-playing-copy > span,
+body .ebg-now-playing-lyrics > span {
+  color: #6867c4 !important;
+}
+body .ebg-now-playing-controls button,
+body .ebg-now-playing-volume button,
+body .ebg-now-playing-dismiss {
+  color: var(--ink) !important;
+}
+body .ebg-now-playing-dismiss,
+body .ebg-now-playing-lyrics {
+  background: rgba(255,255,255,.72) !important;
+  border-color: rgba(255,255,255,.96) !important;
+}
+body .ebg-now-playing-lyrics div {
+  color: var(--ink) !important;
+}
+body .ebg-now-playing-lyrics p,
+body .ebg-now-playing-timeline {
+  color: var(--muted) !important;
+}
+
+/* Public coming-soon page also follows the pastel system now. */
+body .coming-soon-page {
+  background:
+    radial-gradient(circle at 16% 12%, var(--sky), transparent 34rem),
+    radial-gradient(circle at 88% 18%, var(--blush), transparent 32rem),
+    radial-gradient(circle at 55% 92%, var(--mint), transparent 30rem),
+    var(--canvas) !important;
+}
+body .coming-soon-page::before {
+  background: none !important;
+}
+body .coming-soon-card {
+  color: var(--ink) !important;
+  background: rgba(255,255,255,.8) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: var(--shadow) !important;
+}
+body .coming-soon-copy,
+body .waitlist-consent,
+body .waitlist-status,
+body .coming-soon-signin {
+  color: var(--muted) !important;
+}
+body .coming-soon-signin a,
+body .waitlist-status.success {
+  color: #6867c4 !important;
+}
+body .waitlist-form,
+body .launch-waitlist-panel,
+body .launch-waitlist-stat {
+  background: rgba(255,255,255,.62) !important;
+  border-color: rgba(66,72,113,.1) !important;
+}
+body .launch-waitlist-stat strong {
+  color: #6867c4 !important;
+}
