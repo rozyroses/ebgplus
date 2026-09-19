@@ -1420,88 +1420,111 @@ function ProfileSelectPage({
     })
   }
 
+  const selectProfile = (profileId: string) => {
+    onSelect(profileId)
+    const returnTo = sessionStorage.getItem('ebg.returnTo.v1') || '/app/home'
+    sessionStorage.removeItem('ebg.returnTo.v1')
+    nav(returnTo)
+  }
+
   return (
-    <main className="profiles-page">
-      <h1>Who's watching?</h1>
-      <div className="profile-grid">
-        {account.profiles.map((entry) => (
+    <main className="profiles-page profile-select-v2">
+      <header className="profile-select-header">
+        <Link className="wordmark" to="/" aria-label="EBG+ home">EBG+</Link>
+        <div className="profile-select-account">
+          <span>Signed in as</span>
+          <strong>{account.email}</strong>
+        </div>
+      </header>
+
+      <section className="profile-select-shell">
+        <p className="eyebrow">Choose your space</p>
+        <h1>Who's watching?</h1>
+        <p className="profile-select-subcopy">Pick a profile to jump back into your EBG+ world.</p>
+
+        <div className="profile-grid">
+          {account.profiles.map((entry) => (
+            <article
+              key={entry.id}
+              className={`profile-card ${activeProfileId === entry.id ? 'active' : ''}`}
+            >
+              <button
+                type="button"
+                className="profile-card-select"
+                onClick={() => {
+                  if (!manage) selectProfile(entry.id)
+                }}
+                aria-label={manage ? `Manage ${entry.name}` : `Continue as ${entry.name}`}
+              >
+                <AvatarVisual avatar={entry.avatar} />
+                <span className="profile-card-name">{entry.name}</span>
+                <span className="profile-card-hint">{manage ? 'Editing profile' : 'Enter profile'}</span>
+              </button>
+
+              {manage && (
+                <div className="manage-tools">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const name = prompt('Rename profile', entry.name)
+                      if (!name) return
+                      onUpdateAccount({
+                        ...account,
+                        profiles: account.profiles.map((profile) =>
+                          profile.id === entry.id ? { ...profile, name } : profile,
+                        ),
+                      })
+                    }}
+                  >
+                    Rename
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const avatar = prompt(`Choose avatar: ${AVATARS.join(' ')}`, entry.avatar)
+                      if (!avatar) return
+                      onUpdateAccount({
+                        ...account,
+                        profiles: account.profiles.map((profile) =>
+                          profile.id === entry.id ? { ...profile, avatar: avatar.slice(0, 2) } : profile,
+                        ),
+                      })
+                    }}
+                  >
+                    Avatar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={account.profiles.length <= 1}
+                    onClick={() => removeProfile(entry.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </article>
+          ))}
+
           <button
-            key={entry.id}
-            className={`profile-card ${activeProfileId === entry.id ? 'active' : ''}`}
+            type="button"
+            className="profile-add-card"
             onClick={() => {
-              if (!manage) {
-                onSelect(entry.id)
-                const returnTo = sessionStorage.getItem('ebg.returnTo.v1') || '/app/home'
-                sessionStorage.removeItem('ebg.returnTo.v1')
-                nav(returnTo)
-              }
+              const name = prompt('Profile name')
+              if (!name) return
+              onUpdateAccount({ ...account, profiles: [...account.profiles, createStarterProfile(name)] })
             }}
           >
-            <AvatarVisual avatar={entry.avatar} />
-            <span>{entry.name}</span>
-            {manage && (
-              <div className="manage-tools">
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    const name = prompt('Rename profile', entry.name)
-                    if (!name) return
-                    onUpdateAccount({
-                      ...account,
-                      profiles: account.profiles.map((profile) =>
-                        profile.id === entry.id ? { ...profile, name } : profile,
-                      ),
-                    })
-                  }}
-                >
-                  Rename
-                </button>
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    const avatar = prompt(`Choose avatar: ${AVATARS.join(' ')}`, entry.avatar)
-                    if (!avatar) return
-                    onUpdateAccount({
-                      ...account,
-                      profiles: account.profiles.map((profile) =>
-                        profile.id === entry.id ? { ...profile, avatar: avatar.slice(0, 2) } : profile,
-                      ),
-                    })
-                  }}
-                >
-                  Avatar
-                </button>
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    removeProfile(entry.id)
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            )}
+            <span className="profile-add-icon" aria-hidden="true">+</span>
+            <span>Add Profile</span>
           </button>
-        ))}
-        <button
-          className="profile-card add"
-          onClick={() => {
-            const name = prompt('Profile name')
-            if (!name) return
-            onUpdateAccount({ ...account, profiles: [...account.profiles, createStarterProfile(name)] })
-          }}
-        >
-          + Add Profile
-        </button>
-      </div>
-      <div className="actions">
-        <button className="btn muted" onClick={() => setManage((value) => !value)}>
-          {manage ? 'Done' : 'Manage Profiles'}
-        </button>
-      </div>
+        </div>
+
+        <div className="actions">
+          <button className="btn muted" type="button" onClick={() => setManage((value) => !value)}>
+            {manage ? 'Done' : 'Manage Profiles'}
+          </button>
+        </div>
+      </section>
     </main>
   )
 }
@@ -1802,6 +1825,25 @@ function HomePage({
         </div>
         <Link className="btn muted" to="/app/my-list">Open My List</Link>
       </section>
+
+      <nav className="home-shortcuts" aria-label="Quick links">
+        <Link className="home-shortcut" to="/app/my-list">
+          <span className="home-shortcut-icon" aria-hidden="true">♡</span>
+          <span><strong>My List</strong><small>Your saved shows and favorites.</small></span>
+        </Link>
+        <Link className="home-shortcut" to="/app/applications">
+          <span className="home-shortcut-icon" aria-hidden="true">↗</span>
+          <span><strong>Applications</strong><small>Track casting and submission updates.</small></span>
+        </Link>
+        <Link className="home-shortcut" to="/app/inbox">
+          <span className="home-shortcut-icon" aria-hidden="true">✉</span>
+          <span><strong>Inbox</strong><small>Messages and EBG+ network updates.</small></span>
+        </Link>
+        <Link className="home-shortcut" to="/app/music">
+          <span className="home-shortcut-icon" aria-hidden="true">♫</span>
+          <span><strong>Music</strong><small>Jump into releases and artist worlds.</small></span>
+        </Link>
+      </nav>
 
       {continueWatchingEpisodes.length > 0 ? (
         <section className="home-section">
