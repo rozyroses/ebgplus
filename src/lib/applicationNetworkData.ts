@@ -10,3 +10,7 @@ export async function loadApplicantNetwork(){const s=session();const [submission
 export async function loadApplicantMessages(submissionId:string){const s=session();return db.select<ApplicantMessage>('ebg_application_messages',`submission_id=eq.${encodeURIComponent(submissionId)}&order=created_at.asc`,s.access_token)}
 export async function sendApplicantMessage(submissionId:string,body:string){const s=session();const [row]=await db.insert<ApplicantMessage>('ebg_application_messages',{submission_id:submissionId,sender_account_id:s.user.id,body},s.access_token);return row}
 export async function markNotificationRead(id:string){const s=session();return db.update<AccountNotification>('account_notifications',`id=eq.${encodeURIComponent(id)}`,{read:true},s.access_token)}
+export async function deleteApplicantSubmission(id:string){
+  const s=session()
+  await db.remove<ApplicantSubmission>('ebg_form_submissions',`id=eq.${encodeURIComponent(id)}`,s.access_token)
+}

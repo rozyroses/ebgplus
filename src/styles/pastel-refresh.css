@@ -1155,3 +1155,153 @@ body .launch-waitlist-stat {
 body .launch-waitlist-stat strong {
   color: #6867c4 !important;
 }
+
+/* EBG_APPLICATION_CENTER_PASTEL */
+body .application-network-page {
+  color: var(--ink);
+}
+body .application-state {
+  width: min(1180px,92vw);
+  margin: 0 auto 18px;
+  color: var(--ink);
+}
+body .application-notice-panel {
+  background: rgba(255,255,255,.84) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: var(--shadow-soft);
+}
+body .application-section-head h2,
+body .application-section-head > span {
+  color: var(--ink) !important;
+}
+body .application-section-head > span {
+  font-size: .78rem;
+  color: var(--muted) !important;
+}
+body .application-notices button {
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(236,231,255,.68)) !important;
+  border-color: rgba(123,121,255,.14) !important;
+  color: var(--ink) !important;
+  box-shadow: 0 7px 22px rgba(68,76,122,.06);
+}
+body .application-notices button:nth-child(3n+2) {
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(221,247,233,.7)) !important;
+}
+body .application-notices button:nth-child(3n+3) {
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(255,227,238,.68)) !important;
+}
+body .application-notices button.read {
+  opacity: .72;
+  background: rgba(248,249,255,.76) !important;
+  border-color: rgba(66,72,113,.08) !important;
+}
+body .application-notices strong {
+  color: var(--ink) !important;
+}
+body .application-notices span,
+body .application-notices small {
+  color: var(--muted) !important;
+}
+body .application-network-card {
+  color: var(--ink) !important;
+  background: rgba(255,255,255,.84) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+body .application-network-card h2,
+body .application-network-card .application-card-head small,
+body .application-answer-preview span {
+  color: var(--ink) !important;
+}
+body .application-network-card > p {
+  color: var(--muted) !important;
+}
+body .application-answer-preview div,
+body .application-thread-answers div {
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(223,240,255,.55));
+  border-color: rgba(66,72,113,.09) !important;
+}
+body .application-answer-preview small,
+body .application-thread-answers small {
+  color: #6867c4 !important;
+}
+body .application-status {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--lilac);
+  color: #625fe9 !important;
+  font-size: .76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+body .application-status.accepted {
+  background: var(--mint);
+  color: #2b8a5c !important;
+}
+body .application-status.declined {
+  background: var(--blush);
+  color: #b24b68 !important;
+}
+body .application-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+body .application-delete {
+  min-height: 42px;
+  padding: 9px 15px;
+  border: 1px solid rgba(178,75,104,.16);
+  border-radius: 999px;
+  background: rgba(255,227,238,.66);
+  color: #a74360;
+  font-weight: 760;
+  cursor: pointer;
+}
+body .application-delete:hover {
+  background: var(--blush);
+}
+body .application-delete:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+body .application-thread-overlay {
+  background: rgba(63,68,104,.24) !important;
+}
+body .application-thread {
+  color: var(--ink) !important;
+  background: rgba(255,255,255,.96) !important;
+  border-color: rgba(255,255,255,.98) !important;
+  box-shadow: 0 28px 80px rgba(68,76,122,.2) !important;
+}
+body .application-thread-head h2 {
+  color: var(--ink) !important;
+}
+body .application-thread-head button {
+  background: var(--subtle) !important;
+  color: var(--ink) !important;
+}
+body .application-thread-answers span,
+body .application-chat article p {
+  color: var(--ink) !important;
+}
+body .application-chat article {
+  background: linear-gradient(145deg, rgba(255,255,255,.95), rgba(236,231,255,.52)) !important;
+}
+body .application-chat article strong {
+  color: #6867c4 !important;
+}
+body .application-chat article small {
+  color: var(--muted) !important;
+}
+body .application-thread textarea {
+  background: rgba(248,249,255,.96) !important;
+  color: var(--ink) !important;
+  border-color: rgba(66,72,113,.12) !important;
+}
+body .application-thread textarea::placeholder {
+  color: #969bb0;
+}
+@media(max-width:600px){
+  body .application-card-actions > * { width: 100%; }
+}
