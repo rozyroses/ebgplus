@@ -1,5 +1,5 @@
 {
-  "name": "ebgplus-scaffold",
+  "name": "ebgplus",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "postbuild": "node scripts/prepare-pages.mjs",
+    "check:deploy": "node scripts/check-deploy-env.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -22,5 +25,8 @@
     "oxlint": "^1.75.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }
