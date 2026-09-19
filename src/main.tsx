@@ -8,6 +8,7 @@ import './branding.css'
 import SplashScreen from './components/SplashScreen.tsx'
 import './styles/viewer-theme.css'
 import './styles/pastel-refresh.css'
+import './styles/studio-v3.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
