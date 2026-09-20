@@ -254,14 +254,18 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
   useEffect(() => {
     setBusy(true)
-    void Promise.all([loadCmsData<CmsData>(), refreshAuxiliary()])
-      .then(([nextCms]) => {
+    void loadCmsData<CmsData>()
+      .then((nextCms) => {
         const value = nextCms ?? emptyCms
         setCms(value)
         setShowId(value.shows[0]?.id ?? '')
+        setBusy(false)
+        void refreshAuxiliary().catch((err) => setMessage(err instanceof Error ? err.message : 'Some Studio data is still loading.'))
       })
-      .catch((err) => setMessage(err instanceof Error ? err.message : 'Studio data could not be loaded.'))
-      .finally(() => setBusy(false))
+      .catch((err) => {
+        setMessage(err instanceof Error ? err.message : 'Studio data could not be loaded.')
+        setBusy(false)
+      })
   }, [])
 
   const selectedShow = useMemo(() => cms.shows.find((show) => show.id === showId) ?? cms.shows[0] ?? null, [cms.shows, showId])
