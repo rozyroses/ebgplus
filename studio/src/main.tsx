@@ -1,14 +1,6 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-import TeamAccessPanel from './TeamAccessPanel'
-import StudioLumi from './StudioLumi'
-import StudioSeriesManagerV2 from './StudioSeriesManagerV2'
-import StudioEpisodesManagerV2 from './StudioEpisodesManagerV2'
-import StudioCastTalentManagerV2 from './StudioCastTalentManagerV2'
-import StudioBrandAssetDeleteControls from './StudioBrandAssetDeleteControls'
-import StudioMusicManagerV1 from './StudioMusicManagerV1'
-import StudioMusicLyricsV2 from './StudioMusicLyricsV2'
 import './styles.css'
 import './teamAccess.css'
 import './studioLumi.css'
@@ -20,16 +12,48 @@ import './studioBrandAssetDelete.css'
 import './studioMusicManagerV1.css'
 import './studioMusicLyricsV2.css'
 
+const lazyTools = {
+  team: lazy(() => import('./TeamAccessPanel')),
+  lumi: lazy(() => import('./StudioLumi')),
+  series: lazy(() => import('./StudioSeriesManagerV2')),
+  episodes: lazy(() => import('./StudioEpisodesManagerV2')),
+  talent: lazy(() => import('./StudioCastTalentManagerV2')),
+  media: lazy(() => import('./StudioBrandAssetDeleteControls')),
+  music: lazy(() => import('./StudioMusicManagerV1')),
+} as const
+
+type LazyToolKey = keyof typeof lazyTools
+
+function StudioLazyTools() {
+  const readHash = () => window.location.hash.replace(/^#\/?/, '') as LazyToolKey
+  const [active, setActive] = useState<LazyToolKey>(readHash)
+
+  useEffect(() => {
+    const sync = () => setActive(readHash())
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+
+  const Component = useMemo(() => lazyTools[active], [active])
+  if (!Component) return null
+
+  return (
+    <Suspense fallback={<div className="studio-tool-loading">Opening {active}…</div>}>
+      <Component />
+      {active === 'music' && (
+        <Suspense fallback={null}>
+          <LazyMusicLyrics />
+        </Suspense>
+      )}
+    </Suspense>
+  )
+}
+
+const LazyMusicLyrics = lazy(() => import('./StudioMusicLyricsV2'))
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-    <TeamAccessPanel />
-    <StudioLumi />
-    <StudioSeriesManagerV2 />
-    <StudioEpisodesManagerV2 />
-    <StudioCastTalentManagerV2 />
-    <StudioBrandAssetDeleteControls />
-    <StudioMusicManagerV1 />
-    <StudioMusicLyricsV2 />
+    <StudioLazyTools />
   </StrictMode>,
 )
