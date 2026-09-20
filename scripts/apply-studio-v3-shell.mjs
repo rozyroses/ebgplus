@@ -141,6 +141,10 @@ const newShell = `    <div className="studio-shell studio-v3-shell">
           </nav>
 
           <div className="studio-v3-actions">
+            <div className="studio-v3-feature-shortcuts" aria-label="Studio feature shortcuts">
+              <button type="button" className={activeTool === 'music' ? 'active' : ''} onClick={() => goToTool('music')}><span>♫</span><strong>Music</strong></button>
+              <button type="button" className={activeTool === 'lumi' ? 'active' : ''} onClick={() => goToTool('lumi')}><span>✦</span><strong>Lumi</strong></button>
+            </div>
             {cms.shows.length > 0 && <label className="studio-v3-production"><span>Production</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
             <StudioThemeToggle theme={theme} onChange={setTheme} />
             <a className="studio-v3-view" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
@@ -172,7 +176,7 @@ source = source.replace(
 
 source = source.replace(
   '<section className="panel"><PanelHeading eyebrow="WORKSPACES" title="Where do you want to work?" /><div className="launch-grid">{TABS.filter((item) => item.id !== \'overview\' && (authState.account.role === \'founder\' || ![\'news\', \'notifications\'].includes(item.id))).map((item, index) => <button type="button" key={item.id} onClick={() => setTab(item.id)}><span>{String(index + 1).padStart(2, \'0\')}</span><strong>{item.label}</strong><b>→</b></button>)}</div></section>',
-  '<section className="panel studio-v3-workspace-cards"><PanelHeading eyebrow="WORKSPACES" title="Jump back in" /><div className="launch-grid">{STUDIO_WORKSPACES.filter((workspace) => workspace.id !== \'overview\').map((workspace, index) => <button type="button" key={workspace.id} onClick={() => goToTool(workspace.tools[0])}><span>{String(index + 1).padStart(2, \'0\')}</span><strong>{workspace.label}</strong><small>{workspace.copy}</small><b>→</b></button>)}</div></section>',
+  '<section className="panel studio-v3-workspace-cards"><PanelHeading eyebrow="WORKSPACES" title="Jump back in" /><div className="studio-v3-feature-row"><button type="button" className="music-feature" onClick={() => goToTool(\'music\')}><span>♫</span><div><strong>Music Studio</strong><small>Upload songs, releases, cover art, and music videos.</small></div><b>→</b></button><button type="button" className="lumi-feature" onClick={() => goToTool(\'lumi\')}><span>✦</span><div><strong>Studio Lumi</strong><small>Brainstorm, plan, write, and work with production context.</small></div><b>→</b></button></div><div className="launch-grid">{STUDIO_WORKSPACES.filter((workspace) => workspace.id !== \'overview\').map((workspace, index) => <button type="button" key={workspace.id} onClick={() => goToTool(workspace.tools[0])}><span>{String(index + 1).padStart(2, \'0\')}</span><strong>{workspace.label}</strong><small>{workspace.copy}</small><b>→</b></button>)}</div></section>',
 )
 
 fs.writeFileSync(appPath, source)
