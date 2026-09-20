@@ -1591,6 +1591,31 @@ function AppLayout({
   onUpdateCastingStatus: (applicationId: string, status: CastingApplication['status']) => Promise<void>
 }) {
   const location = useLocation()
+  const [openNavMenu, setOpenNavMenu] = useState<'explore' | 'library' | 'profile' | null>(null)
+
+  useEffect(() => {
+    setOpenNavMenu(null)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      const target = event.target
+      if (target instanceof Element && !target.closest('.nav-menu')) setOpenNavMenu(null)
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpenNavMenu(null)
+    }
+    document.addEventListener('pointerdown', dismiss)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', dismiss)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [])
+
+  const toggleMenu = (menu: 'explore' | 'library' | 'profile', open: boolean) => {
+    setOpenNavMenu(open ? menu : null)
+  }
 
   const showById = useMemo(() => new Map(cms.shows.map((show) => [show.id, show])), [cms.shows])
 
@@ -1643,9 +1668,9 @@ function AppLayout({
           ].map(([label, path]) => (
             <Link key={path} to={path} className={location.pathname === path ? 'active' : ''}>{label}</Link>
           ))}
-          <details className="nav-menu">
+          <details className="nav-menu" open={openNavMenu === 'explore'} onToggle={(event) => toggleMenu('explore', event.currentTarget.open)}>
             <summary>Explore <span aria-hidden="true">⌄</span></summary>
-            <div className="nav-dropdown">
+            <div className="nav-dropdown" onClick={() => setOpenNavMenu(null)}>
               <Link to="/app/originals">EBG Originals</Link>
               <Link to="/app/universe">EBG Universe</Link>
               <Link to="/app/news">News</Link>
@@ -1655,9 +1680,9 @@ function AppLayout({
         <div className="right-nav">
           <ThemeToggle compact />
           <Link className="nav-icon-link" to="/app/search">Search</Link>
-          <details className="nav-menu library-menu">
+          <details className="nav-menu library-menu" open={openNavMenu === 'library'} onToggle={(event) => toggleMenu('library', event.currentTarget.open)}>
             <summary>Library <span aria-hidden="true">⌄</span></summary>
-            <div className="nav-dropdown nav-dropdown-right">
+            <div className="nav-dropdown nav-dropdown-right" onClick={() => setOpenNavMenu(null)}>
               <Link to="/app/my-list">My List</Link>
               <Link to="/app/applications">My Applications</Link>
               <Link to="/app/inbox">Messages</Link>
@@ -1665,9 +1690,9 @@ function AppLayout({
               <a href="https://forms.ebgplus.app">Casting</a>
             </div>
           </details>
-          <details className="nav-menu profile-menu">
+          <details className="nav-menu profile-menu" open={openNavMenu === 'profile'} onToggle={(event) => toggleMenu('profile', event.currentTarget.open)}>
             <summary className="profile-menu-trigger" aria-label="Profile menu"><AvatarVisual avatar={profile.avatar} nav /><span aria-hidden="true">⌄</span></summary>
-            <div className="nav-dropdown nav-dropdown-right profile-dropdown">
+            <div className="nav-dropdown nav-dropdown-right profile-dropdown" onClick={() => setOpenNavMenu(null)}>
               <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}</strong><small>{account.email}</small></div></div>
               <Link to="/app/settings">Settings</Link>
               <Link to="/profiles">Switch Profile</Link>
