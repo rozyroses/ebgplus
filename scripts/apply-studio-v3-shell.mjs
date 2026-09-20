@@ -153,7 +153,7 @@ const newShell = `    <div className="studio-shell studio-v3-shell">
             <h1>{TOOL_LABELS[activeTool] ?? activeWorkspace.label}</h1>
             <span>{activeWorkspace.copy}</span>
           </div>
-          <nav className="studio-v3-tools" aria-label={\`${activeWorkspace.label} tools\`}>
+          <nav className="studio-v3-tools" aria-label={activeWorkspace.label + " tools"}>
             {activeWorkspace.tools.map((tool) => <button key={tool} type="button" className={activeTool === tool ? 'active' : ''} onClick={() => goToTool(tool)}>{TOOL_LABELS[tool]}</button>)}
           </nav>
           <div className="studio-v3-account"><span>{authState.account.role}</span><strong>{authState.account.email}</strong><button type="button" onClick={() => void signOutNow()}>Sign out</button></div>
