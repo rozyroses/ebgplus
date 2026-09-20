@@ -493,7 +493,44 @@ function AvatarVisual({ avatar, nav = false }: { avatar: string; nav?: boolean }
   return <span className={nav ? 'nav-avatar avatar' : 'avatar'}>{avatar || '✨'}</span>
 }
 
+function ThemeToggle({ compact = false }: { compact?: boolean }) {
+  const getTheme = () => {
+    const saved = localStorage.getItem('ebg.theme.v1')
+    if (saved === 'light' || saved === 'dark') return saved
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  const [theme,setTheme]=useState<'light'|'dark'>(()=>getTheme())
+
+  useEffect(()=>{
+    document.documentElement.dataset.theme=theme
+    document.documentElement.style.colorScheme=theme
+    localStorage.setItem('ebg.theme.v1',theme)
+    window.dispatchEvent(new CustomEvent('ebg-theme-change',{detail:theme}))
+  },[theme])
+
+  useEffect(()=>{
+    const sync=(event:Event)=>{
+      const next=(event as CustomEvent<'light'|'dark'>).detail
+      if(next==='light'||next==='dark') setTheme(next)
+    }
+    window.addEventListener('ebg-theme-change',sync)
+    return()=>window.removeEventListener('ebg-theme-change',sync)
+  },[])
+
+  const next=theme==='light'?'dark':'light'
+  return <button className={`theme-toggle ${compact?'compact':''}`} type="button" onClick={()=>setTheme(next)} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
+    <span aria-hidden="true">{theme==='light'?'☾':'☀'}</span><strong>{compact?'':theme==='light'?'Dark':'Light'}</strong>
+  </button>
+}
+
 function App() {
+  useEffect(()=>{
+    const saved=localStorage.getItem('ebg.theme.v1')
+    const theme=saved==='light'||saved==='dark' ? saved : (window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dark':'light')
+    document.documentElement.dataset.theme=theme
+    document.documentElement.style.colorScheme=theme
+  },[])
+
   useEffect(() => {
     if (window.location.hostname === 'studio.ebgplus.app') {
       const suffix = window.location.pathname.startsWith('/app/studio') ? window.location.pathname : '/app/studio/overview'
@@ -1616,6 +1653,7 @@ function AppLayout({
           </details>
         </nav>
         <div className="right-nav">
+          <ThemeToggle compact />
           <Link className="nav-icon-link" to="/app/search">Search</Link>
           <details className="nav-menu library-menu">
             <summary>Library <span aria-hidden="true">⌄</span></summary>
@@ -2966,7 +3004,7 @@ function EbgStudioHub({
     <section className={`studio3 studio3-${tab}`}>
       <header className="studio3-header">
         <div className="studio3-brand-wrap">
-          <Link className="studio3-brand" to="/app/studio/overview"><strong>EBG+</strong><span>Studio</span></Link>
+          <Link className="studio3-brand" to="/app/studio/overview"><strong>EBG+</strong><span>Studio 3</span></Link>
           <span className="studio3-live-dot">Live CMS</span>
         </div>
 
@@ -2979,6 +3017,7 @@ function EbgStudioHub({
         </nav>
 
         <div className="studio3-header-actions">
+          <ThemeToggle />
           <label className="studio3-project-picker">
             <span>Working on</span>
             <select value={show.id} onChange={(event)=>setShowId(event.target.value)}>

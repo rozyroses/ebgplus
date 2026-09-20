@@ -1,0 +1,45 @@
+/* EBG+ persistent light/dark mode — loaded last */
+:root[data-theme='light']{color-scheme:light}
+:root[data-theme='dark']{color-scheme:dark;--brand:#9aa2ff;--brand-hover:#b7bdff;--ink:#f3f4ff;--surface:#151827;--surface-2:#1b1f31;--canvas:#0d101b;--muted:#aeb4ca;--subtle:#20253a;--sky:#18283a;--mint:#183129;--blush:#35212b;--lilac:#262541;--butter:#3b3220;--line:rgba(255,255,255,.08);--shadow:0 20px 60px rgba(0,0,0,.35);--shadow-soft:0 12px 36px rgba(0,0,0,.22)}
+.theme-toggle{min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid rgba(99,108,155,.12);border-radius:999px;background:rgba(255,255,255,.78);color:#343a58;font:inherit;font-size:.74rem;font-weight:850;cursor:pointer;box-shadow:0 7px 20px rgba(68,76,122,.06);backdrop-filter:blur(12px)}
+.theme-toggle.compact{width:38px;padding:0;border-radius:50%}.theme-toggle.compact strong{display:none}.theme-toggle:hover{transform:translateY(-1px)}
+:root[data-theme='dark'] .theme-toggle{background:#20253a;color:#eef0ff;border-color:rgba(255,255,255,.09);box-shadow:none}
+:root[data-theme='dark'] body{background:var(--canvas)!important;color:var(--ink)!important}
+:root[data-theme='dark'] .app-shell,:root[data-theme='dark'] .page,:root[data-theme='dark'] .home-v2,:root[data-theme='dark'] .music-v2-page,:root[data-theme='dark'] .applications-page{background:var(--canvas)!important;color:var(--ink)!important}
+:root[data-theme='dark'] .topbar.app{background:rgba(13,16,27,.88)!important;border-bottom-color:rgba(255,255,255,.07)!important;box-shadow:0 10px 30px rgba(0,0,0,.18)!important}
+:root[data-theme='dark'] .topbar.app .wordmark,:root[data-theme='dark'] .primary-nav a,:root[data-theme='dark'] .nav-menu summary,:root[data-theme='dark'] .right-nav>a{color:#eef0ff!important}
+:root[data-theme='dark'] .nav-dropdown,:root[data-theme='dark'] .profile-dropdown{background:#171b2b!important;border-color:rgba(255,255,255,.08)!important;box-shadow:0 18px 50px rgba(0,0,0,.38)!important}
+:root[data-theme='dark'] .nav-dropdown a,:root[data-theme='dark'] .nav-dropdown button,:root[data-theme='dark'] .profile-dropdown-heading strong{color:#eef0ff!important}
+:root[data-theme='dark'] .profile-dropdown-heading small{color:#aeb4ca!important}
+:root[data-theme='dark'] .panel,:root[data-theme='dark'] .home-v2 .rail .content-card,:root[data-theme='dark'] .home-v2 .rail .content-card>div,:root[data-theme='dark'] .application-network-card,:root[data-theme='dark'] .application-notice-panel,:root[data-theme='dark'] .application-thread,:root[data-theme='dark'] .music-v2-release-card,:root[data-theme='dark'] .music-v2-track-list article,:root[data-theme='dark'] .music-v2-artist-grid article,:root[data-theme='dark'] .music-v2-empty{background:#171b2b!important;border-color:rgba(255,255,255,.07)!important;color:#eef0ff!important;box-shadow:var(--shadow-soft)!important}
+:root[data-theme='dark'] .home-v2 .rail .content-card>div{background:linear-gradient(145deg,#171b2b,#1f2437)!important}
+:root[data-theme='dark'] h1,:root[data-theme='dark'] h2,:root[data-theme='dark'] h3,:root[data-theme='dark'] strong{color:#f5f6ff}
+:root[data-theme='dark'] p,:root[data-theme='dark'] small,:root[data-theme='dark'] .muted,:root[data-theme='dark'] .home-v2 .rail .content-card p,:root[data-theme='dark'] .music-v2-release-card p,:root[data-theme='dark'] .application-network-card>p{color:#aeb4ca!important}
+:root[data-theme='dark'] input,:root[data-theme='dark'] select,:root[data-theme='dark'] textarea{background:#111523!important;color:#eef0ff!important;border-color:rgba(255,255,255,.09)!important}
+:root[data-theme='dark'] input::placeholder,:root[data-theme='dark'] textarea::placeholder{color:#777f9b!important}
+:root[data-theme='dark'] .btn.muted{background:#22283d!important;color:#e8eaff!important;border-color:rgba(255,255,255,.08)!important}
+:root[data-theme='dark'] .studio-route{background:radial-gradient(circle at 8% 0%,rgba(45,61,84,.48),transparent 28rem),radial-gradient(circle at 92% 10%,rgba(78,43,60,.42),transparent 30rem),#0d101b!important;color:#eef0ff!important}
+:root[data-theme='dark'] .studio3{color:#eef0ff}
+:root[data-theme='dark'] .studio3-header{background:rgba(13,16,27,.9);border-bottom-color:rgba(255,255,255,.07);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+:root[data-theme='dark'] .studio3-brand{color:#f3f4ff}.studio3-brand span{font-weight:850}
+:root[data-theme='dark'] .studio3-brand span,:root[data-theme='dark'] .studio3-project-picker>span{color:#9fa6c1}
+:root[data-theme='dark'] .studio3-nav{background:#171b2b;border-color:rgba(255,255,255,.05)}
+:root[data-theme='dark'] .studio3-nav a{color:#aeb4ca}:root[data-theme='dark'] .studio3-nav a.active{background:#272c43;color:#bec4ff;box-shadow:none}
+:root[data-theme='dark'] .studio3-project-picker select{background:#171b2b;color:#eef0ff;border-color:rgba(255,255,255,.08)}
+:root[data-theme='dark'] .studio3-view-site{background:#eef0ff;color:#20243a}
+:root[data-theme='dark'] .studio3-page-intro h1,:root[data-theme='dark'] .studio3-panel-head h2,:root[data-theme='dark'] .studio3-danger-zone h2,:root[data-theme='dark'] .studio3-production-copy h2,:root[data-theme='dark'] .studio3-episode-info h3,:root[data-theme='dark'] .studio3-cast-grid h3,:root[data-theme='dark'] .studio3-poll-list h3,:root[data-theme='dark'] .studio3-notice-list h3{color:#f4f5ff}
+:root[data-theme='dark'] .studio3-page-intro>div:first-child>span,:root[data-theme='dark'] .studio3-production-copy p,:root[data-theme='dark'] .studio3-episode-info p,:root[data-theme='dark'] .studio3-cast-grid p,:root[data-theme='dark'] .studio3-cast-grid small{color:#aeb4ca!important}
+:root[data-theme='dark'] .studio3-intro-status,:root[data-theme='dark'] .studio3-panel,:root[data-theme='dark'] .studio3-composer{background:#171b2b;border-color:rgba(255,255,255,.07);box-shadow:var(--shadow-soft)}
+:root[data-theme='dark'] .studio3-intro-status strong{color:#eef0ff}
+:root[data-theme='dark'] .studio3-overview-copy{background:radial-gradient(circle at 78% 8%,rgba(255,255,255,.05),transparent 28%),linear-gradient(145deg,#172638,#22213b 50%,#35212b);box-shadow:var(--shadow-soft)}
+:root[data-theme='dark'] .studio3-overview-copy h2{color:#f3f4ff}:root[data-theme='dark'] .studio3-overview-copy p{color:#b4bad0!important}
+:root[data-theme='dark'] .studio3-metrics article.sky{background:linear-gradient(145deg,#171b2b,#18283a)}:root[data-theme='dark'] .studio3-metrics article.mint{background:linear-gradient(145deg,#171b2b,#183129)}:root[data-theme='dark'] .studio3-metrics article.blush{background:linear-gradient(145deg,#171b2b,#35212b)}:root[data-theme='dark'] .studio3-metrics article.lilac{background:linear-gradient(145deg,#171b2b,#262541)}
+:root[data-theme='dark'] .studio3-metrics strong{color:#f3f4ff}:root[data-theme='dark'] .studio3-metrics span,:root[data-theme='dark'] .studio3-metrics small{color:#aeb4ca!important}
+:root[data-theme='dark'] .studio3-quick-grid a,:root[data-theme='dark'] .studio3-recent-list>div,:root[data-theme='dark'] .studio3-show-rail button,:root[data-theme='dark'] .studio3-episode-list article,:root[data-theme='dark'] .studio3-assets article,:root[data-theme='dark'] .studio3-poll-list>div,:root[data-theme='dark'] .studio3-notice-list>div,:root[data-theme='dark'] .studio3-settings-links a{background:#111523;color:#eef0ff;border-color:rgba(255,255,255,.06)}
+:root[data-theme='dark'] .studio3-quick-grid a:hover,:root[data-theme='dark'] .studio3-show-rail button.active{background:#242941}
+:root[data-theme='dark'] .studio3-workspace-cards a,:root[data-theme='dark'] .studio3-audience-links>a{background:linear-gradient(145deg,#171b2b,#20253a)!important;color:#eef0ff;border-color:rgba(255,255,255,.07)}
+:root[data-theme='dark'] .studio3-form-grid input,:root[data-theme='dark'] .studio3-form-grid select,:root[data-theme='dark'] .studio3-form-grid textarea,:root[data-theme='dark'] .studio3-episode-info select{background:#111523;color:#eef0ff;border-color:rgba(255,255,255,.08)}
+:root[data-theme='dark'] .studio3-composer summary strong,:root[data-theme='dark'] .studio3-definition-list dd{color:#eef0ff}
+:root[data-theme='dark'] .studio3-composer summary small,:root[data-theme='dark'] .studio3-definition-list dt{color:#aeb4ca}
+:root[data-theme='dark'] .studio3-home-preview,:root[data-theme='dark'] .studio3-danger-zone{background:linear-gradient(145deg,#171b2b,#251923)}
+@media(max-width:850px){.theme-toggle:not(.compact){width:100%}}
