@@ -1328,3 +1328,6 @@ body .auth-page .auth-card:has(.signup-account-types){width:min(760px,calc(100% 
 :root[data-theme='dark'] .signup-privacy-note{background:#173129;color:#bfe4d0!important;border-color:rgba(255,255,255,.07)}
 :root[data-theme='dark'] .signup-privacy-note strong{color:#d4f4df!important}
 @media(max-width:700px){.signup-account-types{grid-template-columns:1fr}.signup-account-type{min-height:0;display:grid;grid-template-columns:42px 1fr;align-items:start}.signup-account-icon{grid-row:1}.signup-account-type>span:last-child{grid-column:2}}
+
+.signup-verified-badge.compact{width:17px;height:17px;margin-left:5px;vertical-align:-3px;filter:none}
+.profile-dropdown-heading strong{display:flex;align-items:center;gap:2px}
