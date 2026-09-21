@@ -145,7 +145,22 @@ const newShell = `    <div className="studio-shell studio-v3-shell">
               <button type="button" className={activeTool === 'music' ? 'active' : ''} onClick={() => goToTool('music')}><span>♫</span><strong>Music</strong></button>
               <button type="button" className={activeTool === 'lumi' ? 'active' : ''} onClick={() => goToTool('lumi')}><span>✦</span><strong>Lumi</strong></button>
             </div>
-            {cms.shows.length > 0 && <label className="studio-v3-production"><span>Production</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
+            <label className="studio-v3-project">
+              <span>Project</span>
+              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+                {projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
+              </select>
+            </label>
+            <details className="studio-v3-new-project">
+              <summary>＋ New</summary>
+              <form onSubmit={createProject}>
+                <strong>New production</strong>
+                <label>Name<input name="title" required maxLength={120} placeholder="Production name" /></label>
+                <label>Type<select name="projectKind" defaultValue="show"><option value="show">Show / Series</option><option value="music">Music</option><option value="mixed">Mixed / Universe</option></select></label>
+                <button type="submit" disabled={creatingProject}>{creatingProject ? 'Creating…' : 'Create'}</button>
+              </form>
+            </details>
+            {cms.shows.length > 0 && <label className="studio-v3-production"><span>Title</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
             <StudioThemeToggle theme={theme} onChange={setTheme} />
             <a className="studio-v3-view" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
           </div>
