@@ -126,3 +126,382 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 :root[data-studio-theme='dark'] .studio-v3-feature-row>button>span{background:rgba(255,255,255,.055)}
 @media(max-width:980px){.studio-v3-feature-shortcuts{order:-1}.studio-v3-feature-shortcuts button strong{display:none}.studio-v3-feature-shortcuts button{width:38px;padding:0;justify-content:center}}
 @media(max-width:650px){.studio-v3-feature-row{grid-template-columns:1fr}}
+
+/* Studio 3 mounted-tool compatibility layer.
+   These tools predate Studio 3 and ship their own black/gold skins. This layer
+   deliberately normalizes their real root selectors and internal surfaces. */
+
+/* geometry: mounted tools replace the context/workspace area cleanly */
+.studio-music-layer,
+.studio-series-v2-layer,
+.studio-episodes-v2-layer,
+.studio-cast-v2-layer,
+.team-access-overlay,
+.studio-lumi-overlay{
+  position:fixed!important;
+  inset:74px 0 0 0!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:none!important;
+  z-index:70!important;
+  overflow:auto!important;
+  background:
+    radial-gradient(circle at 10% 0%,color-mix(in srgb,var(--studio-accent) 9%,transparent),transparent 28rem),
+    radial-gradient(circle at 92% 8%,rgba(255,190,218,.10),transparent 28rem),
+    var(--studio-bg)!important;
+  color:var(--studio-text)!important;
+  border:0!important;
+}
+.studio-music-scroll,
+.studio-series-v2-scroll,
+.studio-episodes-v2-scroll,
+.studio-cast-v2-scroll{
+  height:100%!important;
+  padding:clamp(18px,2.8vw,38px)!important;
+}
+.team-access-overlay{padding:clamp(18px,2.8vw,38px)!important}
+
+/* mounted headers */
+.music-studio-header,
+.series-v2-header,
+.episodes-v2-header,
+.cast-v2-header{
+  align-items:flex-start!important;
+  margin-bottom:18px!important;
+}
+.music-studio-header h2,
+.series-v2-header h2,
+.episodes-v2-header h2,
+.cast-v2-header h2{
+  color:var(--studio-text)!important;
+  font-size:clamp(2.25rem,4.5vw,4.5rem)!important;
+  letter-spacing:-.055em!important;
+}
+.music-studio-header p,
+.series-v2-header p,
+.episodes-v2-header p,
+.cast-v2-header p{
+  color:var(--studio-muted)!important;
+}
+.music-studio-stats span,
+.music-studio-card-head span,
+.music-kicker,
+.series-v2-section-title span,
+.series-v2-card-head span,
+.episodes-v2-card-head span,
+.episodes-v2-season-head span,
+.cast-v2-card-head span,
+.cast-v2-title-card small{
+  color:var(--studio-accent)!important;
+}
+
+/* Music */
+.music-studio-stats article,
+.music-studio-card,
+.music-studio-library,
+.music-release-grid>article,
+.music-track-list article,
+.music-video-grid>article{
+  background:var(--studio-surface)!important;
+  color:var(--studio-text)!important;
+  border:1px solid var(--studio-line)!important;
+  box-shadow:var(--studio-shadow)!important;
+}
+.music-studio-stats article{border-radius:20px!important}
+.music-studio-card,.music-studio-library{border-radius:24px!important}
+.music-release-grid>article,.music-video-grid>article{border-radius:18px!important}
+.music-track-list article{border-radius:15px!important}
+.music-studio-card-head h3,
+.music-release-copy h4,
+.music-video-grid h4,
+.music-studio-stats strong,
+.music-artist-list strong{
+  color:var(--studio-text)!important;
+}
+.music-studio-card-head small,
+.music-release-copy p,
+.music-video-grid p,
+.music-track-list small,
+.music-artist-list small,
+.music-empty{
+  color:var(--studio-muted)!important;
+}
+.music-artist-list{border-color:var(--studio-line)!important}
+.music-artist-list article>div,
+.music-cover,
+.music-video-preview{
+  background:var(--studio-surface-2)!important;
+}
+.music-release-grid>article.featured{
+  border-color:color-mix(in srgb,var(--studio-accent) 42%,var(--studio-line))!important;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--studio-accent) 9%,transparent),var(--studio-shadow)!important;
+}
+.music-track-number{
+  background:color-mix(in srgb,var(--studio-accent) 12%,var(--studio-surface-solid))!important;
+  color:var(--studio-accent)!important;
+}
+.music-studio-message{
+  border-color:color-mix(in srgb,var(--studio-accent) 24%,var(--studio-line))!important;
+  background:color-mix(in srgb,var(--studio-accent) 8%,var(--studio-surface-solid))!important;
+  color:var(--studio-text)!important;
+}
+
+/* Lyrics */
+.music-lyrics-launch{
+  top:92px!important;
+  right:28px!important;
+  border-color:color-mix(in srgb,var(--studio-accent) 28%,var(--studio-line))!important;
+  background:var(--studio-surface-solid)!important;
+  color:var(--studio-accent)!important;
+  box-shadow:var(--studio-shadow)!important;
+}
+.music-lyrics-launch:hover{background:var(--studio-surface-2)!important}
+.music-lyrics-overlay{
+  background:color-mix(in srgb,var(--studio-bg) 88%,transparent)!important;
+  backdrop-filter:blur(18px)!important;
+}
+.music-lyrics-shell{
+  background:var(--studio-bg)!important;
+  color:var(--studio-text)!important;
+  border-color:var(--studio-line)!important;
+  box-shadow:var(--studio-shadow)!important;
+}
+.music-lyrics-header,
+.music-lyrics-track-list,
+.music-timed-editor{
+  border-color:var(--studio-line)!important;
+}
+.music-lyrics-header span,
+.music-lyrics-track-list>span,
+.music-lyrics-song-head span,
+.music-timed-editor-head span{
+  color:var(--studio-accent)!important;
+}
+.music-lyrics-header h2,
+.music-lyrics-song-head h3,
+.music-timed-editor-head h4,
+.music-lyrics-track-list button{
+  color:var(--studio-text)!important;
+}
+.music-lyrics-header p,
+.music-lyrics-track-list small,
+.music-lyrics-track-list p,
+.music-lyrics-song-head p,
+.music-lyrics-field,
+.music-timed-editor-head small,
+.music-timed-line label,
+.music-timed-empty{
+  color:var(--studio-muted)!important;
+}
+.music-lyrics-track-list{
+  background:var(--studio-surface)!important;
+}
+.music-lyrics-track-list button.active{
+  border-color:color-mix(in srgb,var(--studio-accent) 28%,var(--studio-line))!important;
+  background:color-mix(in srgb,var(--studio-accent) 9%,var(--studio-surface-solid))!important;
+}
+.music-timed-editor,
+.music-timed-empty{
+  background:var(--studio-surface)!important;
+  border-color:var(--studio-line)!important;
+}
+
+/* Lumi: remove duplicate production control and fully theme the old overlay */
+.studio-lumi-shell{
+  min-height:100%!important;
+  background:transparent!important;
+  color:var(--studio-text)!important;
+}
+.studio-lumi-topbar{
+  min-height:62px!important;
+  grid-template-columns:1fr auto!important;
+  background:color-mix(in srgb,var(--studio-bg) 90%,transparent)!important;
+  border-color:var(--studio-line)!important;
+  color:var(--studio-text)!important;
+  padding:10px clamp(18px,2.8vw,38px)!important;
+}
+.studio-lumi-production-picker{display:none!important}
+.studio-lumi-brand strong{color:var(--studio-text)!important}
+.studio-lumi-brand small{color:var(--studio-muted)!important}
+.lumi-orb,.lumi-spark{
+  color:var(--studio-accent)!important;
+  border-color:color-mix(in srgb,var(--studio-accent) 22%,var(--studio-line))!important;
+  background:color-mix(in srgb,var(--studio-accent) 9%,var(--studio-surface-solid))!important;
+  box-shadow:none!important;
+}
+.lumi-safe-pill{
+  color:var(--studio-accent)!important;
+  border-color:color-mix(in srgb,var(--studio-accent) 20%,var(--studio-line))!important;
+  background:color-mix(in srgb,var(--studio-accent) 7%,var(--studio-surface-solid))!important;
+}
+.studio-lumi-welcome{
+  min-height:calc(100vh - 136px)!important;
+  padding:clamp(34px,5vw,76px) 20px!important;
+  gap:16px!important;
+}
+.lumi-ambient-glow{
+  background:radial-gradient(circle,color-mix(in srgb,var(--studio-accent) 15%,transparent),transparent 68%)!important;
+  opacity:.75!important;
+}
+.lumi-kicker,.lumi-greeting-name{color:var(--studio-accent)!important}
+.lumi-welcome-copy h1{
+  color:var(--studio-text)!important;
+  font-size:clamp(2.5rem,5vw,4.8rem)!important;
+  font-weight:650!important;
+  text-shadow:none!important;
+}
+.lumi-welcome-copy p{color:var(--studio-muted)!important}
+.studio-lumi-composer{
+  background:var(--studio-surface-solid)!important;
+  border-color:var(--studio-line)!important;
+  box-shadow:var(--studio-shadow)!important;
+}
+.studio-lumi-composer:focus-within{
+  border-color:color-mix(in srgb,var(--studio-accent) 42%,var(--studio-line))!important;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--studio-accent) 9%,transparent),var(--studio-shadow)!important;
+}
+.studio-lumi-composer input{
+  background:transparent!important;
+  color:var(--studio-text)!important;
+}
+.studio-lumi-composer input::placeholder{color:var(--studio-muted)!important}
+.lumi-send-button{
+  border-color:var(--studio-accent)!important;
+  background:var(--studio-accent)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.lumi-quick-prompts button{
+  background:var(--studio-surface)!important;
+  color:var(--studio-muted)!important;
+  border-color:var(--studio-line)!important;
+}
+.lumi-quick-prompts button:hover{
+  color:var(--studio-accent)!important;
+  border-color:color-mix(in srgb,var(--studio-accent) 28%,var(--studio-line))!important;
+  background:var(--studio-surface-solid)!important;
+}
+.lumi-production-strip{
+  background:var(--studio-surface)!important;
+  border-color:var(--studio-line)!important;
+  box-shadow:var(--studio-shadow)!important;
+}
+.lumi-production-strip span,
+.lumi-production-strip small,
+.lumi-production-strip p,
+.lumi-readonly-note{color:var(--studio-muted)!important}
+.lumi-production-strip strong{color:var(--studio-text)!important}
+.studio-lumi-chat-context{background:var(--studio-surface)!important;border-color:var(--studio-line)!important}
+.studio-lumi-messages article.lumi{color:var(--studio-text)!important}
+.studio-lumi-messages article.user{
+  background:color-mix(in srgb,var(--studio-accent) 12%,var(--studio-surface-solid))!important;
+  border-color:color-mix(in srgb,var(--studio-accent) 20%,var(--studio-line))!important;
+  color:var(--studio-text)!important;
+}
+
+/* Series / Episodes / Cast / Team */
+.series-v2-library,
+.series-v2-card,
+.episodes-v2-title-card,
+.episodes-v2-stat,
+.episodes-v2-card,
+.episodes-v2-release-card,
+.cast-v2-title-card,
+.cast-v2-card,
+.cast-v2-profile,
+.cast-v2-modal,
+.team-access-heading,
+.team-access-card,
+.team-access-empty,
+.assignment-row,
+.global-toggle{
+  background:var(--studio-surface)!important;
+  color:var(--studio-text)!important;
+  border-color:var(--studio-line)!important;
+  box-shadow:var(--studio-shadow)!important;
+}
+.series-v2-title-list>button:hover,
+.series-v2-title-list>button.active{
+  border-color:color-mix(in srgb,var(--studio-accent) 28%,var(--studio-line))!important;
+  background:color-mix(in srgb,var(--studio-accent) 8%,var(--studio-surface-solid))!important;
+}
+.series-v2-title-list>button>div,
+.episodes-v2-title-card>div,
+.episodes-v2-thumb,
+.cast-v2-title-card>div,
+.cast-v2-photo,
+.team-member-avatar{
+  background:var(--studio-surface-2)!important;
+  color:var(--studio-accent)!important;
+}
+.series-v2-title-list small,
+.series-v2-header-actions>span,
+.episodes-v2-title-card em,
+.episodes-v2-stat span,
+.episodes-v2-card-head small,
+.episodes-v2-season-head small,
+.episodes-v2-release-copy p,
+.episodes-v2-release-copy small,
+.cast-v2-header p,
+.cast-v2-title-card em,
+.cast-v2-card-head small,
+.cast-v2-copy p,
+.cast-v2-copy small,
+.team-member-copy span,
+.no-assignments{
+  color:var(--studio-muted)!important;
+}
+.series-v2-message,
+.episodes-v2-message,
+.cast-v2-message,
+.team-access-message{
+  border-color:color-mix(in srgb,var(--studio-accent) 22%,var(--studio-line))!important;
+  background:color-mix(in srgb,var(--studio-accent) 8%,var(--studio-surface-solid))!important;
+  color:var(--studio-text)!important;
+}
+.episodes-v2-status.status-scheduled,
+.cast-v2-status,
+.access-pill.global{
+  color:var(--studio-accent)!important;
+  background:color-mix(in srgb,var(--studio-accent) 9%,var(--studio-surface-solid))!important;
+  border-color:color-mix(in srgb,var(--studio-accent) 20%,var(--studio-line))!important;
+}
+.cast-v2-copy a{color:var(--studio-accent)!important}
+.cast-v2-modal-backdrop{
+  background:color-mix(in srgb,var(--studio-bg) 75%,transparent)!important;
+  backdrop-filter:blur(18px)!important;
+}
+
+/* media / brand utility remnants */
+.media-card .media-preview[data-asset-empty]{
+  background:var(--studio-surface-2)!important;
+  color:var(--studio-muted)!important;
+  border-color:var(--studio-line)!important;
+}
+
+/* Dark mode stays colorful rather than reverting to legacy black/gold. */
+:root[data-studio-theme='dark'] .music-studio-stats article:nth-child(4n+1),
+:root[data-studio-theme='dark'] .episodes-v2-stat:nth-child(4n+1){background:linear-gradient(145deg,#171b2b,#182a3e)!important}
+:root[data-studio-theme='dark'] .music-studio-stats article:nth-child(4n+2),
+:root[data-studio-theme='dark'] .episodes-v2-stat:nth-child(4n+2){background:linear-gradient(145deg,#171b2b,#173129)!important}
+:root[data-studio-theme='dark'] .music-studio-stats article:nth-child(4n+3),
+:root[data-studio-theme='dark'] .episodes-v2-stat:nth-child(4n+3){background:linear-gradient(145deg,#171b2b,#35212c)!important}
+:root[data-studio-theme='dark'] .music-studio-stats article:nth-child(4n),
+:root[data-studio-theme='dark'] .episodes-v2-stat:nth-child(4n){background:linear-gradient(145deg,#171b2b,#282643)!important}
+
+@media(max-width:980px){
+  .studio-music-layer,
+  .studio-series-v2-layer,
+  .studio-episodes-v2-layer,
+  .studio-cast-v2-layer,
+  .team-access-overlay,
+  .studio-lumi-overlay{inset:145px 0 0 0!important}
+  .music-lyrics-launch{top:162px!important;right:16px!important}
+}
+@media(max-width:700px){
+  .studio-lumi-topbar{grid-template-columns:1fr!important}
+  .lumi-safe-pill{justify-self:start}
+  .studio-lumi-welcome{justify-content:flex-start!important;padding-top:48px!important}
+  .studio-lumi-composer{border-radius:22px!important;grid-template-columns:auto 1fr auto!important}
+  .music-studio-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
