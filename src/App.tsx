@@ -164,6 +164,7 @@ import {
   signUp as supabaseSignUp,
   updateProfile as updateDbProfile,
   type AuthState,
+  type PublicSignupAccountType,
 } from './lib/auth'
 import { requestPasswordReset, updateRecoveredPassword } from './lib/passwordRecovery'
 import {
@@ -294,6 +295,7 @@ type Account = {
   email: string
   passwordHash: string
   role: Role
+  accountType: 'viewer' | 'creator' | 'producer' | 'founder'
   profiles: Profile[]
   notifications: NotificationItem[]
   verifiedBadge?: 'artist' | 'founder' | null
@@ -551,6 +553,7 @@ function authAccountToUi(state: AuthState, previous?: Account | null): Account {
     email: state.account.email,
     passwordHash: '',
     role: state.account.role,
+    accountType: state.account.account_type ?? (state.account.role === 'founder' ? 'founder' : state.account.role === 'producer' ? 'producer' : 'viewer'),
     verifiedBadge: state.account.verified_badge ?? (state.account.role === 'founder' ? 'founder' : null),
     profiles: state.profiles.map((profile) => {
       const prior = previous?.profiles.find((item) => item.id === profile.id)
@@ -739,8 +742,8 @@ function Shell() {
         path="/auth/create-account"
         element={
           <CreateAccountPage
-            onCreate={async (email, password) => {
-              const state = await supabaseSignUp(email, password)
+            onCreate={async (email, password, options) => {
+              const state = await supabaseSignUp(email, password, options)
               if (state) applyAuthState(state)
               return state
             }}
@@ -1293,12 +1296,31 @@ function SignInPage({ onSignIn }: { onSignIn: (email: string, password: string) 
   )
 }
 
+function SignupBadge({ tone }: { tone: 'blue' | 'violet' | 'gold' }) {
+  const fill = tone === 'violet' ? '#8b6cff' : tone === 'gold' ? '#d4aa49' : '#2499ea'
+  return (
+    <svg className="signup-verified-badge" viewBox="0 0 44 44" aria-hidden="true">
+      <g fill={fill}>
+        <circle cx="22" cy="22" r="14" />
+        {Array.from({ length: 12 }).map((_, index) => {
+          const angle = (Math.PI * 2 * index) / 12
+          return <circle key={index} cx={22 + Math.cos(angle) * 12} cy={22 + Math.sin(angle) * 12} r="7.2" />
+        })}
+      </g>
+      <path d="M14.5 22.5 19.5 27.5 30.5 15.5" fill="none" stroke="white" strokeWidth="4.4" strokeLinecap="square" strokeLinejoin="miter" />
+    </svg>
+  )
+}
+
 function CreateAccountPage({
   onCreate,
 }: {
-  onCreate: (email: string, password: string) => Promise<AuthState | null>
+  onCreate: (email: string, password: string, options: { accountType: PublicSignupAccountType; displayName: string; companyName?: string }) => Promise<AuthState | null>
 }) {
   const nav = useNavigate()
+  const [accountType, setAccountType] = useState<PublicSignupAccountType>('viewer')
+  const [displayName, setDisplayName] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -1306,15 +1328,23 @@ function CreateAccountPage({
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const options: Array<{ id: PublicSignupAccountType; title: string; copy: string; note: string; badge?: 'blue' | 'violet' }> = [
+    { id: 'viewer', title: 'Viewer', copy: 'Watch EBG+, build your list, vote, apply, and follow your favorite productions.', note: 'No Studio access.' },
+    { id: 'creator', title: 'Creator', copy: 'Build and publish your own shows, episodes, music, and creative projects.', note: 'Private Creator Studio.', badge: 'blue' },
+    { id: 'producer', title: 'Producer', copy: 'Release projects under your producer identity or production company.', note: 'Private Producer Studio.', badge: 'violet' },
+  ]
+
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setError('')
     setMessage('')
+    if (!displayName.trim()) return setError(accountType === 'viewer' ? 'Choose your profile name.' : 'Choose the name you want shown on your creator profile.')
+    if (accountType === 'producer' && !companyName.trim()) return setError('Add your production company or producer name.')
     if (password.length < 8) return setError('Password must be at least 8 characters.')
     if (password !== confirmPassword) return setError('Passwords do not match.')
     setLoading(true)
     try {
-      const state = await onCreate(email, password)
+      const state = await onCreate(email, password, { accountType, displayName, companyName: companyName.trim() || undefined })
       if (!state) {
         setMessage('Check your email to confirm your EBG+ account, then come back and sign in.')
         return
@@ -1329,7 +1359,33 @@ function CreateAccountPage({
 
   return (
     <AuthLayout title="Create Account">
+      <div className="signup-account-types" role="radiogroup" aria-label="Choose account type">
+        {options.map((option) => (
+          <button
+            key={option.id}
+            className={`signup-account-type ${accountType === option.id ? 'selected' : ''}`}
+            type="button"
+            role="radio"
+            aria-checked={accountType === option.id}
+            onClick={() => setAccountType(option.id)}
+          >
+            <span className="signup-account-icon">{option.badge ? <SignupBadge tone={option.badge} /> : '▶'}</span>
+            <span><strong>{option.title}</strong><small>{option.copy}</small><em>{option.note}</em></span>
+          </button>
+        ))}
+      </div>
+
       <form onSubmit={onSubmit}>
+        <label>
+          {accountType === 'viewer' ? 'Profile name' : accountType === 'producer' ? 'Producer name' : 'Creator name'}
+          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} required maxLength={80} placeholder={accountType === 'viewer' ? 'What should we call you?' : 'Your public creative name'} />
+        </label>
+        {accountType !== 'viewer' && (
+          <label>
+            {accountType === 'producer' ? 'Production company' : 'Studio / brand name (optional)'}
+            <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} required={accountType === 'producer'} maxLength={100} placeholder={accountType === 'producer' ? 'e.g. Wolfpark Productions' : 'Optional'} />
+          </label>
+        )}
         <label>
           Email
           <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required autoComplete="email" />
@@ -1342,10 +1398,11 @@ function CreateAccountPage({
           Confirm Password
           <input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type="password" required autoComplete="new-password" />
         </label>
+        {accountType !== 'viewer' && <p className="signup-privacy-note"><strong>Your Studio is private.</strong> Your projects belong to this account. Other creators, producers, and founders do not automatically get access.</p>}
         {error && <p className="error" role="alert">{error}</p>}
         {message && <p>{message}</p>}
         <button className="btn" type="submit" disabled={loading}>
-          {loading ? 'Creating Account…' : 'Create Account'}
+          {loading ? 'Creating Account…' : accountType === 'viewer' ? 'Create Viewer Account' : `Create ${accountType === 'creator' ? 'Creator' : 'Producer'} Account`}
         </button>
       </form>
     </AuthLayout>
