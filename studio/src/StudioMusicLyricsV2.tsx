@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
-import { loadCmsData, saveCmsData } from '../../src/lib/studioData'
+import { loadProjectCms, saveProjectCms } from '../../src/lib/studioData'
 
 type TimedLyric = { start: number; end: number; text: string }
 type MusicArtist = { id: string; name: string }
@@ -34,6 +34,7 @@ const cleanTimedLyrics = (value?: TimedLyric[]) => Array.isArray(value)
 
 export default function StudioMusicLyricsV2() {
   const [active, setActive] = useState(isMusicTab)
+  const [projectId, setProjectId] = useState(() => localStorage.getItem('ebg.studio.project.v1') ?? '')
   const [open, setOpen] = useState(false)
   const [cms, setCms] = useState<CmsData | null>(null)
   const [trackId, setTrackId] = useState('')
@@ -48,14 +49,30 @@ export default function StudioMusicLyricsV2() {
       setActive(next)
       if (!next) setOpen(false)
     }
+    const syncProject = (event: Event) => {
+      const custom = event as CustomEvent<{ projectId?: string }>
+      const next = custom.detail?.projectId ?? localStorage.getItem('ebg.studio.project.v1') ?? ''
+      setProjectId(next)
+      setTrackId('')
+      setOpen(false)
+    }
     window.addEventListener('hashchange', sync)
+    window.addEventListener('ebg-studio-project-change', syncProject)
     sync()
-    return () => window.removeEventListener('hashchange', sync)
+    return () => {
+      window.removeEventListener('hashchange', sync)
+      window.removeEventListener('ebg-studio-project-change', syncProject)
+    }
   }, [])
 
   const refresh = async () => {
     try {
-      const next = await loadCmsData<CmsData>()
+      if (!projectId) {
+        setCms(null)
+        setMessage('Choose a Studio project first.')
+        return
+      }
+      const next = await loadProjectCms<CmsData>(projectId)
       if (!next) return
       setCms(next)
       const tracks = next.music?.tracks ?? []
@@ -72,7 +89,7 @@ export default function StudioMusicLyricsV2() {
 
   useEffect(() => {
     if (active) void refresh()
-  }, [active])
+  }, [active, projectId])
 
   const music = cms?.music
   const tracks = music?.tracks ?? []
@@ -173,7 +190,8 @@ export default function StudioMusicLyricsV2() {
     setBusy(true)
     setMessage('')
     try {
-      await saveCmsData(nextCms)
+      if (!projectId) throw new Error('Choose a Studio project first.')
+      await saveProjectCms(projectId, nextCms)
       setCms(nextCms)
       setTimedLyrics(normalizedTimedLyrics)
       setMessage(normalizedTimedLyrics.length ? `${normalizedTimedLyrics.length} timed lyric lines saved and synced to this track.` : 'Timed lyrics cleared from this track.')
