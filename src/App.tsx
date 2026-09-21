@@ -299,6 +299,8 @@ type Account = {
   profiles: Profile[]
   notifications: NotificationItem[]
   verifiedBadge?: 'artist' | 'founder' | null
+  studioVerified?: boolean
+  studioBadgeTone?: 'blue' | 'violet' | 'gold' | 'green'
 }
 
 const STORAGE = {
@@ -555,6 +557,8 @@ function authAccountToUi(state: AuthState, previous?: Account | null): Account {
     role: state.account.role,
     accountType: state.account.account_type ?? (state.account.role === 'founder' ? 'founder' : state.account.role === 'producer' ? 'producer' : 'viewer'),
     verifiedBadge: state.account.verified_badge ?? (state.account.role === 'founder' ? 'founder' : null),
+    studioVerified: state.studioIdentity?.verified ?? false,
+    studioBadgeTone: state.studioIdentity?.badge_tone,
     profiles: state.profiles.map((profile) => {
       const prior = previous?.profiles.find((item) => item.id === profile.id)
       return {
@@ -1296,10 +1300,10 @@ function SignInPage({ onSignIn }: { onSignIn: (email: string, password: string) 
   )
 }
 
-function SignupBadge({ tone }: { tone: 'blue' | 'violet' | 'gold' }) {
-  const fill = tone === 'violet' ? '#8b6cff' : tone === 'gold' ? '#d4aa49' : '#2499ea'
+function SignupBadge({ tone, compact = false }: { tone: 'blue' | 'violet' | 'gold' | 'green'; compact?: boolean }) {
+  const fill = tone === 'violet' ? '#8b6cff' : tone === 'gold' ? '#d4aa49' : tone === 'green' ? '#27a86f' : '#2499ea'
   return (
-    <svg className="signup-verified-badge" viewBox="0 0 44 44" aria-hidden="true">
+    <svg className={compact ? 'signup-verified-badge compact' : 'signup-verified-badge'} viewBox="0 0 44 44" aria-hidden="true">
       <g fill={fill}>
         <circle cx="22" cy="22" r="14" />
         {Array.from({ length: 12 }).map((_, index) => {
@@ -1750,10 +1754,12 @@ function AppLayout({
           <details className="nav-menu profile-menu" open={openNavMenu === 'profile'} onToggle={(event) => toggleMenu('profile', event.currentTarget.open)}>
             <summary className="profile-menu-trigger" aria-label="Profile menu"><AvatarVisual avatar={profile.avatar} nav /><span aria-hidden="true">⌄</span></summary>
             <div className="nav-dropdown nav-dropdown-right profile-dropdown" onClick={() => setOpenNavMenu(null)}>
-              <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}</strong><small>{account.email}</small></div></div>
+              <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}{account.studioVerified && account.studioBadgeTone && <SignupBadge tone={account.studioBadgeTone} compact />}</strong><small>{account.email}</small></div></div>
               <Link to="/app/settings">Settings</Link>
               <Link to="/profiles">Switch Profile</Link>
-              {['founder', 'administrator', 'producer', 'editor'].includes(account.role) && <Link to="/app/studio/overview">EBG Studio</Link>}
+              {['creator','producer','founder'].includes(account.accountType)
+                ? <a href="https://studio.ebgplus.app">Open Studio</a>
+                : ['administrator','editor'].includes(account.role) && <Link to="/app/studio/overview">EBG Studio</Link>}
               <button type="button" onClick={onSignOut}>Sign Out</button>
             </div>
           </details>
@@ -2781,7 +2787,7 @@ function SettingsPage({ account, profile, onUpdateAccount, onSignOut }: { accoun
   const [uploading, setUploading] = useState(false)
   const updateProfile = (patch: Partial<Profile>) => onUpdateAccount({ ...account, profiles: account.profiles.map((item) => item.id === profile.id ? { ...item, ...patch } : item) })
   const uploadPhoto = async (file?: File) => { if (!file) return; setUploading(true); setState(''); try { const avatar = await uploadProfilePhoto(file); updateProfile({ avatar }); setState('Profile photo updated.') } catch (error) { setState(error instanceof Error ? error.message : 'Profile photo could not be uploaded.') } finally { setUploading(false) } }
-  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Access</span><strong>{account.role}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel"><h2>Playback & Accessibility</h2><p>Caption, audio, language, and device preferences will live here as EBG+ expands.</p></section></div></div></main>)
+  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel"><h2>Playback & Accessibility</h2><p>Caption, audio, language, and device preferences will live here as EBG+ expands.</p></section></div></div></main>)
 }
 
 function EbgStudioHub({
