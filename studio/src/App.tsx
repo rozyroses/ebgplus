@@ -568,6 +568,32 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     return <main className="studio-boot"><span className="studio-mark">EBG</span><p>Loading production data…</p></main>
   }
 
+  if (!busy && !projectId) {
+    return (
+      <main className="studio-project-onboarding">
+        <section className="studio-project-onboarding-card">
+          <span className="studio-mark">EBG</span>
+          <p className="eyebrow">YOUR PRIVATE STUDIO</p>
+          <h1>Create your first production.</h1>
+          <p>Each production has its own private Studio, catalog, uploads, and publishing workspace.</p>
+          <form onSubmit={createProject}>
+            <label>Production name<input name="title" required maxLength={120} placeholder="e.g. Heartspell House" /></label>
+            <label>Production type
+              <select name="projectKind" defaultValue="show">
+                <option value="show">Show / Series</option>
+                <option value="music">Music</option>
+                <option value="mixed">Mixed / Universe</option>
+              </select>
+            </label>
+            {message && <p className="form-error">{message}</p>}
+            <button className="button" type="submit" disabled={creatingProject}>{creatingProject ? 'Creating…' : 'Create Production'}</button>
+          </form>
+          <button className="text-link project-signout" type="button" onClick={() => void signOutNow()}>Sign out</button>
+        </section>
+      </main>
+    )
+  }
+
   const activeEpisodes = cms.episodes.filter((episode) => episode.publishStatus === 'live').length
   const openPolls = polls.filter((poll) => poll.status === 'open').length
   const openCasting = casting.filter((app) => !['Cast', 'Declined', 'Removed'].includes(app.status)).length
