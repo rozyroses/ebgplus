@@ -2,19 +2,6 @@ name: Deploy EBG Studio to Cloudflare Pages
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/ebg-studio-app
-    paths:
-      - 'studio/**'
-      - 'src/lib/**'
-      - 'scripts/apply-studio-v3-shell.mjs'
-      - 'scripts/apply-phase157-studio-founder-news.mjs'
-      - 'scripts/apply-phase160-studio-forms-network.mjs'
-      - 'scripts/apply-phase161-studio-inbox.mjs'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/deploy-studio-cloudflare.yml'
 
 permissions:
   contents: read
