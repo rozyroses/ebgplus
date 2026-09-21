@@ -505,3 +505,35 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
   .studio-lumi-composer{border-radius:22px!important;grid-template-columns:auto 1fr auto!important}
   .music-studio-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+/* Private project switcher */
+.studio-v3-project{display:grid;gap:2px;min-width:150px}
+.studio-v3-project>span,.studio-v3-production>span{font-size:.56rem;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:var(--studio-muted)}
+.studio-v3-project select{min-height:38px;max-width:210px;border:1px solid var(--studio-line);border-radius:13px;background:var(--studio-surface-solid);color:var(--studio-text);padding:0 30px 0 10px;font:inherit;font-size:.7rem;font-weight:800}
+.studio-v3-new-project{position:relative}
+.studio-v3-new-project>summary{list-style:none;min-height:38px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid var(--studio-line);border-radius:999px;background:var(--studio-surface-solid);color:var(--studio-accent);font-size:.7rem;font-weight:900;cursor:pointer}
+.studio-v3-new-project>summary::-webkit-details-marker{display:none}
+.studio-v3-new-project[open]>summary{background:var(--studio-surface-2)}
+.studio-v3-new-project form{position:absolute;right:0;top:46px;z-index:110;width:min(310px,calc(100vw - 28px));display:grid;gap:10px;padding:16px;border:1px solid var(--studio-line);border-radius:20px;background:var(--studio-surface-solid);box-shadow:0 24px 70px rgba(30,37,72,.18)}
+:root[data-studio-theme='dark'] .studio-v3-new-project form{box-shadow:0 24px 70px rgba(0,0,0,.42)}
+.studio-v3-new-project form>strong{font-size:.9rem}
+.studio-v3-new-project form label{display:grid;gap:5px;font-size:.66rem;font-weight:850;color:var(--studio-muted)}
+.studio-v3-new-project form input,.studio-v3-new-project form select{width:100%;min-height:40px;border:1px solid var(--studio-line);border-radius:12px;background:var(--studio-surface-2);color:var(--studio-text);padding:0 10px;font:inherit}
+.studio-v3-new-project form button{min-height:40px;border:0;border-radius:999px;background:var(--studio-accent);color:#fff;font:inherit;font-weight:900;cursor:pointer}
+
+/* First-production onboarding */
+.studio-project-onboarding{min-height:100vh;display:grid;place-items:center;padding:28px;background:
+  radial-gradient(circle at 14% 8%,rgba(177,215,255,.42),transparent 30rem),
+  radial-gradient(circle at 88% 15%,rgba(255,201,225,.32),transparent 30rem),
+  radial-gradient(circle at 58% 92%,rgba(193,239,216,.30),transparent 30rem),
+  var(--studio-bg);color:var(--studio-text)}
+.studio-project-onboarding-card{width:min(640px,100%);padding:clamp(26px,5vw,48px);border:1px solid var(--studio-line);border-radius:32px;background:var(--studio-surface);box-shadow:var(--studio-shadow)}
+.studio-project-onboarding-card h1{margin:.35rem 0 .7rem;font-size:clamp(2.5rem,6vw,4.8rem);line-height:.95;letter-spacing:-.06em}
+.studio-project-onboarding-card>p:not(.eyebrow){max-width:520px;color:var(--studio-muted);line-height:1.65}
+.studio-project-onboarding-card form{display:grid;grid-template-columns:1fr 220px;gap:12px;margin-top:26px}
+.studio-project-onboarding-card form label{display:grid;gap:6px;font-size:.7rem;font-weight:850;color:var(--studio-muted)}
+.studio-project-onboarding-card form input,.studio-project-onboarding-card form select{min-height:46px;border:1px solid var(--studio-line);border-radius:14px;background:var(--studio-surface-solid);color:var(--studio-text);padding:0 12px;font:inherit}
+.studio-project-onboarding-card form button{grid-column:1/-1;justify-self:start}
+.project-signout{margin-top:18px;border:0;background:transparent;color:var(--studio-muted);cursor:pointer}
+@media(max-width:1050px){.studio-v3-project{min-width:120px}.studio-v3-project select{max-width:150px}}
+@media(max-width:760px){.studio-project-onboarding-card form{grid-template-columns:1fr}.studio-project-onboarding-card form button{grid-column:auto}.studio-v3-project{min-width:0}.studio-v3-project>span{display:none}.studio-v3-project select{max-width:120px}}
