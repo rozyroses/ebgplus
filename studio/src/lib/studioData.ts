@@ -1,5 +1,5 @@
-import { db, storage } from './supabase'
-import { readStoredSession } from './auth'
+import { db, storage } from '../../../src/lib/supabase'
+import { readStoredSession } from '../../../src/lib/auth'
 
 export type StudioCmsPayload = Record<string, unknown>
 
