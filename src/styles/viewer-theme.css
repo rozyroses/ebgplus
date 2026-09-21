@@ -98,7 +98,7 @@ body .desktop-hero-meta { color: #dce5ff; }
   .sidebar-profile small { display: block; color: var(--muted); margin-top: 4px; font-size: 11px; }
   body .app-shell > .topbar { min-height: 78px; justify-content: flex-end; }
   body .app-shell > .topbar > .wordmark, body .app-shell > .topbar > .primary-nav { display: none; }
-  body .app-shell .ebg-music-dock { left: calc(var(--sidebar) + 16px); }
+  body .app-shell .ebg-music-dock { left: 50%; right: auto; transform: translateX(-50%); }
 }
 @media (max-width: 1049px) {
   body .landing .public-hero { padding: 55px 6vw; gap: 28px; min-height: auto; }

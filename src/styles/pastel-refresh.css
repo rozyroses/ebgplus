@@ -866,7 +866,10 @@ body .setting-row { border-color: rgba(66,72,113,.1); }
   }
 
   body .app-shell .ebg-music-dock {
-    left: 16px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    max-width: calc(100vw - 32px);
   }
 }
 
