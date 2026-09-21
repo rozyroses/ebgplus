@@ -1308,3 +1308,29 @@ body .application-thread textarea::placeholder {
 @media(max-width:600px){
   body .application-card-actions > * { width: 100%; }
 }
+
+/* Creator-account onboarding */
+body .auth-page .auth-card:has(.signup-account-types){width:min(760px,calc(100% - 32px));}
+.signup-account-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 22px}
+.signup-account-type{min-height:164px;padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;border:1px solid var(--border);border-radius:22px;background:rgba(255,255,255,.62);color:var(--ink);text-align:left;box-shadow:none;cursor:pointer}
+.signup-account-type:hover{transform:translateY(-2px);background:rgba(255,255,255,.9)}
+.signup-account-type.selected{border-color:rgba(123,121,255,.42);box-shadow:0 0 0 4px rgba(123,121,255,.08),var(--shadow-soft)}
+.signup-account-type:nth-child(1).selected{background:linear-gradient(145deg,#fff,var(--sky))}
+.signup-account-type:nth-child(2).selected{background:linear-gradient(145deg,#fff,#e5f3ff)}
+.signup-account-type:nth-child(3).selected{background:linear-gradient(145deg,#fff,var(--lilac))}
+.signup-account-type>span:last-child{display:grid;gap:5px}
+.signup-account-type strong{font-size:15px}.signup-account-type small{font-size:11px;line-height:1.45;color:var(--muted)}.signup-account-type em{font-size:9px;font-style:normal;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+.signup-account-icon{height:36px;display:grid;place-items:center;font-size:19px;color:var(--brand)}
+.signup-verified-badge{width:34px;height:34px;display:block;filter:drop-shadow(0 5px 12px rgba(55,74,145,.12))}
+.signup-privacy-note{padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:var(--mint);font-size:11px;line-height:1.55;color:#456556!important}
+.signup-privacy-note strong{color:#315c49!important}
+:root[data-theme='dark'] .signup-account-type{background:#171b2b;border-color:rgba(255,255,255,.08);color:#eef0ff}
+:root[data-theme='dark'] .signup-account-type:nth-child(1).selected{background:linear-gradient(145deg,#171b2b,#182a3e)}
+:root[data-theme='dark'] .signup-account-type:nth-child(2).selected{background:linear-gradient(145deg,#171b2b,#16324a)}
+:root[data-theme='dark'] .signup-account-type:nth-child(3).selected{background:linear-gradient(145deg,#171b2b,#282643)}
+:root[data-theme='dark'] .signup-privacy-note{background:#173129;color:#bfe4d0!important;border-color:rgba(255,255,255,.07)}
+:root[data-theme='dark'] .signup-privacy-note strong{color:#d4f4df!important}
+@media(max-width:700px){.signup-account-types{grid-template-columns:1fr}.signup-account-type{min-height:0;display:grid;grid-template-columns:42px 1fr;align-items:start}.signup-account-icon{grid-row:1}.signup-account-type>span:last-child{grid-column:2}}
+
+.signup-verified-badge.compact{width:17px;height:17px;margin-left:5px;vertical-align:-3px;filter:none}
+.profile-dropdown-heading strong{display:flex;align-items:center;gap:2px}

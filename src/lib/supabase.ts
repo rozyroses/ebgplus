@@ -36,10 +36,10 @@ const request = async <T>(path: string, init: RequestInit = {}, token?: string):
 }
 
 export const auth = {
-  signUp(email: string, password: string) {
+  signUp(email: string, password: string, data?: Record<string, unknown>) {
     return request<SupabaseSession | { user: SupabaseSession['user']; session: SupabaseSession | null }>(
       '/auth/v1/signup',
-      { method: 'POST', body: JSON.stringify({ email, password }) },
+      { method: 'POST', body: JSON.stringify({ email, password, ...(data ? { data } : {}) }) },
     )
   },
 
