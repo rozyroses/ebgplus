@@ -1,11 +1,15 @@
 import { auth, db, supabaseConfigured, type SupabaseSession } from './supabase'
 
 export type EbgRole = 'viewer' | 'editor' | 'producer' | 'administrator' | 'founder'
+export type EbgAccountType = 'viewer' | 'creator' | 'producer' | 'founder'
+export type PublicSignupAccountType = 'viewer' | 'creator' | 'producer'
 
 export type AuthAccount = {
   id: string
   email: string
   role: EbgRole
+  account_type?: EbgAccountType
+  verified_badge?: 'artist' | 'founder' | null
 }
 
 export type AuthProfile = {
@@ -16,10 +20,28 @@ export type AuthProfile = {
   autoplay_next: boolean
 }
 
+export type StudioIdentity = {
+  id: string
+  account_id: string
+  identity_type: 'creator' | 'producer' | 'founder'
+  display_name: string
+  company_name?: string | null
+  bio: string
+  verified: boolean
+  badge_tone: 'blue' | 'violet' | 'gold' | 'green'
+}
+
 export type AuthState = {
   session: SupabaseSession
   account: AuthAccount
   profiles: AuthProfile[]
+  studioIdentity: StudioIdentity | null
+}
+
+export type SignUpOptions = {
+  accountType: PublicSignupAccountType
+  displayName: string
+  companyName?: string
 }
 
 const SESSION_KEY = 'ebg.supabase.session.v1'
@@ -50,7 +72,13 @@ export const loadAuthState = async (session: SupabaseSession): Promise<AuthState
     session.access_token,
   )
 
-  return { session, account, profiles }
+  const identities = await db.select<StudioIdentity>(
+    'studio_identities',
+    `account_id=eq.${encodeURIComponent(session.user.id)}&limit=1`,
+    session.access_token,
+  ).catch(() => [])
+
+  return { session, account, profiles, studioIdentity: identities[0] ?? null }
 }
 
 export const restoreAuth = async (): Promise<AuthState | null> => {
@@ -78,9 +106,16 @@ export const signIn = async (email: string, password: string): Promise<AuthState
   return loadAuthState(session)
 }
 
-export const signUp = async (email: string, password: string): Promise<AuthState | null> => {
+export const signUp = async (email: string, password: string, options: SignUpOptions): Promise<AuthState | null> => {
   if (!authConfigured) throw new Error('EBG+ authentication is not configured yet.')
-  const result = await auth.signUp(email.trim(), password)
+  const displayName = options.displayName.trim()
+  if (!displayName) throw new Error('Choose a display name.')
+  if (options.accountType === 'producer' && !options.companyName?.trim()) throw new Error('Add your production company or producer name.')
+  const result = await auth.signUp(email.trim(), password, {
+    account_type: options.accountType,
+    display_name: displayName,
+    company_name: options.companyName?.trim() || null,
+  })
   const session = 'access_token' in result ? result : result.session
   if (!session) return null
   storeSession(session)
