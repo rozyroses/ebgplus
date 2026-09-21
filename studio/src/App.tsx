@@ -266,7 +266,8 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     void loadMyStudioProjects<CmsData>()
       .then((items) => {
         setProjects(items)
-        const first = items[0]
+        const preferredId = localStorage.getItem('ebg.studio.project.v1')
+        const first = items.find((item) => item.id === preferredId) ?? items[0]
         if (first) {
           setProjectId(first.id)
           const value = first.cms && Object.keys(first.cms).length ? first.cms : emptyCms
@@ -288,6 +289,8 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
   useEffect(() => {
     if (!projectId) return
+    localStorage.setItem('ebg.studio.project.v1', projectId)
+    window.dispatchEvent(new CustomEvent('ebg-studio-project-change', { detail: { projectId } }))
     setBusy(true)
     void loadProjectCms<CmsData>(projectId)
       .then((nextCms) => {
