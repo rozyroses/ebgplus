@@ -3,10 +3,13 @@ import type { FormEvent } from 'react'
 import { restoreAuth, signIn, signOut, type AuthState } from '../../src/lib/auth'
 import { db } from '../../src/lib/supabase'
 import {
-  loadCmsData,
-  saveCmsData,
+  createStudioProject,
+  loadMyStudioProjects,
+  loadProjectCms,
+  saveProjectCms,
   updateCastingApplicationStatus,
-  uploadStudioMedia,
+  uploadStudioProjectMedia,
+  type StudioProject,
 } from '../../src/lib/studioData'
 import {
   createPoll,
@@ -156,12 +159,15 @@ function App() {
     return <StudioSignIn onSignedIn={setAuthState} error={authError} setError={setAuthError} />
   }
 
-  if (!STAFF_ROLES.has(authState.account.role as StaffRole)) {
+  const accountType = authState.account.account_type ?? (authState.account.role === 'founder' ? 'founder' : authState.account.role === 'producer' ? 'producer' : 'viewer')
+  const canUseStudio = STAFF_ROLES.has(authState.account.role as StaffRole) || ['creator', 'producer', 'founder'].includes(accountType)
+
+  if (!canUseStudio) {
     return (
       <main className="studio-auth-page">
         <section className="auth-card denied">
           <span className="studio-mark">EBG</span>
-          <p className="eyebrow">STAFF ACCESS ONLY</p>
+          <p className="eyebrow">CREATOR ACCESS</p>
           <h1>This account doesn’t have Studio access.</h1>
           <p>{authState.account.email}</p>
           <button className="button" type="button" onClick={() => void signOut().then(() => setAuthState(null))}>Sign out</button>
@@ -221,6 +227,9 @@ function StudioSignIn({
 function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onSignedOut: () => void }) {
   const [tab, setTabState] = useState<StudioTab>(parseTab)
   const [cms, setCms] = useState<CmsData>(emptyCms)
+  const [projects, setProjects] = useState<Array<StudioProject & { cms: CmsData }>>([])
+  const [projectId, setProjectId] = useState('')
+  const [creatingProject, setCreatingProject] = useState(false)
   const [casting, setCasting] = useState<CastingApplication[]>([])
   const [polls, setPolls] = useState<Poll[]>([])
   const [pollResults, setPollResults] = useState<Record<string, PollResult[]>>({})
@@ -254,30 +263,84 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
   useEffect(() => {
     setBusy(true)
-    void loadCmsData<CmsData>()
-      .then((nextCms) => {
-        const value = nextCms ?? emptyCms
-        setCms(value)
-        setShowId(value.shows[0]?.id ?? '')
+    void loadMyStudioProjects<CmsData>()
+      .then((items) => {
+        setProjects(items)
+        const first = items[0]
+        if (first) {
+          setProjectId(first.id)
+          const value = first.cms && Object.keys(first.cms).length ? first.cms : emptyCms
+          setCms(value)
+          setShowId(value.shows?.[0]?.id ?? '')
+        } else {
+          setCms(emptyCms)
+          setShowId('')
+        }
         setBusy(false)
-        void refreshAuxiliary().catch((err) => setMessage(err instanceof Error ? err.message : 'Some Studio data is still loading.'))
+        const staff = STAFF_ROLES.has(authState.account.role as StaffRole)
+        if (staff) void refreshAuxiliary().catch((err) => setMessage(err instanceof Error ? err.message : 'Some Studio data is still loading.'))
       })
       .catch((err) => {
-        setMessage(err instanceof Error ? err.message : 'Studio data could not be loaded.')
+        setMessage(err instanceof Error ? err.message : 'Studio projects could not be loaded.')
         setBusy(false)
       })
   }, [])
+
+  useEffect(() => {
+    if (!projectId) return
+    setBusy(true)
+    void loadProjectCms<CmsData>(projectId)
+      .then((nextCms) => {
+        const value = nextCms && Object.keys(nextCms).length ? nextCms : emptyCms
+        setCms(value)
+        setShowId(value.shows?.[0]?.id ?? '')
+      })
+      .catch((err) => setMessage(err instanceof Error ? err.message : 'This project could not be loaded.'))
+      .finally(() => setBusy(false))
+  }, [projectId])
 
   const selectedShow = useMemo(() => cms.shows.find((show) => show.id === showId) ?? cms.shows[0] ?? null, [cms.shows, showId])
   const selectedEpisodes = useMemo(() => selectedShow ? cms.episodes.filter((episode) => episode.showId === selectedShow.id) : [], [cms.episodes, selectedShow])
 
   const commitCms = async (next: CmsData, success?: string) => {
+    if (!projectId) {
+      setMessage('Create or select a Studio project first.')
+      return
+    }
     setCms(next)
     try {
-      await saveCmsData(next)
+      await saveProjectCms(projectId, next)
+      setProjects((items) => items.map((project) => project.id === projectId ? { ...project, cms: next, updated_at: new Date().toISOString() } : project))
       if (success) setMessage(success)
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Changes could not be saved.')
+    }
+  }
+
+  const createProject = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
+    const title = String(form.get('title') ?? '').trim()
+    if (!title) return
+    setCreatingProject(true)
+    setMessage('')
+    try {
+      const project = await createStudioProject<CmsData>({
+        title,
+        projectKind: String(form.get('projectKind') ?? 'show') as StudioProject['project_kind'],
+        cms: emptyCms,
+      })
+      setProjects((items) => [project, ...items])
+      setProjectId(project.id)
+      setCms(emptyCms)
+      setShowId('')
+      formElement.reset()
+      setMessage(`${project.title} created.`)
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Project could not be created.')
+    } finally {
+      setCreatingProject(false)
     }
   }
 
@@ -293,7 +356,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     setBusy(true)
     try {
       const artFile = form.get('artwork')
-      const artwork = artFile instanceof File && artFile.size ? await uploadStudioMedia(artFile, 'shows/posters') : ''
+      const artwork = artFile instanceof File && artFile.size ? await uploadStudioProjectMedia(artFile, projectId, 'shows/posters') : ''
       const base = slugify(title) || `series-${Date.now()}`
       const id = cms.shows.some((show) => show.id === base) ? `${base}-${Date.now()}` : base
       const nextShow: Show = {
@@ -352,9 +415,9 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     setBusy(true)
     try {
       const thumbnailFile = form.get('thumbnail')
-      const videoUrl = await uploadStudioMedia(video, `episodes/${selectedShow.id}`)
+      const videoUrl = await uploadStudioProjectMedia(video, projectId, `episodes/${selectedShow.id}`)
       const thumbnail = thumbnailFile instanceof File && thumbnailFile.size
-        ? await uploadStudioMedia(thumbnailFile, `episodes/${selectedShow.id}/thumbnails`)
+        ? await uploadStudioProjectMedia(thumbnailFile, projectId, `episodes/${selectedShow.id}/thumbnails`)
         : selectedShow.artwork
       const releaseInput = String(form.get('releaseDate') ?? '')
       const status = String(form.get('publishStatus') ?? 'draft') as PublishStatus
@@ -399,7 +462,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     setBusy(true)
     try {
       const imageFile = form.get('image')
-      const image = imageFile instanceof File && imageFile.size ? await uploadStudioMedia(imageFile, `series/${selectedShow.id}/cast`) : undefined
+      const image = imageFile instanceof File && imageFile.size ? await uploadStudioProjectMedia(imageFile, projectId, `series/${selectedShow.id}/cast`) : undefined
       const person: CastMember = {
         name: String(form.get('name') ?? ''),
         role: String(form.get('role') ?? 'Cast'),
@@ -466,7 +529,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     setBusy(true)
     try {
       const folder = field === 'artwork' ? 'shows/posters' : field === 'banner' ? 'shows/banners' : 'shows/logos'
-      const url = await uploadStudioMedia(file, folder)
+      const url = await uploadStudioProjectMedia(file, projectId, folder)
       await updateShow(selectedShow.id, { [field]: url } as Partial<Show>, 'Media updated.')
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Media upload failed.')
