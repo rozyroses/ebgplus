@@ -57,3 +57,4 @@ createRoot(document.getElementById('root')!).render(
     <StudioLazyTools />
   </StrictMode>,
 )
+import './studioMobileV4.css'
