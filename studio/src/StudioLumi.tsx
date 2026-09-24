@@ -594,6 +594,7 @@ export default function StudioLumi() {
           </nav>
 
           <div className="lumi-topbar-actions">
+            <button className="lumi-new-chat-button" type="button" onClick={startNewChat}>＋ New Chat</button>
             <button className="lumi-history-toggle" type="button" onClick={() => setHistoryOpen((value) => !value)}>☰ History</button>
             <span className="lumi-v4-badge">V4</span>
           </div>
