@@ -208,3 +208,67 @@ export const publishLumiContent = async (input: {
   )
 }
 
+export type LumiPublication = {
+  id: string
+  kind: LumiPublicationKind
+  headline?: string
+  title?: string
+  body?: string
+  text?: string
+  summary?: string
+  link?: string | null
+  publishedAt?: string
+  date?: string
+  updatedAt?: string
+  sourceProjectId?: string
+}
+
+export const listLumiPublications = async (projectId: string) => {
+  const session = requireSession()
+  return db.rpc<LumiPublication[]>(
+    'list_lumi_publications',
+    { p_project_id: projectId },
+    session.access_token,
+  )
+}
+
+export const updateLumiPublication = async (input: {
+  projectId: string
+  kind: LumiPublicationKind
+  id: string
+  title: string
+  body: string
+  link?: string
+}) => {
+  const session = requireSession()
+  return db.rpc<{ ok: boolean; kind: LumiPublicationKind; id: string; updatedAt: string }>(
+    'update_lumi_publication',
+    {
+      p_project_id: input.projectId,
+      p_kind: input.kind,
+      p_id: input.id,
+      p_title: input.title.trim(),
+      p_body: input.body.trim(),
+      p_link: input.link?.trim() || null,
+    },
+    session.access_token,
+  )
+}
+
+export const deleteLumiPublication = async (input: {
+  projectId: string
+  kind: LumiPublicationKind
+  id: string
+}) => {
+  const session = requireSession()
+  return db.rpc<{ ok: boolean; kind: LumiPublicationKind; id: string }>(
+    'delete_lumi_publication',
+    {
+      p_project_id: input.projectId,
+      p_kind: input.kind,
+      p_id: input.id,
+    },
+    session.access_token,
+  )
+}
+
