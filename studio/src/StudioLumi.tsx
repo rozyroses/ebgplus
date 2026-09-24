@@ -21,9 +21,16 @@ import {
 type CmsSlice = {
   shows?: Array<{ id: string; title: string; description?: string; genre?: string; status?: string; cast?: Array<{ name: string; role: string }> }>
   episodes?: Array<{ id: string; showId: string; season: number; number: number; title: string; synopsis?: string; releaseDate?: string; publishStatus?: string }>
+  music?: {
+    artists?: Array<{ id: string; name: string }>
+    releases?: Array<{ id: string; title: string; publishStatus?: string; releaseDate?: string }>
+    tracks?: Array<{ id: string; title: string; timedLyrics?: Array<{ start: number; end: number; text: string }> }>
+    videos?: Array<{ id: string; title: string }>
+  }
 }
 
 type LumiMessage = { role: 'user' | 'lumi'; text: string }
+type LumiMode = 'chat' | 'create' | 'run'
 type PublishDraft = {
   kind: LumiPublicationKind | 'music'
   title: string
@@ -58,14 +65,26 @@ const isLumiTab = () => window.location.hash.replace(/^#\/?/, '') === 'lumi'
 const endpoint = import.meta.env.VITE_STUDIO_LUMI_URL || ''
 const readProjectId = () => localStorage.getItem('ebg.studio.project.v1') ?? ''
 
-const quickPrompts = [
-  'Summarize this production',
-  'Give me 5 episode ideas',
-  'Draft a site news update',
-  'Draft promo copy',
-  'Create a fan poll',
-  'Check episode continuity',
-]
+const modePrompts: Record<LumiMode, string[]> = {
+  chat: [
+    'Summarize this production',
+    'What should I work on next?',
+    'Check episode continuity',
+    'Give me 5 ideas',
+  ],
+  create: [
+    'Draft a site news update',
+    'Write promo copy',
+    'Create an episode synopsis',
+    'Prepare a music release',
+  ],
+  run: [
+    'Publish an update',
+    'Prepare a music release for EBG+',
+    'Generate timed lyrics for a track',
+    'Show me what needs review',
+  ],
+}
 
 
 const cleanMarkdownLine = (line: string) => line
@@ -141,6 +160,7 @@ export default function StudioLumi() {
   const [musicDetails, setMusicDetails] = useState<MusicDetails>(emptyMusicDetails)
   const [musicInfoOpen, setMusicInfoOpen] = useState(false)
   const [musicCoverFile, setMusicCoverFile] = useState<File | null>(null)
+  const [mode, setMode] = useState<LumiMode>('chat')
   const greetingName = useMemo(() => profileName || 'there', [profileName])
 
   const refreshProject = async (nextProjectId = projectId) => {
@@ -265,7 +285,12 @@ export default function StudioLumi() {
 
   const selectedShow = useMemo(() => cms.shows?.find((show) => show.id === showId) ?? null, [cms.shows, showId])
   const selectedEpisodes = useMemo(() => cms.episodes?.filter((episode) => episode.showId === showId) ?? [], [cms.episodes, showId])
+  const musicArtists = cms.music?.artists?.length ?? 0
+  const musicReleases = cms.music?.releases?.length ?? 0
+  const musicTracks = cms.music?.tracks?.length ?? 0
+  const timedTracks = cms.music?.tracks?.filter((track) => Array.isArray(track.timedLyrics) && track.timedLyrics.length > 0).length ?? 0
   const hasConversation = messages.length > 0 || busy
+  const quickPrompts = modePrompts[mode]
 
   const fillPrompt = (prompt: string) => {
     const input = document.querySelector<HTMLInputElement>('#studio-lumi-input')
@@ -540,9 +565,17 @@ export default function StudioLumi() {
             </select>
           </div>
 
+          <nav className="lumi-v4-modes" aria-label="Lumi mode">
+            {(['chat','create','run'] as LumiMode[]).map((item) => (
+              <button type="button" key={item} className={mode === item ? 'active' : ''} onClick={() => setMode(item)}>
+                {item === 'chat' ? 'Chat' : item === 'create' ? 'Create' : 'Run'}
+              </button>
+            ))}
+          </nav>
+
           <div className="lumi-topbar-actions">
             <button className="lumi-history-toggle" type="button" onClick={() => setHistoryOpen((value) => !value)}>☰ History</button>
-            <span className="lumi-safe-pill">review before publish</span>
+            <span className="lumi-v4-badge">V4</span>
           </div>
         </header>
 
@@ -568,13 +601,44 @@ export default function StudioLumi() {
           </div>
         </aside>
 
+        <aside className="lumi-v4-context">
+          <div className="lumi-v4-context-head">
+            <span>PROJECT BRAIN</span>
+            <strong>{selectedShow?.title || 'Studio context'}</strong>
+            <small>Lumi uses this live context while you work.</small>
+          </div>
+
+          <div className="lumi-v4-context-stats">
+            <article><span>Episodes</span><strong>{selectedEpisodes.length}</strong></article>
+            <article><span>Artists</span><strong>{musicArtists}</strong></article>
+            <article><span>Releases</span><strong>{musicReleases}</strong></article>
+            <article><span>Tracks</span><strong>{musicTracks}</strong></article>
+          </div>
+
+          <section className="lumi-v4-context-section">
+            <div><span>STATUS</span><strong>What Lumi knows</strong></div>
+            <p>{selectedShow?.description || 'No production description yet.'}</p>
+            <small>{timedTracks} track{timedTracks === 1 ? '' : 's'} with timed lyrics · {publications.length} Lumi publication{publications.length === 1 ? '' : 's'}</small>
+          </section>
+
+          <section className="lumi-v4-context-section">
+            <div><span>ACTIONS</span><strong>Quick run</strong></div>
+            <div className="lumi-v4-action-stack">
+              <button type="button" onClick={() => { setMode('create'); fillPrompt('Draft a site news update for this project') }}>Draft News</button>
+              <button type="button" onClick={() => { setMode('run'); fillPrompt('Prepare a music release for EBG+ Music') }}>Music Release</button>
+              <button type="button" onClick={() => { setMode('run'); fillPrompt('Generate timed lyrics for a track') }}>Timed Lyrics</button>
+              <button type="button" onClick={() => { setMode('chat'); fillPrompt('What should I work on next in this project?') }}>Next Steps</button>
+            </div>
+          </section>
+        </aside>
+
         {!hasConversation && (
           <main className="studio-lumi-welcome">
             <div className="lumi-ambient-glow" aria-hidden="true" />
             <div className="lumi-welcome-copy">
-              <span className="lumi-kicker">LUMI ✦ STUDIO</span>
-              <h1>{activeChatId ? 'Welcome back.' : <>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></>}</h1>
-              <p>Lumi’s ready to brainstorm, write, and prepare updates you can review and publish to EBG+.</p>
+              <span className="lumi-kicker">LUMI V4 ✦ {mode.toUpperCase()}</span>
+              <h1>{activeChatId ? 'Welcome back.' : mode === 'chat' ? <>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></> : mode === 'create' ? 'What are we making?' : 'What should Lumi run?'}</h1>
+              <p>{mode === 'chat' ? 'Think with Lumi using the full project context.' : mode === 'create' ? 'Create polished content, releases, copy, and production material.' : 'Prepare real Studio actions, gather missing info, and review before anything changes.'}</p>
             </div>
 
             <form className="studio-lumi-composer hero-composer" onSubmit={send}>
@@ -646,7 +710,7 @@ export default function StudioLumi() {
 
             <div className="lumi-conversation-footer">
               <div className="lumi-quick-prompts compact">
-                {quickPrompts.slice(0, 4).map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
+                {quickPrompts.map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
               </div>
               <form className="studio-lumi-composer" onSubmit={send}>
                 <span className="composer-spark" aria-hidden="true">✦</span>
