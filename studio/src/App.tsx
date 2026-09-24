@@ -688,6 +688,14 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
           {tab === 'notifications' && (
             <>
+              <section className="panel studio-news-launcher">
+                <PanelHeading eyebrow="NEWS" title="Publish a News post" />
+                <p className="muted-copy">Use Lumi to draft, review, edit, and publish a clean News post to EBG+.</p>
+                <button className="button" type="button" onClick={() => {
+                  localStorage.setItem('ebg.lumi.prefill', 'Draft a site news update for this project')
+                  setTab('lumi')
+                }}>Open Lumi News Publisher ✦</button>
+              </section>
               <section className="panel"><PanelHeading eyebrow="AUDIENCE UPDATES" title="Notifications" /><div className="notification-list">{(cms.notifications ?? []).map((item) => <article key={item.id}><div><span className="eyebrow">{item.status ?? 'sent'} · {item.audience ?? 'all'}</span><h3>{item.title || 'EBG+ Update'}</h3><p>{item.text}</p></div><time>{new Date(item.date).toLocaleString()}</time></article>)}</div></section>
               <section className="panel"><PanelHeading eyebrow="PUBLISH" title="New notification" /><form className="form-grid" onSubmit={createNotification}><label>Title<input name="title" required /></label><label>Audience<select name="audience"><option value="all">Everyone</option><option value="subscribers">Subscribers</option><option value="staff">Staff</option></select></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="sent">Send now</option></select></label><label>Publish at<input name="publishAt" type="datetime-local" /></label><label className="full">Message<textarea name="text" required /></label><label className="full">Link<input name="link" placeholder="/app/shows/..." /></label><div className="full"><button className="button">Save notification</button></div></form></section>
             </>
