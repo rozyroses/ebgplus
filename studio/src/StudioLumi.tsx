@@ -459,7 +459,8 @@ export default function StudioLumi() {
   const send = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (busy || !showId || !projectId) return
-    const form = new FormData(event.currentTarget)
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
     const text = String(form.get('message') ?? '').trim()
     if (!text) return
     if (!endpoint) {
@@ -483,7 +484,7 @@ export default function StudioLumi() {
 
       const nextMessages = [...messages, { role: 'user' as const, text }]
       setMessages(nextMessages)
-      event.currentTarget.reset()
+      formElement.reset()
       setBusy(true)
       setError('')
       setPublishMessage('')
