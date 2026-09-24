@@ -1,8 +1,12 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
 import {
+  deleteLumiPublication,
+  listLumiPublications,
   loadProjectCms,
   publishLumiContent,
+  updateLumiPublication,
+  type LumiPublication,
   type LumiPublicationKind,
 } from '../../src/lib/studioData'
 
@@ -17,6 +21,7 @@ type PublishDraft = {
   title: string
   body: string
   link: string
+  editingId?: string
 }
 
 const isLumiTab = () => window.location.hash.replace(/^#\/?/, '') === 'lumi'
@@ -39,13 +44,57 @@ const getGreetingName = () => {
   return readable ? readable.replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'there'
 }
 
-const titleFromResponse = (text: string, fallback: string) => {
-  const first = text
-    .split('\n')
-    .map((line) => line.replace(/^#+\s*/, '').replace(/^[-*]\s*/, '').trim())
-    .find(Boolean)
-  const clean = (first || fallback).replace(/^["']|["']$/g, '').trim()
-  return clean.length > 80 ? clean.slice(0, 77).trimEnd() + '…' : clean
+const cleanMarkdownLine = (line: string) => line
+  .replace(/^#{1,6}\s*/, '')
+  .replace(/^[-*•]\s+/, '')
+  .replace(/\*\*/g, '')
+  .replace(/^["']|["']$/g, '')
+  .trim()
+
+const preparePublicationDraft = (text: string, fallback: string) => {
+  const raw = text
+    .replace(/```(?:markdown|text)?/gi, '')
+    .replace(/```/g, '')
+    .trim()
+
+  let lines = raw.split('\n').map((line) => line.trim())
+  while (lines.length && !lines[0]) lines.shift()
+
+  // Remove assistant chatter that should never become public copy.
+  const chatter = /^(sure|absolutely|of course|here(?:'|’)s|here is|i(?:'|’)d|below is|you can|feel free|let me know|this (?:draft|post)|for (?:the )?post)[,!:\s-]/i
+  while (lines.length && chatter.test(lines[0])) lines.shift()
+
+  const explicitTitleIndex = lines.findIndex((line) => /^(?:headline|title)\s*[:\-]/i.test(cleanMarkdownLine(line)))
+  const explicitBodyIndex = lines.findIndex((line) => /^(?:body|copy|post|article|message)\s*[:\-]?\s*$/i.test(cleanMarkdownLine(line)))
+
+  let title = fallback
+  let titleIndex = -1
+
+  if (explicitTitleIndex >= 0) {
+    titleIndex = explicitTitleIndex
+    title = cleanMarkdownLine(lines[explicitTitleIndex]).replace(/^(?:headline|title)\s*[:\-]\s*/i, '').trim() || fallback
+  } else {
+    titleIndex = lines.findIndex(Boolean)
+    if (titleIndex >= 0) title = cleanMarkdownLine(lines[titleIndex]) || fallback
+  }
+
+  let bodyLines = explicitBodyIndex >= 0 ? lines.slice(explicitBodyIndex + 1) : lines.filter((_, index) => index !== titleIndex)
+  bodyLines = bodyLines
+    .map(cleanMarkdownLine)
+    .filter((line, index, all) => {
+      if (!line) return index > 0 && index < all.length - 1
+      if (/^(?:headline|title|body|copy|post|article|message)\s*[:\-]?\s*$/i.test(line)) return false
+      if (/^(?:hope this helps|let me know|want me to|would you like|you can tweak|feel free to)/i.test(line)) return false
+      return true
+    })
+
+  let body = bodyLines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+  if (!body) body = raw
+
+  title = title.replace(/^(?:headline|title)\s*[:\-]\s*/i, '').trim()
+  if (title.length > 100) title = title.slice(0, 97).trimEnd() + '…'
+
+  return { title, body }
 }
 
 export default function StudioLumi() {
@@ -59,6 +108,8 @@ export default function StudioLumi() {
   const [publishDraft, setPublishDraft] = useState<PublishDraft | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [publishMessage, setPublishMessage] = useState('')
+  const [publications, setPublications] = useState<LumiPublication[]>([])
+  const [managingId, setManagingId] = useState('')
   const greetingName = useMemo(getGreetingName, [active])
 
   const refreshProject = async (nextProjectId = projectId) => {
@@ -71,9 +122,14 @@ export default function StudioLumi() {
 
     setError('')
     try {
-      const next = await loadProjectCms<CmsSlice>(nextProjectId) ?? { shows: [], episodes: [] }
-      setCms(next)
-      setShowId((current) => next.shows?.some((show) => show.id === current) ? current : next.shows?.[0]?.id ?? '')
+      const [next, published] = await Promise.all([
+        loadProjectCms<CmsSlice>(nextProjectId),
+        listLumiPublications(nextProjectId),
+      ])
+      const projectCms = next ?? { shows: [], episodes: [] }
+      setCms(projectCms)
+      setPublications(published ?? [])
+      setShowId((current) => projectCms.shows?.some((show) => show.id === current) ? current : projectCms.shows?.[0]?.id ?? '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lumi could not load this Studio project.')
     }
@@ -164,12 +220,39 @@ export default function StudioLumi() {
 
   const openPublish = (text: string) => {
     setPublishMessage('')
+    const prepared = preparePublicationDraft(text, selectedShow ? `${selectedShow.title} Update` : 'EBG+ Update')
     setPublishDraft({
       kind: 'news',
-      title: titleFromResponse(text, selectedShow ? `${selectedShow.title} Update` : 'EBG+ Update'),
-      body: text.trim(),
+      title: prepared.title,
+      body: prepared.body,
       link: selectedShow ? `/app/shows/${selectedShow.id}` : '',
     })
+  }
+
+  const editPublication = (item: LumiPublication) => {
+    setPublishMessage('')
+    setPublishDraft({
+      kind: item.kind,
+      title: item.kind === 'news' ? (item.headline || item.title || '') : (item.title || ''),
+      body: item.kind === 'news' ? (item.body || item.summary || '') : (item.text || item.body || ''),
+      link: item.link || '',
+      editingId: item.id,
+    })
+  }
+
+  const removePublication = async (item: LumiPublication) => {
+    if (!projectId || managingId || !window.confirm(`Delete this ${item.kind === 'news' ? 'news post' : 'notification'} from EBG+?`)) return
+    setManagingId(item.id)
+    setError('')
+    try {
+      await deleteLumiPublication({ projectId, kind: item.kind, id: item.id })
+      setPublications((current) => current.filter((entry) => entry.id !== item.id))
+      setPublishMessage(item.kind === 'news' ? 'News post deleted.' : 'Notification deleted.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete this publication.')
+    } finally {
+      setManagingId('')
+    }
   }
 
   const publish = async (event: FormEvent<HTMLFormElement>) => {
@@ -179,15 +262,27 @@ export default function StudioLumi() {
     setError('')
     setPublishMessage('')
     try {
-      const result = await publishLumiContent({
-        projectId,
-        kind: publishDraft.kind,
-        title: publishDraft.title,
-        body: publishDraft.body,
-        link: publishDraft.kind === 'notification' ? publishDraft.link : undefined,
-      })
-      setPublishMessage(result.kind === 'news' ? 'Published to EBG+ News.' : 'Notification published to EBG+.')
+      const result = publishDraft.editingId
+        ? await updateLumiPublication({
+            projectId,
+            kind: publishDraft.kind,
+            id: publishDraft.editingId,
+            title: publishDraft.title,
+            body: publishDraft.body,
+            link: publishDraft.kind === 'notification' ? publishDraft.link : undefined,
+          })
+        : await publishLumiContent({
+            projectId,
+            kind: publishDraft.kind,
+            title: publishDraft.title,
+            body: publishDraft.body,
+            link: publishDraft.kind === 'notification' ? publishDraft.link : undefined,
+          })
+      setPublishMessage(publishDraft.editingId
+        ? (result.kind === 'news' ? 'News post updated.' : 'Notification updated.')
+        : (result.kind === 'news' ? 'Published to EBG+ News.' : 'Notification published to EBG+.'))
       setPublishDraft(null)
+      setPublications(await listLumiPublications(projectId))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lumi could not publish this update.')
     } finally {
@@ -293,6 +388,21 @@ export default function StudioLumi() {
 
             {publishMessage && <div className="studio-lumi-success">{publishMessage} <a href="https://ebgplus.app" target="_blank" rel="noreferrer">View site ↗</a></div>}
             {error && <div className="studio-lumi-error welcome-error">{error}</div>}
+
+            {publications.length > 0 && (
+              <section className="lumi-publications">
+                <div className="lumi-publications-head"><div><span>PUBLISHED BY LUMI</span><h2>Live on EBG+</h2></div><small>{publications.length} item{publications.length === 1 ? '' : 's'}</small></div>
+                <div className="lumi-publication-list">
+                  {publications.map((item) => (
+                    <article key={item.id}>
+                      <div><span>{item.kind === 'news' ? 'NEWS' : 'NOTIFICATION'}</span><strong>{item.kind === 'news' ? item.headline : item.title}</strong><p>{item.kind === 'news' ? (item.summary || item.body) : item.text}</p></div>
+                      <div className="lumi-publication-actions"><button type="button" onClick={() => editPublication(item)}>Edit</button><button className="danger" type="button" disabled={managingId === item.id} onClick={() => void removePublication(item)}>{managingId === item.id ? 'Deleting…' : 'Delete'}</button></div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <small className="lumi-readonly-note">Lumi can publish News and viewer notifications only after you review and approve the draft.</small>
           </main>
         )}
@@ -345,7 +455,7 @@ export default function StudioLumi() {
           }}>
             <form className="lumi-publish-sheet" onSubmit={publish}>
               <header>
-                <div><span>LUMI ✦ PUBLISH</span><h2>Review before it goes live.</h2><p>Edit anything you want. Lumi cannot publish until you press the final button.</p></div>
+                <div><span>LUMI ✦ {publishDraft.editingId ? 'EDIT' : 'PUBLISH'}</span><h2>{publishDraft.editingId ? 'Edit live content.' : 'Review before it goes live.'}</h2><p>{publishDraft.editingId ? 'Save your changes or close without changing the live post.' : 'Only the clean public copy below will be published — not Lumi’s instructions or chat.'}</p></div>
                 <button type="button" disabled={publishing} onClick={() => setPublishDraft(null)} aria-label="Close publish review">×</button>
               </header>
 
@@ -360,7 +470,7 @@ export default function StudioLumi() {
 
               <footer>
                 <button className="button secondary" type="button" disabled={publishing} onClick={() => setPublishDraft(null)}>Keep Editing in Lumi</button>
-                <button className="button" type="submit" disabled={publishing || !publishDraft.title.trim() || !publishDraft.body.trim()}>{publishing ? 'Publishing…' : 'Publish to EBG+'}</button>
+                <button className="button" type="submit" disabled={publishing || !publishDraft.title.trim() || !publishDraft.body.trim()}>{publishing ? (publishDraft.editingId ? 'Saving…' : 'Publishing…') : (publishDraft.editingId ? 'Save Changes' : 'Publish to EBG+')}</button>
               </footer>
             </form>
           </div>
