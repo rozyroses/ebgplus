@@ -184,3 +184,27 @@ export const uploadStudioMedia = async (file: File, folder: string) => {
   const path = `${safeFolder}/${stamp}-${safeSegment(file.name)}`
   return storage.uploadPublic('ebg-media', path, file, session.access_token)
 }
+
+export type LumiPublicationKind = 'news' | 'notification'
+
+export const publishLumiContent = async (input: {
+  projectId: string
+  kind: LumiPublicationKind
+  title: string
+  body: string
+  link?: string
+}) => {
+  const session = requireSession()
+  return db.rpc<{ ok: boolean; kind: LumiPublicationKind; id: string; publishedAt: string }>(
+    'publish_lumi_content',
+    {
+      p_project_id: input.projectId,
+      p_kind: input.kind,
+      p_title: input.title.trim(),
+      p_body: input.body.trim(),
+      p_link: input.link?.trim() || null,
+    },
+    session.access_token,
+  )
+}
+
