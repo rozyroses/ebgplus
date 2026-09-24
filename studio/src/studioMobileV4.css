@@ -69,3 +69,156 @@ input,select,textarea{font-size:16px}
 @media (max-width: 380px){
   .series-grid,.poster-grid,.launch-grid{grid-template-columns:1fr!important}
 }
+
+/* Lumi mobile-first experience */
+@media (max-width:900px){
+  .studio-lumi-overlay{
+    position:fixed!important;
+    inset:0!important;
+    z-index:140!important;
+    width:100vw!important;
+    height:100svh!important;
+    min-height:100svh!important;
+    overflow:hidden!important;
+    background:var(--studio-bg,#f7f7fb)!important;
+  }
+  .studio-lumi-shell{
+    display:grid!important;
+    grid-template-rows:auto minmax(0,1fr)!important;
+    width:100%!important;
+    height:100svh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  .studio-lumi-topbar{
+    position:relative!important;
+    top:auto!important;
+    z-index:150!important;
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    gap:8px!important;
+    padding:calc(10px + env(safe-area-inset-top)) 10px 10px!important;
+    background:color-mix(in srgb,var(--studio-surface-solid,#fff) 96%,transparent)!important;
+    backdrop-filter:blur(22px)!important;
+    border-bottom:1px solid var(--studio-line,rgba(0,0,0,.08))!important;
+  }
+  .studio-lumi-brand{min-width:0!important}
+  .studio-lumi-brand strong{font-size:.96rem!important}
+  .studio-lumi-brand small{font-size:.62rem!important}
+  .studio-lumi-project-chip{
+    grid-column:1/-1!important;
+    width:100%!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    border-radius:12px!important;
+    padding:8px 10px!important;
+  }
+  .lumi-v4-modes{
+    grid-column:1/-1!important;
+    order:3!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,1fr)!important;
+    width:100%!important;
+    padding:3px!important;
+    border-radius:14px!important;
+  }
+  .lumi-v4-modes button{min-height:40px!important;padding:8px 6px!important;font-size:.74rem!important}
+  .lumi-topbar-actions{align-self:start!important}
+  .lumi-history-toggle{display:inline-flex!important;min-height:40px!important;padding:8px 10px!important}
+  .lumi-v4-badge{height:40px!important}
+  .lumi-v4-context{display:none!important}
+
+  .studio-lumi-welcome,.studio-lumi-chat{
+    grid-row:2!important;
+    min-height:0!important;
+    height:100%!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+  .studio-lumi-welcome{
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:flex-end!important;
+    gap:16px!important;
+    padding:22px 14px calc(18px + env(safe-area-inset-bottom))!important;
+  }
+  .lumi-welcome-copy{width:100%!important;max-width:none!important}
+  .lumi-welcome-copy h1{font-size:clamp(2rem,10vw,3rem)!important;line-height:1!important}
+  .lumi-welcome-copy p{font-size:.92rem!important;line-height:1.45!important}
+  .lumi-quick-prompts{width:100%!important;display:flex!important;overflow-x:auto!important;flex-wrap:nowrap!important;justify-content:flex-start!important;padding-bottom:2px!important;scrollbar-width:none!important}
+  .lumi-quick-prompts::-webkit-scrollbar{display:none}
+  .lumi-quick-prompts button{flex:0 0 auto!important;min-height:40px!important}
+
+  .studio-lumi-chat{
+    display:grid!important;
+    grid-template-rows:minmax(0,1fr) auto!important;
+  }
+  .studio-lumi-messages{
+    min-height:0!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:14px 12px 8px!important;
+    scroll-padding-bottom:110px!important;
+  }
+  .studio-lumi-messages article{max-width:90%!important;border-radius:18px!important;padding:12px 14px!important}
+  .studio-lumi-messages article.user{margin-left:auto!important}
+  .studio-lumi-messages article.lumi{margin-right:auto!important}
+
+  .studio-lumi-composer-wrap,
+  .studio-lumi-chat>.studio-lumi-composer,
+  .studio-lumi-composer{
+    position:relative!important;
+    bottom:auto!important;
+    width:auto!important;
+    margin:0 10px calc(10px + env(safe-area-inset-bottom))!important;
+    min-height:56px!important;
+    padding:6px 6px 6px 10px!important;
+    border-radius:20px!important;
+    background:var(--studio-surface-solid,#fff)!important;
+    border:1px solid var(--studio-line,rgba(0,0,0,.08))!important;
+    box-shadow:0 10px 32px rgba(24,29,50,.12)!important;
+  }
+  .studio-lumi-composer input,.studio-lumi-composer textarea{
+    min-width:0!important;
+    min-height:44px!important;
+    font-size:16px!important;
+    padding:10px 8px!important;
+  }
+  .lumi-send-button{width:44px!important;height:44px!important;min-height:44px!important}
+
+  .lumi-history-sidebar{
+    z-index:180!important;
+    top:0!important;
+    bottom:0!important;
+    width:min(88vw,340px)!important;
+    padding-top:env(safe-area-inset-top)!important;
+    box-shadow:18px 0 70px rgba(0,0,0,.24)!important;
+  }
+  .lumi-publish-backdrop,.lumi-info-backdrop{
+    z-index:200!important;
+    place-items:end center!important;
+    padding:0!important;
+    background:rgba(20,24,40,.38)!important;
+  }
+  .lumi-publish-sheet,.lumi-info-sheet{
+    width:100%!important;
+    max-width:none!important;
+    max-height:88svh!important;
+    border-radius:24px 24px 0 0!important;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom))!important;
+    overflow:auto!important;
+  }
+  .lumi-publish-sheet>header h2{font-size:1.7rem!important}
+  .lumi-publish-destination,.lumi-info-grid,.lumi-music-review{grid-template-columns:1fr!important}
+}
+
+@media (max-width:520px){
+  .studio-lumi-topbar{grid-template-columns:1fr!important}
+  .lumi-topbar-actions{grid-row:1!important;justify-content:flex-end!important}
+  .studio-lumi-brand{grid-row:1!important}
+  .lumi-v4-modes{grid-column:1!important}
+  .studio-lumi-project-chip{grid-column:1!important}
+  .studio-lumi-messages article{max-width:94%!important}
+}
