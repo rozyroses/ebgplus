@@ -10,6 +10,10 @@ if (!main.includes("./studioFormsNetwork.css")) {
   fs.writeFileSync(mainPath, main)
 }
 if (source.includes('// EBG_STUDIO_PHASE160_FORMS_NETWORK')) process.exit(0)
+if (source.includes('// EBG_STUDIO_V4_GLOBAL_WORKSPACES')) {
+  console.log('Studio V4 detected — skipping legacy Phase 1.60 tab patch.')
+  process.exit(0)
+}
 const must=(pattern,replacement,label)=>{const next=source.replace(pattern,replacement);if(next===source)throw new Error(`Studio Phase 1.60 patch failed: ${label}`);source=next}
 
 must("import { db } from '../../src/lib/supabase'","import { db } from '../../src/lib/supabase'\nimport FormsNetworkWorkspace from './FormsNetworkWorkspace'\nimport { setVerifiedBadge } from './formsNetwork'\n\n// EBG_STUDIO_PHASE160_FORMS_NETWORK",'forms import')
