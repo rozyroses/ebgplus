@@ -240,6 +240,21 @@ export default function StudioLumi() {
   useEffect(() => {
     if (active) void refreshProject(projectId)
   }, [active, projectId])
+  useEffect(() => {
+    if (!active) return
+    const prefill = localStorage.getItem('ebg.lumi.prefill')
+    if (!prefill) return
+    localStorage.removeItem('ebg.lumi.prefill')
+    setMode('create')
+    window.setTimeout(() => {
+      const input = document.querySelector<HTMLInputElement>('#studio-lumi-input')
+      if (input) {
+        input.value = prefill
+        input.focus()
+      }
+    }, 60)
+  }, [active])
+
 
   useEffect(() => {
     let button: HTMLButtonElement | null = null
