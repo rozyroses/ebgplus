@@ -6,6 +6,7 @@ let source=fs.readFileSync(appPath,'utf8')
 let main=fs.readFileSync(mainPath,'utf8')
 if(!main.includes("./studioInbox.css")){main+="\nimport './studioInbox.css'\n";fs.writeFileSync(mainPath,main)}
 if(source.includes('// EBG_STUDIO_PHASE161_INBOX'))process.exit(0)
+if(source.includes('// EBG_STUDIO_V4_GLOBAL_WORKSPACES')){console.log('Studio V4 detected — skipping legacy Phase 1.61 tab patch.');process.exit(0)}
 const must=(pattern,replacement,label)=>{const next=source.replace(pattern,replacement);if(next===source)throw new Error(`Studio Phase 1.61 patch failed: ${label}`);source=next}
 must("import FormsNetworkWorkspace from './FormsNetworkWorkspace'","import FormsNetworkWorkspace from './FormsNetworkWorkspace'\nimport StudioInbox from './StudioInbox'\n\n// EBG_STUDIO_PHASE161_INBOX",'inbox import')
 must("type StudioTab = 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'forms' | 'polls' | 'media' | 'notifications' | 'team'","type StudioTab = 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'forms' | 'inbox' | 'polls' | 'media' | 'notifications' | 'team'",'inbox tab type')
