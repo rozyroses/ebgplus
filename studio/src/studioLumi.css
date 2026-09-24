@@ -495,3 +495,23 @@
 .lumi-publish-sheet input:focus,.lumi-publish-sheet textarea:focus{border-color:color-mix(in srgb,var(--studio-accent) 46%,var(--studio-line));box-shadow:0 0 0 3px color-mix(in srgb,var(--studio-accent) 9%,transparent)}
 .lumi-publish-sheet>footer{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;padding-top:4px}
 @media(max-width:620px){.lumi-publish-backdrop{padding:10px}.lumi-publish-sheet{max-height:calc(100vh - 20px);border-radius:22px;padding:18px}.lumi-publish-destination{grid-template-columns:1fr}.lumi-publish-sheet>footer>*{flex:1}}
+
+/* Lumi publication manager */
+.lumi-publications{position:relative;z-index:1;width:min(900px,100%);display:grid;gap:12px;padding:16px;border:1px solid var(--studio-line);border-radius:22px;background:var(--studio-surface-solid);box-shadow:var(--studio-shadow)}
+.lumi-publications-head{display:flex;align-items:end;justify-content:space-between;gap:16px}
+.lumi-publications-head>div{display:grid;gap:2px}
+.lumi-publications-head span{font-size:.62rem;font-weight:900;letter-spacing:.14em;color:var(--studio-accent)}
+.lumi-publications-head h2{margin:0;font-size:1.2rem;color:var(--studio-text)}
+.lumi-publications-head small{color:var(--studio-muted)}
+.lumi-publication-list{display:grid;gap:9px}
+.lumi-publication-list article{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px;border:1px solid var(--studio-line);border-radius:16px;background:var(--studio-surface-2)}
+.lumi-publication-list article>div:first-child{min-width:0;display:grid;gap:4px}
+.lumi-publication-list article span{font-size:.58rem;font-weight:900;letter-spacing:.12em;color:var(--studio-accent)}
+.lumi-publication-list article strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--studio-text)}
+.lumi-publication-list article p{margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--studio-muted);font-size:.76rem;line-height:1.45}
+.lumi-publication-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.lumi-publication-actions button{border:1px solid var(--studio-line);border-radius:999px;background:var(--studio-surface-solid);color:var(--studio-text);padding:.48rem .72rem;font:inherit;font-size:.7rem;font-weight:850;cursor:pointer}
+.lumi-publication-actions button:hover:not(:disabled){border-color:color-mix(in srgb,var(--studio-accent) 35%,var(--studio-line));color:var(--studio-accent)}
+.lumi-publication-actions button.danger{color:#b84b64;border-color:color-mix(in srgb,#b84b64 24%,var(--studio-line))}
+.lumi-publication-actions button:disabled{opacity:.48;cursor:wait}
+@media(max-width:640px){.lumi-publication-list article{grid-template-columns:1fr}.lumi-publication-actions{justify-content:flex-start}}
