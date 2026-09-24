@@ -360,3 +360,40 @@ export const deleteLumiChat = async (chatId: string) => {
   )
 }
 
+export type LumiMusicReleaseInput = {
+  projectId: string
+  artistName: string
+  title: string
+  releaseType: 'single' | 'ep' | 'album'
+  genre?: string
+  cover?: string
+  releaseDate?: string
+  publishStatus: 'draft' | 'scheduled' | 'live'
+  explicit?: boolean
+}
+
+export const publishLumiMusicRelease = async (input: LumiMusicReleaseInput) => {
+  const session = requireSession()
+  return db.rpc<{
+    ok: boolean
+    kind: 'music'
+    id: string
+    artistId: string
+    publishStatus: 'draft' | 'scheduled' | 'live'
+  }>(
+    'publish_lumi_music_release',
+    {
+      p_project_id: input.projectId,
+      p_artist_name: input.artistName.trim(),
+      p_title: input.title.trim(),
+      p_release_type: input.releaseType,
+      p_genre: input.genre?.trim() || '',
+      p_cover: input.cover?.trim() || '',
+      p_release_date: input.releaseDate?.trim() || null,
+      p_publish_status: input.publishStatus,
+      p_explicit: Boolean(input.explicit),
+    },
+    session.access_token,
+  )
+}
+
