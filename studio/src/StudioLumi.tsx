@@ -6,6 +6,7 @@ import {
   deleteLumiPublication,
   listLumiChats,
   listLumiPublications,
+  loadMyStudioProjects,
   loadProjectCms,
   publishLumiContent,
   publishLumiMusicRelease,
@@ -16,6 +17,7 @@ import {
   type LumiChat,
   type LumiPublication,
   type LumiPublicationKind,
+  type StudioProject,
 } from '../../src/lib/studioData'
 
 type CmsSlice = {
@@ -143,6 +145,7 @@ const preparePublicationDraft = (text: string, fallback: string) => {
 export default function StudioLumi() {
   const [active, setActive] = useState(isLumiTab)
   const [projectId, setProjectId] = useState(readProjectId)
+  const [projectMeta, setProjectMeta] = useState<Pick<StudioProject, 'id' | 'title' | 'project_kind'> | null>(null)
   const [cms, setCms] = useState<CmsSlice>({ shows: [], episodes: [] })
   const [showId, setShowId] = useState('')
   const [messages, setMessages] = useState<LumiMessage[]>([])
@@ -173,13 +176,16 @@ export default function StudioLumi() {
 
     setError('')
     try {
-      const [next, published, chatHistory] = await Promise.all([
+      const [next, published, chatHistory, projectList] = await Promise.all([
         loadProjectCms<CmsSlice>(nextProjectId),
         listLumiPublications(nextProjectId),
         listLumiChats(nextProjectId),
+        loadMyStudioProjects<CmsSlice>(),
       ])
       const projectCms = next ?? { shows: [], episodes: [] }
       const nextChats = chatHistory ?? []
+      const currentProject = projectList.find((project) => project.id === nextProjectId) ?? null
+      setProjectMeta(currentProject ? { id: currentProject.id, title: currentProject.title, project_kind: currentProject.project_kind } : null)
       setCms(projectCms)
       setPublications(published ?? [])
       setChats(nextChats)
@@ -483,7 +489,7 @@ export default function StudioLumi() {
 
   const send = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (busy || !showId || !projectId) return
+    if (busy || !projectId) return
     const formElement = event.currentTarget
     const form = new FormData(formElement)
     const text = String(form.get('message') ?? '').trim()
@@ -558,11 +564,10 @@ export default function StudioLumi() {
             <div><strong>Lumi</strong><small>EBG Studio AI</small></div>
           </div>
 
-          <div className="studio-lumi-production-picker">
-            <span>Production</span>
-            <select value={showId} onChange={(event) => setShowId(event.target.value)}>
-              {(cms.shows ?? []).map((show) => <option value={show.id} key={show.id}>{show.title}</option>)}
-            </select>
+          <div className="studio-lumi-project-chip">
+            <span>WORKSPACE</span>
+            <strong>{projectMeta?.title || 'EBG Studio'}</strong>
+            <small>{projectMeta?.project_kind === 'music' ? 'Music' : projectMeta?.project_kind === 'mixed' ? 'Mixed' : 'Show / Series'}</small>
           </div>
 
           <nav className="lumi-v4-modes" aria-label="Lumi mode">
@@ -604,7 +609,7 @@ export default function StudioLumi() {
         <aside className="lumi-v4-context">
           <div className="lumi-v4-context-head">
             <span>PROJECT BRAIN</span>
-            <strong>{selectedShow?.title || 'Studio context'}</strong>
+            <strong>{projectMeta?.title || 'Studio context'}</strong>
             <small>Lumi uses this live context while you work.</small>
           </div>
 
@@ -617,7 +622,7 @@ export default function StudioLumi() {
 
           <section className="lumi-v4-context-section">
             <div><span>STATUS</span><strong>What Lumi knows</strong></div>
-            <p>{selectedShow?.description || 'No production description yet.'}</p>
+            <p>{selectedShow?.description || (projectMeta?.project_kind === 'music' ? 'Music workspace — releases, tracks, videos, artwork, and timed lyrics.' : projectMeta?.project_kind === 'mixed' ? 'Mixed workspace — shows, episodes, music, publishing, and audience updates.' : 'Show workspace — episodes, talent, publishing, and audience updates.')}</p>
             <small>{timedTracks} track{timedTracks === 1 ? '' : 's'} with timed lyrics · {publications.length} Lumi publication{publications.length === 1 ? '' : 's'}</small>
           </section>
 
@@ -643,8 +648,8 @@ export default function StudioLumi() {
 
             <form className="studio-lumi-composer hero-composer" onSubmit={send}>
               <span className="composer-spark" aria-hidden="true">✦</span>
-              <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : 'Choose a production first'} autoComplete="off" disabled={!showId || busy} />
-              <button className="lumi-send-button" type="submit" disabled={!showId || busy} aria-label="Send to Lumi">➜</button>
+              <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : projectMeta ? `Ask Lumi about ${projectMeta.title}` : 'Choose a Studio project first'} autoComplete="off" disabled={!projectId || busy} />
+              <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">➜</button>
             </form>
 
             <div className="lumi-quick-prompts">
@@ -714,8 +719,8 @@ export default function StudioLumi() {
               </div>
               <form className="studio-lumi-composer" onSubmit={send}>
                 <span className="composer-spark" aria-hidden="true">✦</span>
-                <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : 'No production selected'} autoComplete="off" disabled={!showId || busy} />
-                <button className="lumi-send-button" type="submit" disabled={!showId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
+                <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : projectMeta ? `Ask Lumi about ${projectMeta.title}` : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
+                <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
               </form>
               <small className="lumi-readonly-note">Lumi only sees the selected private project. Publishing always requires your review.</small>
             </div>
