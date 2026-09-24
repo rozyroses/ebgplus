@@ -654,3 +654,10 @@
   .lumi-v4-modes{width:100%}
   .lumi-v4-modes button{flex:1}
 }
+
+/* Lumi V4 project-first header */
+.studio-lumi-project-chip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:7px 9px;min-width:0;padding:7px 10px;border:1px solid var(--studio-line);border-radius:14px;background:var(--studio-surface-2)}
+.studio-lumi-project-chip>span{font-size:.56rem;font-weight:950;letter-spacing:.12em;color:var(--studio-accent)}
+.studio-lumi-project-chip>strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--studio-text);font-size:.78rem}
+.studio-lumi-project-chip>small{font-size:.6rem;color:var(--studio-muted)}
+@media(max-width:900px){.studio-lumi-project-chip{grid-column:1/-1;width:100%}}
