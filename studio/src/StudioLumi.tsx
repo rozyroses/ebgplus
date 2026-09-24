@@ -1,11 +1,17 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
 import {
+  createLumiChat,
+  deleteLumiChat,
   deleteLumiPublication,
+  listLumiChats,
   listLumiPublications,
   loadProjectCms,
   publishLumiContent,
+  renameLumiChat,
+  saveLumiChat,
   updateLumiPublication,
+  type LumiChat,
   type LumiPublication,
   type LumiPublicationKind,
 } from '../../src/lib/studioData'
@@ -110,6 +116,9 @@ export default function StudioLumi() {
   const [publishMessage, setPublishMessage] = useState('')
   const [publications, setPublications] = useState<LumiPublication[]>([])
   const [managingId, setManagingId] = useState('')
+  const [chats, setChats] = useState<LumiChat[]>([])
+  const [activeChatId, setActiveChatId] = useState('')
+  const [historyOpen, setHistoryOpen] = useState(false)
   const greetingName = useMemo(getGreetingName, [active])
 
   const refreshProject = async (nextProjectId = projectId) => {
@@ -122,13 +131,19 @@ export default function StudioLumi() {
 
     setError('')
     try {
-      const [next, published] = await Promise.all([
+      const [next, published, chatHistory] = await Promise.all([
         loadProjectCms<CmsSlice>(nextProjectId),
         listLumiPublications(nextProjectId),
+        listLumiChats(nextProjectId),
       ])
       const projectCms = next ?? { shows: [], episodes: [] }
+      const nextChats = chatHistory ?? []
       setCms(projectCms)
       setPublications(published ?? [])
+      setChats(nextChats)
+      const selectedChat = nextChats.find((chat) => chat.id === activeChatId) ?? nextChats[0] ?? null
+      setActiveChatId(selectedChat?.id ?? '')
+      setMessages(selectedChat?.messages ?? [])
       setShowId((current) => projectCms.shows?.some((show) => show.id === current) ? current : projectCms.shows?.[0]?.id ?? '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lumi could not load this Studio project.')
@@ -142,6 +157,8 @@ export default function StudioLumi() {
       const next = custom.detail?.projectId ?? readProjectId()
       setProjectId(next)
       setMessages([])
+      setChats([])
+      setActiveChatId('')
       setPublishDraft(null)
       setPublishMessage('')
       void refreshProject(next)
@@ -216,6 +233,53 @@ export default function StudioLumi() {
     if (!input) return
     input.value = prompt
     input.focus()
+  }
+
+  const startNewChat = () => {
+    if (busy) return
+    setActiveChatId('')
+    setMessages([])
+    setError('')
+    setPublishMessage('')
+    setHistoryOpen(false)
+    window.setTimeout(() => document.querySelector<HTMLInputElement>('#studio-lumi-input')?.focus(), 0)
+  }
+
+  const openChat = (chat: LumiChat) => {
+    if (busy) return
+    setActiveChatId(chat.id)
+    setMessages(chat.messages ?? [])
+    setError('')
+    setPublishMessage('')
+    setHistoryOpen(false)
+  }
+
+  const renameChat = async (chat: LumiChat) => {
+    if (busy) return
+    const nextTitle = window.prompt('Rename this Lumi chat', chat.title)
+    if (!nextTitle?.trim()) return
+    try {
+      const updated = await renameLumiChat(chat.id, nextTitle)
+      setChats((current) => current.map((entry) => entry.id === updated.id ? updated : entry))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Lumi could not rename this chat.')
+    }
+  }
+
+  const removeChat = async (chat: LumiChat) => {
+    if (busy || !window.confirm(`Delete “${chat.title}”? This removes the full Lumi conversation.`)) return
+    try {
+      await deleteLumiChat(chat.id)
+      const remaining = chats.filter((entry) => entry.id !== chat.id)
+      setChats(remaining)
+      if (activeChatId === chat.id) {
+        const next = remaining[0] ?? null
+        setActiveChatId(next?.id ?? '')
+        setMessages(next?.messages ?? [])
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Lumi could not delete this chat.')
+    }
   }
 
   const openPublish = (text: string) => {
@@ -304,14 +368,27 @@ export default function StudioLumi() {
     const session = readStoredSession()
     if (!session) return
 
-    const nextMessages = [...messages, { role: 'user' as const, text }]
-    setMessages(nextMessages)
-    event.currentTarget.reset()
-    setBusy(true)
-    setError('')
-    setPublishMessage('')
+    let chatId = activeChatId
+    let workingChat = chats.find((chat) => chat.id === activeChatId) ?? null
 
     try {
+      if (!chatId) {
+        workingChat = await createLumiChat(projectId, text)
+        chatId = workingChat.id
+        setActiveChatId(chatId)
+        setChats((current) => [workingChat as LumiChat, ...current.filter((chat) => chat.id !== chatId)])
+      }
+
+      const nextMessages = [...messages, { role: 'user' as const, text }]
+      setMessages(nextMessages)
+      event.currentTarget.reset()
+      setBusy(true)
+      setError('')
+      setPublishMessage('')
+
+      const savedUserTurn = await saveLumiChat(chatId, nextMessages, workingChat?.messages?.length ? undefined : text)
+      setChats((current) => [savedUserTurn, ...current.filter((chat) => chat.id !== savedUserTurn.id)])
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -330,7 +407,11 @@ export default function StudioLumi() {
 
       const payload = await response.json().catch(() => ({})) as { reply?: string; error?: string }
       if (!response.ok) throw new Error(payload.error || `Lumi request failed (${response.status}).`)
-      setMessages((current) => [...current, { role: 'lumi', text: payload.reply || 'I’m here — try that again.' }])
+      const reply = payload.reply || 'I’m here — try that again.'
+      const completedMessages = [...nextMessages, { role: 'lumi' as const, text: reply }]
+      setMessages(completedMessages)
+      const savedReply = await saveLumiChat(chatId, completedMessages)
+      setChats((current) => [savedReply, ...current.filter((chat) => chat.id !== savedReply.id)])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lumi could not answer right now.')
     } finally {
@@ -356,15 +437,40 @@ export default function StudioLumi() {
             </select>
           </div>
 
-          <span className="lumi-safe-pill">review before publish</span>
+          <div className="lumi-topbar-actions">
+            <button className="lumi-history-toggle" type="button" onClick={() => setHistoryOpen((value) => !value)}>☰ History</button>
+            <span className="lumi-safe-pill">review before publish</span>
+          </div>
         </header>
+
+        <aside className={`lumi-history-sidebar ${historyOpen ? 'open' : ''}`}>
+          <div className="lumi-history-head">
+            <div><span>YOUR CHATS</span><strong>History</strong></div>
+            <button type="button" onClick={startNewChat}>＋ New Chat</button>
+          </div>
+          <div className="lumi-history-list">
+            {chats.length === 0 && <div className="lumi-history-empty"><span>✦</span><p>No saved chats yet.</p><small>Your first message will start one.</small></div>}
+            {chats.map((chat) => (
+              <article className={activeChatId === chat.id ? 'active' : ''} key={chat.id}>
+                <button className="lumi-history-open" type="button" onClick={() => openChat(chat)}>
+                  <strong>{chat.title}</strong>
+                  <small>{new Date(chat.updated_at).toLocaleString()}</small>
+                </button>
+                <div className="lumi-history-actions">
+                  <button type="button" onClick={() => void renameChat(chat)} aria-label={`Rename ${chat.title}`}>✎</button>
+                  <button type="button" onClick={() => void removeChat(chat)} aria-label={`Delete ${chat.title}`}>⌫</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </aside>
 
         {!hasConversation && (
           <main className="studio-lumi-welcome">
             <div className="lumi-ambient-glow" aria-hidden="true" />
             <div className="lumi-welcome-copy">
               <span className="lumi-kicker">LUMI ✦ STUDIO</span>
-              <h1>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></h1>
+              <h1>{activeChatId ? 'Welcome back.' : <>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></>}</h1>
               <p>Lumi’s ready to brainstorm, write, and prepare updates you can review and publish to EBG+.</p>
             </div>
 
