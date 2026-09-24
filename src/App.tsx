@@ -150,6 +150,7 @@ import './phase153-built-in-players.css'
 import './phase154-apple-music-player.css'
 import './phase155-persistent-music-dock.css'
 import './phase156-timed-lyrics.css'
+import './mobile-v4.css'
 
 // EBG_NAV_CLEANUP_INTEGRATED
 import { uploadProfilePhoto } from './lib/profileMedia'
