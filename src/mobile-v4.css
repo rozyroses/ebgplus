@@ -1,0 +1,45 @@
+/* EBG+ Mobile V4 — final responsive override layer */
+html,body,#root{max-width:100%;overflow-x:hidden}
+button,a,input,select,textarea{touch-action:manipulation}
+button,a,[role="button"],summary{min-height:44px}
+input,select,textarea{font-size:16px}
+
+@media (max-width: 900px){
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  .app-shell,.page,.home-v2,.shows-catalog-page,.music-v2-page,.notifications-v2-page{width:100%;max-width:100%;overflow-x:hidden}
+  .topbar.app{left:8px!important;right:8px!important;top:8px!important;width:auto!important;min-height:58px!important;padding:8px 10px!important;border-radius:18px!important}
+  .topbar.app .primary-nav,.topbar.app .right-nav{display:none!important}
+  .mobile-nav{position:fixed!important;left:8px!important;right:8px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;z-index:120!important;display:flex!important;justify-content:space-around!important;gap:4px!important;padding:7px!important;border-radius:20px!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch;background:rgba(12,12,15,.92)!important;backdrop-filter:blur(20px)!important}
+  .mobile-nav a,.mobile-nav button{flex:1 0 58px!important;min-width:58px!important;min-height:48px!important;padding:7px 6px!important;font-size:.68rem!important;text-align:center!important}
+  .home-v2 .home-featured-hero,.home-carousel-hero{min-height:62svh!important;border-radius:0 0 24px 24px!important}
+  .home-v2 .home-featured-hero .overlay,.home-carousel-overlay{width:100%!important;max-width:none!important;padding:96px 20px 28px!important;align-items:flex-start!important;justify-content:flex-end!important}
+  .home-v2 .home-featured-hero h1,.home-carousel-overlay h1{font-size:clamp(2rem,10vw,3.8rem)!important;line-height:.98!important}
+  .home-rail,.rail,.media-row,.music-v2-row{overflow-x:auto!important;scroll-snap-type:x proximity!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none}
+  .home-rail::-webkit-scrollbar,.rail::-webkit-scrollbar,.media-row::-webkit-scrollbar,.music-v2-row::-webkit-scrollbar{display:none}
+  .shows-browse-grid,.shows-catalog-grid,.public-news-grid,.news-grid-v2{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  .shows-catalog-feature{min-height:56svh!important;border-radius:20px!important}
+  .shows-catalog-feature-overlay{padding:24px 18px!important}
+  .ebg-music-dock{left:8px!important;right:8px!important;bottom:calc(76px + env(safe-area-inset-bottom))!important;width:auto!important;max-width:none!important;transform:none!important;border-radius:18px!important}
+  .ebg-music-dock.expanded,.ebg-music-player{max-height:72svh!important;overflow:auto!important}
+  .ebg-music-dock-art,.ebg-music-player-art{flex:0 0 46px!important;width:46px!important;height:46px!important}
+  .settings-shell,.profile-layout,.music-artist-hero,.music-release-hero,.info-grid{grid-template-columns:1fr!important}
+  .profile-dropdown{right:0!important;left:auto!important;width:min(92vw,360px)!important}
+  table{min-width:680px}
+  .table-wrap,.table-scroll{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  .modal,.dialog,.sheet,[role="dialog"]{max-width:calc(100vw - 16px)!important;max-height:calc(100svh - 16px)!important}
+}
+
+@media (max-width: 600px){
+  .page,.content-page,.notifications-v2-page,.music-v2-page,.shows-catalog-page{padding-left:14px!important;padding-right:14px!important}
+  .shows-browse-grid,.shows-catalog-grid,.public-news-grid,.news-grid-v2{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .button,.btn,button{max-width:100%}
+  .hero-actions,.action-row,.episode-actions,.notification-publish-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+  .hero-actions>*{flex:1 1 140px!important}
+  .ebg-music-dock{padding:8px 10px!important}
+  .ebg-music-dock .ebg-music-dock-progress{width:100%!important}
+  .footer{padding-bottom:calc(90px + env(safe-area-inset-bottom))!important}
+}
+
+@media (max-width: 380px){
+  .shows-browse-grid,.shows-catalog-grid,.public-news-grid,.news-grid-v2{grid-template-columns:1fr!important}
+}
