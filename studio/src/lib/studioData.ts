@@ -275,6 +275,8 @@ export const deleteLumiPublication = async (input: {
 export type LumiChatMessage = {
   role: 'user' | 'lumi'
   text: string
+  imageUrl?: string
+  imagePrompt?: string
 }
 
 export type LumiChat = {
@@ -395,5 +397,40 @@ export const publishLumiMusicRelease = async (input: LumiMusicReleaseInput) => {
     },
     session.access_token,
   )
+}
+
+export type LumiImageKind = 'cover-art' | 'promo-poster' | 'character-visual' | 'social-graphic' | 'custom'
+export type LumiImageAspect = 'square' | 'portrait' | 'landscape'
+
+export const generateLumiImage = async (input: {
+  projectId: string
+  prompt: string
+  kind: LumiImageKind
+  aspect: LumiImageAspect
+}) => {
+  const session = requireSession()
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !anonKey) throw new Error('Supabase is not configured.')
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/lumi-image`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: anonKey,
+    },
+    body: JSON.stringify(input),
+  })
+
+  const payload = await response.json().catch(() => ({})) as {
+    imageUrl?: string
+    prompt?: string
+    error?: string
+  }
+  if (!response.ok || !payload.imageUrl) {
+    throw new Error(payload.error || `Lumi image generation failed (${response.status}).`)
+  }
+  return { imageUrl: payload.imageUrl, prompt: payload.prompt || input.prompt }
 }
 
