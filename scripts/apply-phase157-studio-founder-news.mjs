@@ -13,6 +13,18 @@ if (!main.includes("./studioFounderNews.css")) {
 
 if (source.includes('// EBG_STUDIO_PHASE157_FOUNDER_NEWS')) process.exit(0)
 
+// Lumi V4 owns News + Notifications as one shared Studio destination.
+// Older Studio builds still use the legacy founder-news patch below.
+if (source.includes("type StudioTab = 'overview' | 'lumi' | 'music'")) {
+  source = source.replace(
+    "type StaffRole = 'editor' | 'producer' | 'administrator' | 'founder'",
+    "// EBG_STUDIO_PHASE157_FOUNDER_NEWS\ntype StaffRole = 'editor' | 'producer' | 'administrator' | 'founder'",
+  )
+  fs.writeFileSync(appPath, source)
+  console.log('Studio Phase 1.57: Lumi V4 owns the combined News & Notifications workspace.')
+  process.exit(0)
+}
+
 const must = (pattern, replacement, label) => {
   const next = source.replace(pattern, replacement)
   if (next === source) throw new Error(`Studio Phase 1.57 patch failed: ${label}`)
