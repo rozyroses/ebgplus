@@ -107,6 +107,7 @@ type TeamAccount = {
   created_at?: string
 }
 
+// EBG_STUDIO_V4_GLOBAL_WORKSPACES
 type StudioTab = 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
 
 const STAFF_ROLES = new Set<StaffRole>(['editor', 'producer', 'administrator', 'founder'])
