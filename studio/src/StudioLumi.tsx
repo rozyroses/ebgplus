@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { readStoredSession } from '../../src/lib/auth'
+import { loadAuthState, readStoredSession } from '../../src/lib/auth'
 import {
   createLumiChat,
   deleteLumiChat,
@@ -43,12 +43,6 @@ const quickPrompts = [
   'Check episode continuity',
 ]
 
-const getGreetingName = () => {
-  const email = readStoredSession()?.user?.email?.trim() || ''
-  const local = email.split('@')[0] || 'there'
-  const readable = local.replace(/[._-]+/g, ' ').trim()
-  return readable ? readable.replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'there'
-}
 
 const cleanMarkdownLine = (line: string) => line
   .replace(/^#{1,6}\s*/, '')
@@ -119,7 +113,8 @@ export default function StudioLumi() {
   const [chats, setChats] = useState<LumiChat[]>([])
   const [activeChatId, setActiveChatId] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
-  const greetingName = useMemo(getGreetingName, [active])
+  const [profileName, setProfileName] = useState('there')
+  const greetingName = useMemo(() => profileName || 'there', [profileName])
 
   const refreshProject = async (nextProjectId = projectId) => {
     if (!nextProjectId) {
@@ -149,6 +144,23 @@ export default function StudioLumi() {
       setError(err instanceof Error ? err.message : 'Lumi could not load this Studio project.')
     }
   }
+
+  useEffect(() => {
+    const session = readStoredSession()
+    if (!session) return
+    void loadAuthState(session)
+      .then((state) => {
+        const name = state.studioIdentity?.display_name?.trim()
+          || state.profiles?.[0]?.name?.trim()
+          || session.user.email?.split('@')[0]
+          || 'there'
+        setProfileName(name)
+      })
+      .catch(() => {
+        const fallback = session.user.email?.split('@')[0]?.replace(/[._-]+/g, ' ').trim()
+        if (fallback) setProfileName(fallback.replace(/\b\w/g, (letter) => letter.toUpperCase()))
+      })
+  }, [active])
 
   useEffect(() => {
     const sync = () => setActive(isLumiTab())
@@ -526,7 +538,7 @@ export default function StudioLumi() {
             <div className="studio-lumi-messages">
               {messages.map((message, index) => (
                 <article className={message.role} key={`${message.role}-${index}`}>
-                  <span>{message.role === 'lumi' ? 'Lumi ✦' : 'You'}</span>
+                  <span>{message.role === 'lumi' ? 'Lumi ✦' : profileName}</span>
                   <p>{message.text}</p>
                   {message.role === 'lumi' && (
                     <div className="lumi-message-actions">
