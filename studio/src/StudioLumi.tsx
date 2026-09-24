@@ -8,9 +8,11 @@ import {
   listLumiPublications,
   loadProjectCms,
   publishLumiContent,
+  publishLumiMusicRelease,
   renameLumiChat,
   saveLumiChat,
   updateLumiPublication,
+  uploadStudioProjectMedia,
   type LumiChat,
   type LumiPublication,
   type LumiPublicationKind,
@@ -23,12 +25,34 @@ type CmsSlice = {
 
 type LumiMessage = { role: 'user' | 'lumi'; text: string }
 type PublishDraft = {
-  kind: LumiPublicationKind
+  kind: LumiPublicationKind | 'music'
   title: string
   body: string
   link: string
   editingId?: string
 }
+
+type MusicDetails = {
+  artistName: string
+  title: string
+  releaseType: 'single' | 'ep' | 'album'
+  genre: string
+  releaseDate: string
+  publishStatus: 'draft' | 'scheduled' | 'live'
+  explicit: boolean
+  coverUrl: string
+}
+
+const emptyMusicDetails = (): MusicDetails => ({
+  artistName: '',
+  title: '',
+  releaseType: 'single',
+  genre: '',
+  releaseDate: new Date().toISOString().slice(0, 10),
+  publishStatus: 'draft',
+  explicit: false,
+  coverUrl: '',
+})
 
 const isLumiTab = () => window.location.hash.replace(/^#\/?/, '') === 'lumi'
 const endpoint = import.meta.env.VITE_STUDIO_LUMI_URL || ''
@@ -114,6 +138,9 @@ export default function StudioLumi() {
   const [activeChatId, setActiveChatId] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
   const [profileName, setProfileName] = useState('there')
+  const [musicDetails, setMusicDetails] = useState<MusicDetails>(emptyMusicDetails)
+  const [musicInfoOpen, setMusicInfoOpen] = useState(false)
+  const [musicCoverFile, setMusicCoverFile] = useState<File | null>(null)
   const greetingName = useMemo(() => profileName || 'there', [profileName])
 
   const refreshProject = async (nextProjectId = projectId) => {
@@ -316,6 +343,42 @@ export default function StudioLumi() {
     })
   }
 
+  const chooseMusicDestination = () => {
+    if (!publishDraft) return
+    setPublishDraft({ ...publishDraft, kind: 'music' })
+    setMusicDetails((current) => ({
+      ...current,
+      title: current.title || publishDraft.title,
+    }))
+    setMusicInfoOpen(true)
+  }
+
+  const submitMusicDetails = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!projectId || publishing) return
+    if (!musicDetails.artistName.trim() || !musicDetails.title.trim()) {
+      setError('Lumi still needs an artist name and release title.')
+      return
+    }
+    setPublishing(true)
+    setError('')
+    try {
+      let coverUrl = musicDetails.coverUrl
+      if (musicCoverFile) {
+        coverUrl = await uploadStudioProjectMedia(musicCoverFile, projectId, 'music/covers')
+      }
+      setMusicDetails({ ...musicDetails, coverUrl })
+      setPublishDraft((current) => current ? { ...current, kind: 'music', title: musicDetails.title } : current)
+      setMusicCoverFile(null)
+      setMusicInfoOpen(false)
+      setPublishMessage('Got it — Lumi has the release details. Review them, then publish when ready.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Lumi could not save those music details.')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   const removePublication = async (item: LumiPublication) => {
     if (!projectId || managingId || !window.confirm(`Delete this ${item.kind === 'news' ? 'news post' : 'notification'} from EBG+?`)) return
     setManagingId(item.id)
@@ -338,6 +401,33 @@ export default function StudioLumi() {
     setError('')
     setPublishMessage('')
     try {
+      if (publishDraft.kind === 'music') {
+        if (!musicDetails.artistName.trim() || !musicDetails.title.trim()) {
+          setPublishing(false)
+          setMusicInfoOpen(true)
+          return
+        }
+        const result = await publishLumiMusicRelease({
+          projectId,
+          artistName: musicDetails.artistName,
+          title: musicDetails.title,
+          releaseType: musicDetails.releaseType,
+          genre: musicDetails.genre,
+          cover: musicDetails.coverUrl,
+          releaseDate: musicDetails.releaseDate,
+          publishStatus: musicDetails.publishStatus,
+          explicit: musicDetails.explicit,
+        })
+        setPublishMessage(result.publishStatus === 'live'
+          ? 'Music release published live to EBG+ Music.'
+          : result.publishStatus === 'scheduled'
+            ? 'Music release scheduled for EBG+ Music.'
+            : 'Music release saved as a draft in Music Studio.')
+        setPublishDraft(null)
+        setMusicDetails(emptyMusicDetails())
+        return
+      }
+
       const result = publishDraft.editingId
         ? await updateLumiPublication({
             projectId,
@@ -521,7 +611,7 @@ export default function StudioLumi() {
               </section>
             )}
 
-            <small className="lumi-readonly-note">Lumi can publish News and viewer notifications only after you review and approve the draft.</small>
+            <small className="lumi-readonly-note">Lumi can publish News, viewer notifications, and Music releases only after you review and approve the details.</small>
           </main>
         )}
 
@@ -567,6 +657,31 @@ export default function StudioLumi() {
           </main>
         )}
 
+        {musicInfoOpen && (
+          <div className="lumi-publish-backdrop lumi-info-backdrop" role="presentation">
+            <form className="lumi-publish-sheet lumi-info-sheet" onSubmit={submitMusicDetails}>
+              <header>
+                <div><span>LUMI ✦ NEEDS INFO</span><h2>I need a few details.</h2><p>Fill these in and submit them to Lumi. I’ll use them to finish the Music release setup.</p></div>
+                <button type="button" disabled={publishing} onClick={() => setMusicInfoOpen(false)} aria-label="Close Lumi question">×</button>
+              </header>
+              <div className="lumi-info-grid">
+                <label>Artist name<input value={musicDetails.artistName} required placeholder="Bijou Nicole" onChange={(event) => setMusicDetails({ ...musicDetails, artistName: event.target.value })} /></label>
+                <label>Release title<input value={musicDetails.title} required placeholder="SOUL TIES" onChange={(event) => setMusicDetails({ ...musicDetails, title: event.target.value })} /></label>
+                <label>Release type<select value={musicDetails.releaseType} onChange={(event) => setMusicDetails({ ...musicDetails, releaseType: event.target.value as MusicDetails['releaseType'] })}><option value="single">Single</option><option value="ep">EP</option><option value="album">Album</option></select></label>
+                <label>Genre<input value={musicDetails.genre} placeholder="R&B" onChange={(event) => setMusicDetails({ ...musicDetails, genre: event.target.value })} /></label>
+                <label>Release date<input type="date" value={musicDetails.releaseDate} onChange={(event) => setMusicDetails({ ...musicDetails, releaseDate: event.target.value })} /></label>
+                <label>Status<select value={musicDetails.publishStatus} onChange={(event) => setMusicDetails({ ...musicDetails, publishStatus: event.target.value as MusicDetails['publishStatus'] })}><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="live">Live</option></select></label>
+                <label className="full">Cover art<input type="file" accept="image/*" onChange={(event) => setMusicCoverFile(event.target.files?.[0] ?? null)} /><small>{musicCoverFile?.name || (musicDetails.coverUrl ? 'Current cover ready' : 'Optional — you can add it later')}</small></label>
+                <label className="lumi-info-check full"><input type="checkbox" checked={musicDetails.explicit} onChange={(event) => setMusicDetails({ ...musicDetails, explicit: event.target.checked })} /> Explicit release</label>
+              </div>
+              <footer>
+                <button className="button secondary" type="button" disabled={publishing} onClick={() => setMusicInfoOpen(false)}>Cancel</button>
+                <button className="button" type="submit" disabled={publishing}>{publishing ? 'Submitting…' : 'Submit to Lumi'}</button>
+              </footer>
+            </form>
+          </div>
+        )}
+
         {publishDraft && (
           <div className="lumi-publish-backdrop" role="presentation" onMouseDown={(event) => {
             if (event.currentTarget === event.target && !publishing) setPublishDraft(null)
@@ -580,15 +695,30 @@ export default function StudioLumi() {
               <div className="lumi-publish-destination">
                 <button type="button" className={publishDraft.kind === 'news' ? 'active' : ''} onClick={() => setPublishDraft({ ...publishDraft, kind: 'news' })}><strong>News</strong><small>Publish an article to EBG+ News.</small></button>
                 <button type="button" className={publishDraft.kind === 'notification' ? 'active' : ''} onClick={() => setPublishDraft({ ...publishDraft, kind: 'notification' })}><strong>Notification</strong><small>Send an update to EBG+ viewers.</small></button>
+                {!publishDraft.editingId && <button type="button" className={publishDraft.kind === 'music' ? 'active' : ''} onClick={chooseMusicDestination}><strong>Music Release</strong><small>Send a single, EP, or album to EBG+ Music.</small></button>}
               </div>
 
-              <label>Title<input value={publishDraft.title} maxLength={120} required onChange={(event) => setPublishDraft({ ...publishDraft, title: event.target.value })} /></label>
-              <label>Body<textarea value={publishDraft.body} required rows={10} onChange={(event) => setPublishDraft({ ...publishDraft, body: event.target.value })} /></label>
-              {publishDraft.kind === 'notification' && <label>Optional link<input value={publishDraft.link} placeholder="/app/shows/..." onChange={(event) => setPublishDraft({ ...publishDraft, link: event.target.value })} /></label>}
+              {publishDraft.kind !== 'music' ? (
+                <>
+                  <label>Title<input value={publishDraft.title} maxLength={120} required onChange={(event) => setPublishDraft({ ...publishDraft, title: event.target.value })} /></label>
+                  <label>Body<textarea value={publishDraft.body} required rows={10} onChange={(event) => setPublishDraft({ ...publishDraft, body: event.target.value })} /></label>
+                  {publishDraft.kind === 'notification' && <label>Optional link<input value={publishDraft.link} placeholder="/app/shows/..." onChange={(event) => setPublishDraft({ ...publishDraft, link: event.target.value })} /></label>}
+                </>
+              ) : (
+                <div className="lumi-music-review">
+                  <div><span>Artist</span><strong>{musicDetails.artistName || 'Needed'}</strong></div>
+                  <div><span>Release</span><strong>{musicDetails.title || 'Needed'}</strong></div>
+                  <div><span>Type</span><strong>{musicDetails.releaseType.toUpperCase()}</strong></div>
+                  <div><span>Status</span><strong>{musicDetails.publishStatus}</strong></div>
+                  <div><span>Date</span><strong>{musicDetails.releaseDate || 'Not set'}</strong></div>
+                  <div><span>Genre</span><strong>{musicDetails.genre || 'Not set'}</strong></div>
+                  <button className="button secondary" type="button" onClick={() => setMusicInfoOpen(true)}>Edit Details</button>
+                </div>
+              )}
 
               <footer>
                 <button className="button secondary" type="button" disabled={publishing} onClick={() => setPublishDraft(null)}>Keep Editing in Lumi</button>
-                <button className="button" type="submit" disabled={publishing || !publishDraft.title.trim() || !publishDraft.body.trim()}>{publishing ? (publishDraft.editingId ? 'Saving…' : 'Publishing…') : (publishDraft.editingId ? 'Save Changes' : 'Publish to EBG+')}</button>
+                <button className="button" type="submit" disabled={publishing || (publishDraft.kind !== 'music' && (!publishDraft.title.trim() || !publishDraft.body.trim()))}>{publishing ? (publishDraft.editingId ? 'Saving…' : 'Publishing…') : (publishDraft.editingId ? 'Save Changes' : 'Publish to EBG+')}</button>
               </footer>
             </form>
           </div>
