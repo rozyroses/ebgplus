@@ -580,3 +580,24 @@
   .lumi-safe-pill{display:none}
   .lumi-history-actions{opacity:1}
 }
+
+/* Lumi structured follow-up questions + music review */
+.lumi-info-backdrop{z-index:160}
+.lumi-info-sheet{width:min(760px,100%)}
+.lumi-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lumi-info-grid label{display:grid;gap:7px;font-size:.7rem;font-weight:850;color:var(--studio-muted)}
+.lumi-info-grid label.full{grid-column:1/-1}
+.lumi-info-grid input,.lumi-info-grid select{width:100%;border:1px solid var(--studio-line);border-radius:14px;background:var(--studio-surface-2);color:var(--studio-text);padding:11px 12px;font:inherit;outline:none}
+.lumi-info-grid input:focus,.lumi-info-grid select:focus{border-color:color-mix(in srgb,var(--studio-accent) 46%,var(--studio-line));box-shadow:0 0 0 3px color-mix(in srgb,var(--studio-accent) 9%,transparent)}
+.lumi-info-grid small{font-size:.65rem;color:var(--studio-muted)}
+.lumi-info-check{display:flex!important;grid-template-columns:auto 1fr!important;align-items:center;justify-content:flex-start}
+.lumi-info-check input{width:auto!important}
+.lumi-music-review{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lumi-music-review>div{display:grid;gap:4px;padding:12px;border:1px solid var(--studio-line);border-radius:14px;background:var(--studio-surface-2)}
+.lumi-music-review span{font-size:.6rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--studio-muted)}
+.lumi-music-review strong{font-size:.84rem;color:var(--studio-text);overflow:hidden;text-overflow:ellipsis}
+.lumi-music-review>.button{grid-column:1/-1;justify-self:start}
+@media(max-width:620px){
+  .lumi-info-grid,.lumi-music-review{grid-template-columns:1fr}
+  .lumi-info-grid label.full,.lumi-music-review>.button{grid-column:auto}
+}
