@@ -222,3 +222,108 @@ input,select,textarea{font-size:16px}
   .studio-lumi-project-chip{grid-column:1!important}
   .studio-lumi-messages article{max-width:94%!important}
 }
+
+/* Lumi mobile composer visibility + New Chat */
+.lumi-new-chat-button{
+  border:1px solid color-mix(in srgb,var(--studio-accent) 28%,var(--studio-line));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--studio-accent) 9%,var(--studio-surface-solid));
+  color:var(--studio-accent);
+  padding:8px 11px;
+  font:inherit;
+  font-size:.7rem;
+  font-weight:900;
+  cursor:pointer;
+}
+
+@media (max-width:900px){
+  .studio-lumi-chat{
+    display:flex!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:100%!important;
+    overflow:hidden!important;
+  }
+  .studio-lumi-chat-context{
+    flex:0 0 auto!important;
+    padding:10px 12px!important;
+    border-bottom:1px solid var(--studio-line)!important;
+    background:var(--studio-surface-solid)!important;
+  }
+  .studio-lumi-messages{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:12px 12px 16px!important;
+  }
+  .studio-lumi-chat>.studio-lumi-success,
+  .studio-lumi-chat>.studio-lumi-error{
+    flex:0 0 auto!important;
+    margin:0 10px 8px!important;
+    width:auto!important;
+  }
+  .lumi-conversation-footer{
+    flex:0 0 auto!important;
+    position:relative!important;
+    z-index:20!important;
+    display:grid!important;
+    gap:7px!important;
+    padding:8px 10px calc(10px + env(safe-area-inset-bottom))!important;
+    background:color-mix(in srgb,var(--studio-surface-solid,#fff) 96%,transparent)!important;
+    border-top:1px solid var(--studio-line,rgba(0,0,0,.08))!important;
+    backdrop-filter:blur(20px)!important;
+  }
+  .lumi-conversation-footer .lumi-quick-prompts{
+    order:1!important;
+    width:100%!important;
+    overflow-x:auto!important;
+  }
+  .lumi-conversation-footer .studio-lumi-composer{
+    order:2!important;
+    position:relative!important;
+    inset:auto!important;
+    width:100%!important;
+    margin:0!important;
+    flex:0 0 auto!important;
+  }
+  .lumi-conversation-footer>.lumi-readonly-note{
+    order:3!important;
+    display:none!important;
+  }
+  .studio-lumi-composer{
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    align-items:center!important;
+  }
+  .studio-lumi-composer input{
+    width:100%!important;
+    min-width:0!important;
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+  }
+  .lumi-topbar-actions{
+    display:flex!important;
+    gap:6px!important;
+    flex-wrap:wrap!important;
+  }
+  .lumi-new-chat-button,.lumi-history-toggle{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-height:40px!important;
+  }
+}
+
+@media (max-width:520px){
+  .lumi-topbar-actions{
+    grid-column:1!important;
+    grid-row:auto!important;
+    justify-content:flex-start!important;
+  }
+  .lumi-v4-badge{display:none!important}
+  .lumi-new-chat-button,.lumi-history-toggle{
+    flex:1 1 0!important;
+  }
+}
