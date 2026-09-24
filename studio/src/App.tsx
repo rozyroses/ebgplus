@@ -107,19 +107,21 @@ type TeamAccount = {
   created_at?: string
 }
 
-type StudioTab = 'overview' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
+type StudioTab = 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
 
 const STAFF_ROLES = new Set<StaffRole>(['editor', 'producer', 'administrator', 'founder'])
 const CASTING_STATUSES: CastingApplication['status'][] = ['New', 'Reviewing', 'Callback', 'Interview', 'Finalist', 'Cast', 'Declined', 'Removed']
 const TABS: Array<{ id: StudioTab; label: string; icon: string }> = [
   { id: 'overview', label: 'Overview', icon: '⌂' },
-  { id: 'series', label: 'Series', icon: '▣' },
+  { id: 'lumi', label: 'Chat', icon: '✦' },
+  { id: 'music', label: 'Music', icon: '♫' },
   { id: 'episodes', label: 'Episodes', icon: '▶' },
+  { id: 'notifications', label: 'News & Notifications', icon: '◌' },
+  { id: 'series', label: 'Series', icon: '▣' },
   { id: 'talent', label: 'Cast & Talent', icon: '◎' },
   { id: 'casting', label: 'Casting', icon: '◇' },
   { id: 'polls', label: 'Polls & Voting', icon: '◉' },
   { id: 'media', label: 'Media', icon: '▧' },
-  { id: 'notifications', label: 'Notifications', icon: '◌' },
   { id: 'team', label: 'Team', icon: '♙' },
 ]
 
@@ -577,11 +579,11 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         <section className="studio-project-onboarding-card">
           <span className="studio-mark">EBG</span>
           <p className="eyebrow">YOUR PRIVATE STUDIO</p>
-          <h1>Create your first production.</h1>
-          <p>Each production has its own private Studio, catalog, uploads, and publishing workspace.</p>
+          <h1>Create your first Studio project.</h1>
+          <p>Projects can be shows, music, or mixed worlds — each with its own private uploads, catalog, chats, and publishing workspace.</p>
           <form onSubmit={createProject}>
-            <label>Production name<input name="title" required maxLength={120} placeholder="e.g. Heartspell House" /></label>
-            <label>Production type
+            <label>Project name<input name="title" required maxLength={120} placeholder="e.g. Heartspell House, Bijou Nicole, or Channel 3" /></label>
+            <label>Project type
               <select name="projectKind" defaultValue="show">
                 <option value="show">Show / Series</option>
                 <option value="music">Music</option>
@@ -589,7 +591,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
               </select>
             </label>
             {message && <p className="form-error">{message}</p>}
-            <button className="button" type="submit" disabled={creatingProject}>{creatingProject ? 'Creating…' : 'Create Production'}</button>
+            <button className="button" type="submit" disabled={creatingProject}>{creatingProject ? 'Creating…' : 'Create Project'}</button>
           </form>
           <button className="text-link project-signout" type="button" onClick={() => void signOutNow()}>Sign out</button>
         </section>
@@ -632,7 +634,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         <main className="workspace">
           {tab === 'overview' && (
             <>
-              <section className="hero-panel"><div><p className="eyebrow">PRODUCTION HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Publish releases, manage talent, review casting, and shape what viewers see.</p><div className="hero-actions"><button className="button" onClick={() => setTab('episodes')}>Upload episode</button><button className="button secondary" onClick={() => setTab('series')}>Manage series</button></div></div><div className="hero-stat"><strong>{cms.shows.length}</strong><span>series in slate</span></div></section>
+              <section className="hero-panel"><div><p className="eyebrow">STUDIO HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Chat with Lumi, upload music, publish episodes, and send news or notifications from one Studio.</p><div className="hero-actions"><button className="button" onClick={() => setTab('lumi')}>Open Lumi</button><button className="button secondary" onClick={() => setTab('music')}>Upload music</button><button className="button secondary" onClick={() => setTab('episodes')}>Post episode</button></div></div><div className="hero-stat"><strong>{projects.length}</strong><span>Studio project{projects.length === 1 ? '' : 's'}</span></div></section>
               <section className="stats-grid">
                 <Stat label="Series" value={cms.shows.length} detail={`${cms.shows.filter((show) => show.status === 'Now Streaming' || show.status === 'Current').length} active`} />
                 <Stat label="Episodes" value={cms.episodes.length} detail={`${activeEpisodes} live`} />
