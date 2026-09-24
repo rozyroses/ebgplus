@@ -272,3 +272,91 @@ export const deleteLumiPublication = async (input: {
   )
 }
 
+export type LumiChatMessage = {
+  role: 'user' | 'lumi'
+  text: string
+}
+
+export type LumiChat = {
+  id: string
+  owner_account_id: string
+  project_id: string
+  title: string
+  messages: LumiChatMessage[]
+  created_at: string
+  updated_at: string
+}
+
+const chatTitleFromPrompt = (prompt: string) => {
+  const clean = prompt.replace(/\s+/g, ' ').trim()
+  if (!clean) return 'New chat'
+  return clean.length > 48 ? clean.slice(0, 45).trimEnd() + '…' : clean
+}
+
+export const listLumiChats = async (projectId: string) => {
+  const session = requireSession()
+  return db.select<LumiChat>(
+    'lumi_chats',
+    `project_id=eq.${encodeURIComponent(projectId)}&order=updated_at.desc`,
+    session.access_token,
+  )
+}
+
+export const createLumiChat = async (projectId: string, firstPrompt?: string) => {
+  const session = requireSession()
+  const rows = await db.insert<LumiChat>(
+    'lumi_chats',
+    {
+      owner_account_id: session.user.id,
+      project_id: projectId,
+      title: chatTitleFromPrompt(firstPrompt || ''),
+      messages: [],
+      updated_at: new Date().toISOString(),
+    },
+    session.access_token,
+  )
+  const chat = rows[0]
+  if (!chat) throw new Error('Lumi could not create a new chat.')
+  return chat
+}
+
+export const saveLumiChat = async (chatId: string, messages: LumiChatMessage[], title?: string) => {
+  const session = requireSession()
+  const rows = await db.update<LumiChat>(
+    'lumi_chats',
+    `id=eq.${encodeURIComponent(chatId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}`,
+    {
+      messages,
+      ...(title ? { title: chatTitleFromPrompt(title) } : {}),
+      updated_at: new Date().toISOString(),
+    },
+    session.access_token,
+  )
+  const chat = rows[0]
+  if (!chat) throw new Error('Lumi chat could not be saved.')
+  return chat
+}
+
+export const renameLumiChat = async (chatId: string, title: string) => {
+  const session = requireSession()
+  const clean = title.trim() || 'New chat'
+  const rows = await db.update<LumiChat>(
+    'lumi_chats',
+    `id=eq.${encodeURIComponent(chatId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}`,
+    { title: clean.slice(0, 80), updated_at: new Date().toISOString() },
+    session.access_token,
+  )
+  const chat = rows[0]
+  if (!chat) throw new Error('Lumi chat could not be renamed.')
+  return chat
+}
+
+export const deleteLumiChat = async (chatId: string) => {
+  const session = requireSession()
+  await db.remove<LumiChat>(
+    'lumi_chats',
+    `id=eq.${encodeURIComponent(chatId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}`,
+    session.access_token,
+  )
+}
+
