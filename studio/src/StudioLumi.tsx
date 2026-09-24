@@ -574,6 +574,30 @@ export default function StudioLumi() {
     const form = new FormData(formElement)
     const text = String(form.get('message') ?? '').trim()
     if (!text) return
+
+    const imageIntent = /\b(generate|make|create|design|render|draw)\b[\s\S]{0,48}\b(image|art|artwork|cover|cover art|poster|visual|graphic|portrait|photo|picture)\b/i.test(text)
+      || /\b(cover art|album cover|single cover|promo poster|character visual|social graphic)\b/i.test(text)
+
+    if (imageIntent) {
+      const kind: LumiImageKind =
+        /cover|album|single/i.test(text) ? 'cover-art'
+        : /poster/i.test(text) ? 'promo-poster'
+        : /character/i.test(text) ? 'character-visual'
+        : /social|graphic/i.test(text) ? 'social-graphic'
+        : 'custom'
+
+      const aspect: LumiImageAspect =
+        /portrait|vertical|9:16|4:5/i.test(text) ? 'portrait'
+        : /landscape|wide|16:9/i.test(text) ? 'landscape'
+        : 'square'
+
+      setImageKind(kind)
+      setImageAspect(aspect)
+      setImagePrompt(text)
+      setImageOpen(true)
+      formElement.reset()
+      return
+    }
     if (!endpoint) {
       setError('Studio Lumi is ready in the app, but VITE_STUDIO_LUMI_URL still needs the Cloudflare Worker URL.')
       return
