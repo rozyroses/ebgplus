@@ -13,6 +13,17 @@ if (!main.includes("./studioFounderNews.css")) {
 
 if (source.includes('// EBG_STUDIO_PHASE157_FOUNDER_NEWS')) process.exit(0)
 
+// Studio V4 intentionally combines News + Notifications and adds Chat/Music tabs.
+// Do not try to rewrite the old StudioTab shape or create the legacy standalone News tab.
+if (
+  source.includes("label: 'News & Notifications'") &&
+  source.includes("{ id: 'lumi', label: 'Chat'") &&
+  source.includes("{ id: 'music', label: 'Music'")
+) {
+  console.log('Studio V4 detected — skipping legacy Phase 1.57 tab patch.')
+  process.exit(0)
+}
+
 // Lumi V4 owns News + Notifications as one shared Studio destination.
 // Older Studio builds still use the legacy founder-news patch below.
 if (source.includes("type StudioTab = 'overview' | 'lumi' | 'music'")) {
