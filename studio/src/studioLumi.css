@@ -406,8 +406,15 @@
   display: grid;
   justify-items: center;
   gap: .65rem;
-  padding: .8rem 0 0;
-  background: linear-gradient(180deg, rgba(7,7,7,0), #070707 20%, #070707 100%);
+  padding: .8rem 0 .35rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--studio-surface-solid) 0%, transparent) 0%,
+    color-mix(in srgb, var(--studio-surface-solid) 92%, transparent) 22%,
+    var(--studio-surface-solid) 100%
+  );
+  border-top: 1px solid color-mix(in srgb, var(--studio-line) 70%, transparent);
+  backdrop-filter: blur(18px);
 }
 
 .lumi-quick-prompts.compact {
