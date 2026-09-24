@@ -4,6 +4,7 @@ import {
   createLumiChat,
   deleteLumiChat,
   deleteLumiPublication,
+  generateLumiImage,
   listLumiChats,
   listLumiPublications,
   loadMyStudioProjects,
@@ -15,6 +16,8 @@ import {
   updateLumiPublication,
   uploadStudioProjectMedia,
   type LumiChat,
+  type LumiImageAspect,
+  type LumiImageKind,
   type LumiPublication,
   type LumiPublicationKind,
   type StudioProject,
@@ -31,7 +34,7 @@ type CmsSlice = {
   }
 }
 
-type LumiMessage = { role: 'user' | 'lumi'; text: string }
+type LumiMessage = { role: 'user' | 'lumi'; text: string; imageUrl?: string; imagePrompt?: string }
 type LumiMode = 'chat' | 'create' | 'run'
 type PublishDraft = {
   kind: LumiPublicationKind | 'music'
@@ -75,16 +78,16 @@ const modePrompts: Record<LumiMode, string[]> = {
     'Give me 5 ideas',
   ],
   create: [
+    'Generate an image',
     'Draft a site news update',
     'Write promo copy',
-    'Create an episode synopsis',
     'Prepare a music release',
   ],
   run: [
+    'Generate an image',
     'Publish an update',
     'Prepare a music release for EBG+',
     'Generate timed lyrics for a track',
-    'Show me what needs review',
   ],
 }
 
@@ -164,6 +167,11 @@ export default function StudioLumi() {
   const [musicInfoOpen, setMusicInfoOpen] = useState(false)
   const [musicCoverFile, setMusicCoverFile] = useState<File | null>(null)
   const [mode, setMode] = useState<LumiMode>('chat')
+  const [imageOpen, setImageOpen] = useState(false)
+  const [imagePrompt, setImagePrompt] = useState('')
+  const [imageKind, setImageKind] = useState<LumiImageKind>('custom')
+  const [imageAspect, setImageAspect] = useState<LumiImageAspect>('square')
+  const [imageGenerating, setImageGenerating] = useState(false)
   const greetingName = useMemo(() => profileName || 'there', [profileName])
 
   const refreshProject = async (nextProjectId = projectId) => {
@@ -314,10 +322,67 @@ export default function StudioLumi() {
   const quickPrompts = modePrompts[mode]
 
   const fillPrompt = (prompt: string) => {
+    if (/^generate an image$/i.test(prompt.trim())) {
+      setMode('create')
+      setImageOpen(true)
+      return
+    }
     const input = document.querySelector<HTMLInputElement>('#studio-lumi-input')
     if (!input) return
     input.value = prompt
     input.focus()
+  }
+
+  const openImageGenerator = (prompt = '') => {
+    setMode('create')
+    setImagePrompt(prompt)
+    setImageOpen(true)
+    setError('')
+  }
+
+  const generateImage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!projectId || imageGenerating || !imagePrompt.trim()) return
+    setImageGenerating(true)
+    setError('')
+    try {
+      let chatId = activeChatId
+      let workingChat = chats.find((chat) => chat.id === activeChatId) ?? null
+      if (!chatId) {
+        workingChat = await createLumiChat(projectId, `Image: ${imagePrompt.trim()}`)
+        chatId = workingChat.id
+        setActiveChatId(chatId)
+        setChats((current) => [workingChat as LumiChat, ...current.filter((chat) => chat.id !== chatId)])
+      }
+
+      const userTurn: LumiMessage = { role: 'user', text: `Generate an image: ${imagePrompt.trim()}` }
+      const beforeImage = [...messages, userTurn]
+      setMessages(beforeImage)
+
+      const result = await generateLumiImage({
+        projectId,
+        prompt: imagePrompt.trim(),
+        kind: imageKind,
+        aspect: imageAspect,
+      })
+
+      const imageTurn: LumiMessage = {
+        role: 'lumi',
+        text: 'Here’s the image I generated for you.',
+        imageUrl: result.imageUrl,
+        imagePrompt: result.prompt,
+      }
+      const completed = [...beforeImage, imageTurn]
+      setMessages(completed)
+      setImageOpen(false)
+
+      const saved = await saveLumiChat(chatId, completed, workingChat?.messages?.length ? undefined : `Image: ${imagePrompt.trim()}`)
+      setChats((current) => [saved, ...current.filter((chat) => chat.id !== saved.id)])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Lumi could not generate that image.')
+    } finally {
+      setImageGenerating(false)
+    }
   }
 
   const startNewChat = () => {
@@ -647,6 +712,7 @@ export default function StudioLumi() {
             <div className="lumi-v4-action-stack">
               <button type="button" onClick={() => { setMode('create'); fillPrompt('Draft a site news update for this project') }}>Draft News</button>
               <button type="button" onClick={() => { setMode('run'); fillPrompt('Prepare a music release for EBG+ Music') }}>Music Release</button>
+              <button type="button" onClick={() => openImageGenerator()}>Generate Image</button>
               <button type="button" onClick={() => { setMode('run'); fillPrompt('Generate timed lyrics for a track') }}>Timed Lyrics</button>
               <button type="button" onClick={() => { setMode('chat'); fillPrompt('What should I work on next in this project?') }}>Next Steps</button>
             </div>
@@ -716,7 +782,16 @@ export default function StudioLumi() {
                 <article className={message.role} key={`${message.role}-${index}`}>
                   <span>{message.role === 'lumi' ? 'Lumi ✦' : profileName}</span>
                   <p>{message.text}</p>
-                  {message.role === 'lumi' && (
+                  {message.imageUrl && (
+                    <div className="lumi-generated-image">
+                      <img src={message.imageUrl} alt={message.imagePrompt || 'Lumi generated image'} />
+                      <div>
+                        <a href={message.imageUrl} target="_blank" rel="noreferrer">Open image ↗</a>
+                        <button type="button" onClick={() => openImageGenerator(message.imagePrompt || '')}>Regenerate</button>
+                      </div>
+                    </div>
+                  )}
+                  {message.role === 'lumi' && !message.imageUrl && (
                     <div className="lumi-message-actions">
                       <button type="button" onClick={() => openPublish(message.text)}>↗ Review & Publish</button>
                     </div>
@@ -741,6 +816,26 @@ export default function StudioLumi() {
               <small className="lumi-readonly-note">Lumi only sees the selected private project. Publishing always requires your review.</small>
             </div>
           </main>
+        )}
+
+        {imageOpen && (
+          <div className="lumi-publish-backdrop lumi-info-backdrop" role="presentation">
+            <form className="lumi-publish-sheet lumi-info-sheet lumi-image-sheet" onSubmit={generateImage}>
+              <header>
+                <div><span>LUMI ✦ IMAGE STUDIO</span><h2>Generate an image.</h2><p>Describe what you want. Lumi will generate it and save it with this Studio project.</p></div>
+                <button type="button" disabled={imageGenerating} onClick={() => setImageOpen(false)} aria-label="Close image generator">×</button>
+              </header>
+              <div className="lumi-info-grid">
+                <label className="full">What should Lumi make?<textarea rows={6} required value={imagePrompt} placeholder="A glossy early-2000s R&B album cover with..." onChange={(event) => setImagePrompt(event.target.value)} /></label>
+                <label>Image type<select value={imageKind} onChange={(event) => setImageKind(event.target.value as LumiImageKind)}><option value="cover-art">Cover Art</option><option value="promo-poster">Promo Poster</option><option value="character-visual">Character Visual</option><option value="social-graphic">Social Graphic</option><option value="custom">Custom</option></select></label>
+                <label>Shape<select value={imageAspect} onChange={(event) => setImageAspect(event.target.value as LumiImageAspect)}><option value="square">Square</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label>
+              </div>
+              <footer>
+                <button className="button secondary" type="button" disabled={imageGenerating} onClick={() => setImageOpen(false)}>Cancel</button>
+                <button className="button" type="submit" disabled={imageGenerating || !imagePrompt.trim()}>{imageGenerating ? 'Generating…' : 'Generate Image ✦'}</button>
+              </footer>
+            </form>
+          </div>
         )}
 
         {musicInfoOpen && (
