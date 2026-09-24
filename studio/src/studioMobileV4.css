@@ -327,3 +327,40 @@ input,select,textarea{font-size:16px}
     flex:1 1 0!important;
   }
 }
+
+/* When Lumi is open, remove legacy Studio chrome entirely */
+body:has(.studio-lumi-overlay) .studio-v3-topbar,
+body:has(.studio-lumi-overlay) .studio-v3-context,
+body:has(.studio-lumi-overlay) .studio-compat-nav {
+  display:none!important;
+}
+
+body:has(.studio-lumi-overlay) .studio-main,
+body:has(.studio-lumi-overlay) .workspace {
+  padding:0!important;
+  margin:0!important;
+  width:100%!important;
+  max-width:none!important;
+  min-height:100dvh!important;
+  overflow:hidden!important;
+}
+
+body:has(.studio-lumi-overlay) .studio-lumi-overlay {
+  position:fixed!important;
+  inset:0!important;
+  z-index:9999!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-height:100dvh!important;
+  background:var(--studio-bg,#f7f7fb)!important;
+}
+
+@media (max-width:900px){
+  body:has(.studio-lumi-overlay){
+    overflow:hidden!important;
+  }
+  body:has(.studio-lumi-overlay) .studio-lumi-shell{
+    height:100dvh!important;
+    min-height:100dvh!important;
+  }
+}
