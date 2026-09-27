@@ -10,6 +10,7 @@ import {
   useLocation,
   useNavigate,
   useParams,
+  useSearchParams,
 } from 'react-router-dom'
 import './App.css'
 import './phase157-platform-refresh.css'
@@ -20,6 +21,7 @@ import { loadApplicantNetwork, loadApplicantMessages, sendApplicantMessage, mark
 import './phase160-application-network.css'
 import { loadInboxNetwork, loadInboxThread, sendInboxMessage, markInboxThreadRead, markOneNetworkNotificationRead, markAllNetworkNotificationsRead, type InboxSubmission, type InboxMessage, type InboxNotification } from './lib/inboxData'
 import './phase161-inbox-notifications.css'
+import './phase162-lumi-studio-handoff.css'
 
 // EBG_PHASE161_INBOX_NOTIFICATIONS
 
@@ -2803,11 +2805,26 @@ function EbgStudioHub({
   onUpdateCastingStatus: (applicationId: string, status: CastingApplication['status']) => Promise<void>
 }) {
   const { studioSection } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showId, setShowId] = useState(cms.shows[0]?.id ?? '')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [polls, setPolls] = useState<Poll[]>([])
   const [pollResults, setPollResults] = useState<Record<string, PollResult[]>>({})
+  const [incomingEpisodeId, setIncomingEpisodeId] = useState('')
+
+  const incomingAssetRaw = searchParams.get('asset')?.trim() ?? ''
+  const incomingAssetName = searchParams.get('name')?.trim() || 'Lumi artwork'
+  const incomingAssetSource = searchParams.get('source')?.trim().toLowerCase() || ''
+  const incomingAssetUrl = (() => {
+    if (!incomingAssetRaw) return ''
+    try {
+      const parsed = new URL(incomingAssetRaw)
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.toString() : ''
+    } catch {
+      return ''
+    }
+  })()
 
   const workspaces = [
     ['overview', 'Overview', '✦'],
@@ -2837,6 +2854,13 @@ function EbgStudioHub({
     if (!cms.shows.some((item) => item.id === showId)) setShowId(cms.shows[0]?.id ?? '')
   }, [cms.shows, showId])
 
+  useEffect(() => {
+    const requestedShowId = searchParams.get('show')
+    if (requestedShowId && cms.shows.some((item) => item.id === requestedShowId) && requestedShowId !== showId) {
+      setShowId(requestedShowId)
+    }
+  }, [cms.shows, searchParams, showId])
+
   const refreshPolls = async () => {
     try {
       const next = await loadPolls(undefined, true)
@@ -2856,6 +2880,9 @@ function EbgStudioHub({
 
   const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   const selectedEpisodes = cms.episodes.filter((episode) => episode.showId === show.id)
+  const incomingEpisodeTarget = selectedEpisodes.some((episode) => episode.id === incomingEpisodeId)
+    ? incomingEpisodeId
+    : (selectedEpisodes[0]?.id ?? '')
   const scheduledEpisodes = selectedEpisodes.filter((episode) => episode.publishStatus === 'scheduled')
   const activePolls = polls.filter((poll) => poll.status === 'open')
   const title = workspaces.find(([id]) => id === tab)?.[1] ?? 'Overview'
@@ -2929,6 +2956,10 @@ function EbgStudioHub({
     setShowId(remaining[0]?.id ?? '')
   }
 
+  const updateEpisode = (episodeId: string, patch: Partial<Episode>) => {
+    onUpdateCms({ ...cms, episodes: cms.episodes.map((episode) => episode.id === episodeId ? { ...episode, ...patch } : episode) })
+  }
+
   const replaceShowMedia = async (field: 'artwork' | 'banner' | 'logoImage', file?: File) => {
     if (!file?.size) return
     setBusy(true); setMessage('Uploading media…')
@@ -2939,6 +2970,26 @@ function EbgStudioHub({
       setMessage('Media updated.')
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Media upload failed.') }
     finally { setBusy(false) }
+  }
+
+  const clearIncomingAsset = () => {
+    const next = new URLSearchParams(searchParams)
+    ;['asset', 'name', 'source', 'show', 'target'].forEach((key) => next.delete(key))
+    setSearchParams(next, { replace: true })
+    setIncomingEpisodeId('')
+  }
+
+  const useIncomingShowAsset = (field: 'artwork' | 'banner' | 'logoImage') => {
+    if (!incomingAssetUrl) return
+    updateShow(show.id, { [field]: incomingAssetUrl } as Partial<Show>)
+    setMessage(`${incomingAssetName} is now ${field === 'artwork' ? 'the poster' : field === 'banner' ? 'the banner' : 'the logo'} for ${show.title}.`)
+  }
+
+  const useIncomingEpisodeThumbnail = () => {
+    if (!incomingAssetUrl || !incomingEpisodeTarget) return
+    updateEpisode(incomingEpisodeTarget, { thumbnail: incomingAssetUrl })
+    const episode = selectedEpisodes.find((item) => item.id === incomingEpisodeTarget)
+    setMessage(`${incomingAssetName} is now the thumbnail for ${episode?.title ?? 'the episode'}.`)
   }
 
   const addEpisode = async (event: FormEvent<HTMLFormElement>) => {
@@ -2979,10 +3030,6 @@ function EbgStudioHub({
       formEl.reset(); setMessage(action === 'live' ? 'Episode published.' : action === 'scheduled' ? 'Episode scheduled.' : 'Episode saved as draft.')
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Episode upload failed.') }
     finally { setBusy(false) }
-  }
-
-  const updateEpisode = (episodeId: string, patch: Partial<Episode>) => {
-    onUpdateCms({ ...cms, episodes: cms.episodes.map((episode) => episode.id === episodeId ? { ...episode, ...patch } : episode) })
   }
 
   const duplicateEpisode = (episode: Episode) => {
@@ -3176,6 +3223,29 @@ function EbgStudioHub({
         </div>}
 
         {tab==='content' && <div className="studio3-stack">
+          {incomingAssetRaw && <section className="studio3-panel lumi-studio-handoff">
+            <div className="lumi-studio-handoff-preview">
+              {incomingAssetUrl ? <img src={incomingAssetUrl} alt={incomingAssetName} /> : <div className="lumi-studio-handoff-invalid">Image link unavailable</div>}
+            </div>
+            <div className="lumi-studio-handoff-copy">
+              <span className="studio3-kicker">{incomingAssetSource === 'lumi' ? 'FROM LUMI' : 'INCOMING ARTWORK'}</span>
+              <h2>Use this artwork in Studio</h2>
+              <p><strong>{incomingAssetName}</strong> is ready to apply to <strong>{show.title}</strong>. Pick where it belongs — no download and re-upload needed.</p>
+              {incomingAssetUrl ? <div className="lumi-studio-handoff-actions">
+                <button type="button" onClick={()=>useIncomingShowAsset('artwork')}>Use as poster</button>
+                <button type="button" onClick={()=>useIncomingShowAsset('banner')}>Use as banner</button>
+                <button type="button" onClick={()=>useIncomingShowAsset('logoImage')}>Use as logo</button>
+                {selectedEpisodes.length > 0 && <div className="lumi-studio-handoff-episode">
+                  <select value={incomingEpisodeTarget} onChange={(event)=>setIncomingEpisodeId(event.target.value)}>
+                    {selectedEpisodes.map((episode)=><option value={episode.id} key={episode.id}>S{episode.season}E{episode.number} · {episode.title}</option>)}
+                  </select>
+                  <button type="button" onClick={useIncomingEpisodeThumbnail}>Use as thumbnail</button>
+                </div>}
+              </div> : <p className="lumi-studio-handoff-warning">The incoming image URL is not a valid http or https image link.</p>}
+              <button className="lumi-studio-handoff-dismiss" type="button" onClick={clearIncomingAsset}>Dismiss artwork</button>
+            </div>
+          </section>}
+
           <section className="studio3-panel studio3-production-banner">
             <div className="studio3-production-art" style={{backgroundImage:`url(${show.banner||show.artwork})`}} />
             <div className="studio3-production-copy">

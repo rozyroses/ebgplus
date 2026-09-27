@@ -1,0 +1,120 @@
+/* EBG Phase 1.62 — Lumi → Studio artwork handoff */
+
+.lumi-studio-handoff {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: 24px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.lumi-studio-handoff-preview {
+  min-height: 220px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-strong, #191d32) 88%, transparent);
+  display: grid;
+  place-items: center;
+}
+
+.lumi-studio-handoff-preview img {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  max-height: 310px;
+  object-fit: cover;
+}
+
+.lumi-studio-handoff-invalid {
+  padding: 24px;
+  text-align: center;
+  opacity: .7;
+}
+
+.lumi-studio-handoff-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.lumi-studio-handoff-copy h2 {
+  margin: 6px 0 8px;
+}
+
+.lumi-studio-handoff-copy p {
+  margin: 0 0 16px;
+  max-width: 720px;
+}
+
+.lumi-studio-handoff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.lumi-studio-handoff-actions > button,
+.lumi-studio-handoff-episode button {
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 15px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  background: var(--accent, #7770ff);
+  color: white;
+}
+
+.lumi-studio-handoff-actions > button:hover,
+.lumi-studio-handoff-episode button:hover {
+  transform: translateY(-1px);
+}
+
+.lumi-studio-handoff-episode {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 100%;
+  max-width: 620px;
+}
+
+.lumi-studio-handoff-episode select {
+  flex: 1;
+  min-width: 0;
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.lumi-studio-handoff-dismiss {
+  margin-top: 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: .68;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lumi-studio-handoff-warning {
+  color: #ffb0ba;
+}
+
+@media (max-width: 760px) {
+  .lumi-studio-handoff {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .lumi-studio-handoff-preview,
+  .lumi-studio-handoff-preview img {
+    min-height: 190px;
+    max-height: 260px;
+  }
+
+  .lumi-studio-handoff-episode {
+    flex-direction: column;
+  }
+}
