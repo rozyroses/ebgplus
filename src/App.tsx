@@ -13,6 +13,7 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 import './App.css'
+import './styles/public-home.css'
 import './phase157-platform-refresh.css'
 import './phase158-mobile-polish.css'
 import { loadPublicForm, loadPublicForms, loadStaffForms, loadStaffSubmissions, submitEbgForm, updateFormStatus, updateSubmission, type EbgForm, type EbgFormSubmission } from './lib/formsV2Data'
@@ -1108,137 +1109,43 @@ function UnsubscribePage() {
 }
 
 function LandingPage({ cms }: { cms: CmsData }) {
-  const visibleShows = cms.shows.filter((show) => show.homeVisible !== false)
-  const previewShows = visibleShows.slice(0, 4)
-  const publishedNews = (cms.news ?? [])
-    .filter((item) => item.status === 'published' && Date.parse(item.publishedAt) <= Date.now())
-    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
-
+  const shows = cms.shows.filter((show) => show.homeVisible !== false)
+  const [selectedId, setSelectedId] = useState('')
+  const featured = shows.find((show) => show.id === selectedId) || shows[0]
+  const news = (cms.news ?? []).filter((item) => item.status === 'published' && Date.parse(item.publishedAt) <= Date.now()).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
+  const worlds = [
+    { name: 'Bijou Nicole', number: '01', tag: 'THE FEELING', copy: 'R&B emotion. Pop fantasy. A world of her own.', color: 'rose' },
+    { name: 'Empress V', number: '02', tag: 'THE PRESENCE', copy: 'Big performances. Bold stories. Unmistakable energy.', color: 'blue' },
+    { name: 'Goldie Songs', number: '03', tag: 'THE SOUL', copy: 'Music with meaning. Stories that stay with you.', color: 'green' },
+  ]
   return (
-    <main className="landing public-landing-v2">
-      <header className="topbar public-topbar">
-        <Link className="wordmark" to="/">EBG+</Link>
-        <nav aria-label="Main navigation">
-          <a href="#discover">Discover</a>
-          <a href="#universe">The universe</a>
-          <Link to="/auth/create-account">Join EBG+</Link>
-          <Link to="/auth/sign-in" className="btn">Sign In</Link>
-        </nav>
+    <main className="ebg-home">
+      <a className="eh-skip" href="#discover">Skip to content</a>
+      <header className="eh-header">
+        <Link className="eh-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
+        <nav aria-label="Main navigation"><a href="#discover">Discover</a><a href="#universe">Our universe</a><a href="#creators">For creators</a></nav>
+        <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+ <span aria-hidden="true">↗</span></Link></div>
       </header>
-
-      <section className="hero public-hero" aria-label="EBG+ introduction">
-        <div className="public-hero-copy">
-          <p className="eyebrow">ORIGINAL ENTERTAINMENT. DISTINCTLY EBG.</p>
-          <h1>Your next<br /><em>obsession.</em></h1>
-          <p className="public-hero-lead">Premium series, reality television, cinematic music performances, artist stories, and the evolving EBG universe — all in one place.</p>
-          <div className="actions">
-            <Link className="btn" to="/auth/create-account">Find your world <span aria-hidden="true">↗</span></Link>
-            <Link className="btn muted" to="/auth/sign-in">Sign In</Link>
-          </div>
-        </div>
-        <div className="public-hero-orbit" aria-hidden="true">
-          <div className="brand-feature"><img src="/branding/ebgplus-ink-blue.png" alt="" /><p>One universe.<br />Endless possibilities.</p><span>ORIGINALS · MUSIC · STORIES</span></div>
-        </div>
+      <section className="eh-intro" aria-labelledby="eh-title">
+        <div><p className="eh-eyebrow"><span /> ORIGINALS. MUSIC. CULTURE.</p><h1 id="eh-title">Find your people.<br />Feel <em>everything.</em></h1></div>
+        <div className="eh-intro-side"><p>The stories you get into.<br />The artists you come back for.<br />All together on EBG+.</p><a href="#discover" className="eh-text-link">Explore the lineup <span aria-hidden="true">↓</span></a></div>
       </section>
-
-      <section id="discover" className="public-intro-section">
-        <div className="public-section-heading">
-          <p className="eyebrow">Inside EBG+</p>
-          <h2>Watch the story. Then step inside it.</h2>
-          <p>EBG+ combines streaming with interactive fan experiences, creator-led programming, casting, application updates, and a growing entertainment universe.</p>
-        </div>
-        <div className="public-benefit-grid">
-          <article><span>01</span><h3>Original programming</h3><p>Reality series, specials, music films, interviews, performances, and EBG-exclusive projects.</p></article>
-          <article><span>02</span><h3>Your own library</h3><p>Create profiles, build My List, save playback progress, and pick up where you left off.</p></article>
-          <article><span>03</span><h3>Interactive fandom</h3><p>Join eligible live polls and voting experiences as EBG+ stories unfold.</p></article>
-          <article><span>04</span><h3>Casting connection</h3><p>Apply through EBG Forms and track eligible application updates from your EBG+ account.</p></article>
-        </div>
+      {featured && <section className="eh-feature" aria-label="Featured on EBG+">
+        <img className="eh-feature-image" src={featured.banner || featured.artwork} alt="" fetchPriority="high" />
+        <div className="eh-feature-shade" />
+        <div className="eh-feature-top"><span>IN THE SPOTLIGHT</span><span>{featured.status}</span></div>
+        <div className="eh-feature-copy"><p className="eh-eyebrow">{featured.category || 'EBG+ ORIGINAL'}</p><h2>{featured.title}</h2><p>{featured.description}</p><div className="eh-feature-actions"><Link className="eh-button eh-button-white" to={`/app/shows/${featured.id}`}>Explore series <span aria-hidden="true">↗</span></Link><span>{featured.genre} · {featured.year}</span></div></div>
+        {shows.length > 1 && <div className="eh-feature-picker" aria-label="Choose featured title">{shows.slice(0, 4).map((show, index) => <button type="button" key={show.id} aria-pressed={featured.id === show.id} onClick={() => setSelectedId(show.id)}><span>{String(index + 1).padStart(2, '0')}</span>{show.title}</button>)}</div>}
+      </section>}
+      <section id="discover" className="eh-section">
+        <div className="eh-section-heading"><div><p className="eh-eyebrow">YOUR NEXT PLAY</p><h2>A little drama. A lot to love.</h2></div><Link className="eh-text-link" to="/app/shows">Explore all shows ↗</Link></div>
+        <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art"><img src={show.artwork || show.banner} alt="" loading="lazy" /><span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
+        {!shows.length && <p className="eh-empty">Our next chapter is on its way. Join EBG+ to discover what comes next.</p>}
       </section>
-
-      <section id="universe" className="public-founders-section founder-world-v3">
-        <div className="public-section-heading compact">
-          <p className="eyebrow">Inside the EBG Universe</p>
-          <h2>Three creative forces. One universe that keeps expanding.</h2>
-          <p>EBG+ is shaped by the individual worlds of Bijou Nicole, Empress V, and Goldie Songs — music, television, visual storytelling, live moments, personality, and original ideas that cross into one shared creative home.</p>
-        </div>
-        <div className="founder-world-grid">
-          <article className="founder-world-card bijou-card">
-            <div className="founder-world-number">01</div>
-            <p className="eyebrow">BIJOU NICOLE</p>
-            <h3>Pop fantasy, R&B emotion, and cinematic world-building.</h3>
-            <p>Bijou's corner of EBG blends music, performance, fashion, romantic storytelling, and larger-than-life visual eras. Her projects move between intimate songwriting and theatrical concepts built to feel like complete worlds rather than standalone releases.</p>
-            <p className="founder-world-detail">On EBG+ you'll find music, performance films, original programming, behind-the-scenes moments, and stories connected to the evolving Bijou universe.</p>
-            <div className="founder-tags"><span>Music</span><span>Originals</span><span>Performance</span><span>Visual Worlds</span></div>
-            <Link className="founder-link" to="/auth/sign-in">Enter Bijou's world →</Link>
-          </article>
-          <article className="founder-world-card empress-card">
-            <div className="founder-world-number">02</div>
-            <p className="eyebrow">EMPRESS V</p>
-            <h3>Theatrical edge, bold emotion, and a world built for the stage.</h3>
-            <p>Empress brings a dramatic, performance-first energy to EBG. Her creative world leans into strong visual identity, live storytelling, emotional contrast, and projects that feel equally at home in music, concert films, and character-driven entertainment.</p>
-            <p className="founder-world-detail">Her EBG+ presence connects music releases, visual performances, collaborations, special programming, and the stories happening around her creative era.</p>
-            <div className="founder-tags"><span>Music</span><span>Live</span><span>Storytelling</span><span>Collaborations</span></div>
-            <Link className="founder-link" to="/auth/sign-in">Enter Empress V's world →</Link>
-          </article>
-          <article className="founder-world-card goldie-card">
-            <div className="founder-world-number">03</div>
-            <p className="eyebrow">GOLDIE SONGS</p>
-            <h3>Soul, conversation, reflection, and artist-first storytelling.</h3>
-            <p>Goldie's world brings warmth and perspective to EBG through soulful music, personal storytelling, thoughtful conversations, and creative projects centered on growth, identity, and the life surrounding the art itself.</p>
-            <p className="founder-world-detail">Across EBG+ her world can expand through songs, interviews, documentaries, conversations, performances, and original concepts that let audiences know the person behind the music.</p>
-            <div className="founder-tags"><span>Music</span><span>Conversations</span><span>Documentary</span><span>Artist Stories</span></div>
-            <Link className="founder-link" to="/auth/sign-in">Enter Goldie's world →</Link>
-          </article>
-        </div>
-      </section>
-
-      {publishedNews.length > 0 && (
-        <section className="public-news-strip">
-          <div className="public-section-heading compact"><p className="eyebrow">Latest from EBG</p><h2>The universe moves fast.</h2><p>Announcements, releases, casting updates, creative news, and the stories happening around EBG.</p></div>
-          <div className="public-news-grid">
-            {publishedNews.slice(0, 3).map((item) => (
-              <article key={item.id} className="public-news-card">
-                {item.image && <img src={item.image} alt="" />}
-                <div><span>{item.category}</span><h3>{item.headline}</h3><p>{item.summary}</p><small>{item.author} · {new Date(item.publishedAt).toLocaleDateString()}</small></div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {previewShows.length > 0 && (
-        <section className="public-preview-section">
-          <div className="public-section-heading compact">
-            <p className="eyebrow">On EBG+</p>
-            <h2>A first look at the world.</h2>
-          </div>
-          <div className="public-preview-grid">
-            {previewShows.map((show) => (
-              <article key={show.id} className="public-preview-card" style={{ backgroundImage: 'url(' + (show.banner || show.artwork) + ')' }}>
-                <div>
-                  <span>{show.status}</span>
-                  <h3>{show.title}</h3>
-                  <p>{show.genre}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="public-join-banner">
-        <div>
-          <p className="eyebrow">Your seat is waiting</p>
-          <h2>One account connects your EBG+ experience.</h2>
-          <p>Use one email for your account and eligible casting submissions so application updates can stay connected to you.</p>
-        </div>
-        <div className="actions">
-          <Link className="btn" to="/auth/create-account">Join EBG+</Link>
-          <Link className="btn muted" to="/about">Learn About EBG</Link>
-        </div>
-      </section>
-
-      <Footer />
+      <section id="universe" className="eh-section eh-worlds"><div className="eh-section-heading"><div><p className="eh-eyebrow">THREE WORLDS. ONE HOME.</p><h2>Meet the heart of EBG.</h2></div><p>Different voices.<br />A shared love for the unexpected.</p></div><div className="eh-world-grid">{worlds.map((world) => <Link key={world.name} to="/auth/sign-in" className={`eh-world eh-${world.color}`}><div><span>{world.tag}</span><span>{world.number}</span></div><h3>{world.name}</h3><p>{world.copy}</p><span className="eh-world-link">Step into the world <b aria-hidden="true">↗</b></span></Link>)}</div></section>
+      {news.length > 0 && <section className="eh-section"><div className="eh-section-heading"><div><p className="eh-eyebrow">THE LATEST</p><h2>Stay in the conversation.</h2></div></div><div className="eh-news-grid">{news.map((item) => <article className="eh-news" key={item.id}>{item.image && <img src={item.image} alt="" loading="lazy" />}<p className="eh-eyebrow">{item.category}</p><h3>{item.headline}</h3><p>{item.summary}</p><small>{new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</small></article>)}</div></section>}
+      <section id="creators" className="eh-create"><div><p className="eh-eyebrow">MAKE YOUR NEXT CHAPTER</p><h2>Got a story?<br /><em>Give it a home.</em></h2></div><div><p>A space for creators, producers, and the people who love what they make. Start your EBG+ account and find where you belong.</p><Link className="eh-button" to="/auth/create-account">Create your account ↗</Link></div></section>
+      <footer className="eh-footer"><Link className="eh-logo" to="/">EBG<span>+</span></Link><p>Original entertainment. A shared universe.</p><nav aria-label="Footer navigation"><Link to="/about">About EBG</Link><Link to="/auth/sign-in">Sign in</Link><a href="https://studio.ebgplus.app">Creator studio ↗</a></nav><small>© {new Date().getFullYear()} EBG+</small></footer>
     </main>
   )
 }
