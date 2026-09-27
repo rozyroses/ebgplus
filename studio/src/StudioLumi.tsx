@@ -754,21 +754,13 @@ export default function StudioLumi() {
 
             <form className="studio-lumi-composer hero-composer" onSubmit={send}>
               <span className="composer-spark" aria-hidden="true">✦</span>
-              <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : projectMeta ? `Ask Lumi about ${projectMeta.title}` : 'Choose a Studio project first'} autoComplete="off" disabled={!projectId || busy} />
+              <input id="studio-lumi-input" name="message" placeholder={projectId ? 'Ask Lumi anything…' : 'Choose a Studio project first'} autoComplete="off" disabled={!projectId || busy} />
               <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">➜</button>
             </form>
 
             <div className="lumi-quick-prompts">
               {quickPrompts.map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
             </div>
-
-            {selectedShow && (
-              <div className="lumi-production-strip">
-                <div><span>{selectedShow.genre || 'Series'} · {selectedShow.status || 'Production'}</span><strong>{selectedShow.title}</strong></div>
-                <p>{selectedShow.description || 'No description yet.'}</p>
-                <small>{selectedEpisodes.length} episode{selectedEpisodes.length === 1 ? '' : 's'} in this private project</small>
-              </div>
-            )}
 
             {publishMessage && <div className="studio-lumi-success">{publishMessage} <a href="https://ebgplus.app" target="_blank" rel="noreferrer">View site ↗</a></div>}
             {error && <div className="studio-lumi-error welcome-error">{error}</div>}
@@ -826,7 +818,7 @@ export default function StudioLumi() {
               </div>
               <form className="studio-lumi-composer" onSubmit={send}>
                 <span className="composer-spark" aria-hidden="true">✦</span>
-                <input id="studio-lumi-input" name="message" placeholder={selectedShow ? `Ask Lumi about ${selectedShow.title}` : projectMeta ? `Ask Lumi about ${projectMeta.title}` : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
+                <input id="studio-lumi-input" name="message" placeholder={projectId ? 'Ask Lumi anything…' : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
                 <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
               </form>
               <small className="lumi-readonly-note">Lumi only sees the selected private project. Publishing always requires your review.</small>
