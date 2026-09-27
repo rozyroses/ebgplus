@@ -678,3 +678,16 @@
 .lumi-image-sheet textarea{width:100%;border:1px solid var(--studio-line);border-radius:14px;background:var(--studio-surface-2);color:var(--studio-text);padding:11px 12px;font:inherit;font-size:16px;line-height:1.5;resize:vertical;outline:none}
 .lumi-image-sheet textarea:focus{border-color:color-mix(in srgb,var(--studio-accent) 46%,var(--studio-line));box-shadow:0 0 0 3px color-mix(in srgb,var(--studio-accent) 9%,transparent)}
 @media(max-width:620px){.lumi-generated-image img{width:100%;max-height:58svh;border-radius:16px}.lumi-generated-image>div>*{flex:1}}
+
+/* Focused Lumi workspace */
+.studio-lumi-shell.context-closed .lumi-v4-context{display:none}
+.studio-lumi-shell.context-closed .studio-lumi-welcome,.studio-lumi-shell.context-closed .studio-lumi-chat{margin-right:0}
+.studio-lumi-shell.context-closed .studio-lumi-chat{width:min(1080px,calc(100% - 2rem - 260px))}
+.studio-lumi-shell .lumi-welcome-copy h1{font-size:clamp(2rem,4vw,3rem);line-height:1.15;overflow-wrap:anywhere}
+.studio-lumi-shell .lumi-generated-image img{width:min(100%,380px);max-height:380px}
+.lumi-back-studio,.lumi-context-toggle,.lumi-context-close{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 12px;border:1px solid var(--studio-line);border-radius:12px;background:var(--studio-surface-solid);color:var(--studio-text);font:inherit;font-size:.75rem;text-decoration:none;cursor:pointer}
+.studio-lumi-success{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.studio-lumi-success button{margin-left:auto;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:6px 10px}
+.lumi-topbar-actions{flex-wrap:wrap}
+@media(max-width:1180px){.studio-lumi-shell.context-open .lumi-v4-context{display:grid;z-index:30;top:180px;width:min(320px,90vw);box-shadow:var(--studio-shadow)}}
+@media(max-width:900px){.studio-lumi-shell.context-closed .studio-lumi-chat{width:calc(100% - 2rem)}.studio-lumi-brand{flex-wrap:wrap}.lumi-topbar-actions{gap:6px}}
