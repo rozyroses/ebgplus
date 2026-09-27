@@ -162,6 +162,7 @@ export default function StudioLumi() {
   const [chats, setChats] = useState<LumiChat[]>([])
   const [activeChatId, setActiveChatId] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [contextOpen, setContextOpen] = useState(false)
   const [profileName, setProfileName] = useState('there')
   const [musicDetails, setMusicDetails] = useState<MusicDetails>(emptyMusicDetails)
   const [musicInfoOpen, setMusicInfoOpen] = useState(false)
@@ -213,14 +214,10 @@ export default function StudioLumi() {
       .then((state) => {
         const name = state.studioIdentity?.display_name?.trim()
           || state.profiles?.[0]?.name?.trim()
-          || session.user.email?.split('@')[0]
           || 'there'
         setProfileName(name)
       })
-      .catch(() => {
-        const fallback = session.user.email?.split('@')[0]?.replace(/[._-]+/g, ' ').trim()
-        if (fallback) setProfileName(fallback.replace(/\b\w/g, (letter) => letter.toUpperCase()))
-      })
+      .catch(() => setProfileName('there'))
   }, [active])
 
   useEffect(() => {
@@ -383,6 +380,19 @@ export default function StudioLumi() {
     } finally {
       setImageGenerating(false)
     }
+  }
+
+  const downloadImage = async (url: string) => {
+    try {
+      const response = await fetch(url)
+      if (!response.ok) throw new Error("Image download failed. Please try again.")
+      const objectUrl = URL.createObjectURL(await response.blob())
+      const link = document.createElement("a")
+      link.href = objectUrl
+      link.download = "lumi-image.png"
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+    } catch { setError("Image download failed. Use Expand to open and save the image.") }
   }
 
   const startNewChat = () => {
@@ -661,9 +671,10 @@ export default function StudioLumi() {
 
   return (
     <section className="studio-lumi-overlay" aria-label="Lumi for EBG Studio">
-      <div className={`studio-lumi-shell ${hasConversation ? 'conversation-active' : ''}`}>
+      <div className={`studio-lumi-shell ${hasConversation ? 'conversation-active' : ''} ${contextOpen ? 'context-open' : 'context-closed'}`}>
         <header className="studio-lumi-topbar">
           <div className="studio-lumi-brand">
+            <a className="lumi-back-studio" href="#overview">← Back to Studio</a>
             <span className="lumi-orb">✦</span>
             <div><strong>Lumi</strong><small>EBG Studio AI</small></div>
           </div>
@@ -677,7 +688,7 @@ export default function StudioLumi() {
           <nav className="lumi-v4-modes" aria-label="Lumi mode">
             {(['chat','create','run'] as LumiMode[]).map((item) => (
               <button type="button" key={item} className={mode === item ? 'active' : ''} onClick={() => setMode(item)}>
-                {item === 'chat' ? 'Chat' : item === 'create' ? 'Create' : 'Run'}
+                {item === 'chat' ? 'Chat' : item === 'create' ? 'Create' : 'Actions'}
               </button>
             ))}
           </nav>
@@ -685,14 +696,13 @@ export default function StudioLumi() {
           <div className="lumi-topbar-actions">
             <button className="lumi-new-chat-button" type="button" onClick={startNewChat}>＋ New Chat</button>
             <button className="lumi-history-toggle" type="button" onClick={() => setHistoryOpen((value) => !value)}>☰ History</button>
-            <span className="lumi-v4-badge">V4</span>
+            <button type="button" className="lumi-context-toggle" aria-expanded={contextOpen} aria-controls="lumi-project-context" onClick={() => setContextOpen((value) => !value)}>Project details</button>
           </div>
         </header>
 
         <aside className={`lumi-history-sidebar ${historyOpen ? 'open' : ''}`}>
           <div className="lumi-history-head">
             <div><span>YOUR CHATS</span><strong>History</strong></div>
-            <button type="button" onClick={startNewChat}>＋ New Chat</button>
           </div>
           <div className="lumi-history-list">
             {chats.length === 0 && <div className="lumi-history-empty"><span>✦</span><p>No saved chats yet.</p><small>Your first message will start one.</small></div>}
@@ -711,7 +721,8 @@ export default function StudioLumi() {
           </div>
         </aside>
 
-        <aside className="lumi-v4-context">
+        <aside id="lumi-project-context" className="lumi-v4-context" hidden={!contextOpen}>
+          <button type="button" className="lumi-context-close" onClick={() => setContextOpen(false)}>Close project details ×</button>
           <div className="lumi-v4-context-head">
             <span>PROJECT BRAIN</span>
             <strong>{projectMeta?.title || 'Studio context'}</strong>
@@ -732,7 +743,7 @@ export default function StudioLumi() {
           </section>
 
           <section className="lumi-v4-context-section">
-            <div><span>ACTIONS</span><strong>Quick run</strong></div>
+            <div><span>ACTIONS</span><strong>Quick actions</strong></div>
             <div className="lumi-v4-action-stack">
               <button type="button" onClick={() => { setMode('create'); fillPrompt('Draft a site news update for this project') }}>Draft News</button>
               <button type="button" onClick={() => { setMode('run'); fillPrompt('Prepare a music release for EBG+ Music') }}>Music Release</button>
@@ -747,8 +758,8 @@ export default function StudioLumi() {
           <main className="studio-lumi-welcome">
             <div className="lumi-ambient-glow" aria-hidden="true" />
             <div className="lumi-welcome-copy">
-              <span className="lumi-kicker">LUMI V4 ✦ {mode.toUpperCase()}</span>
-              <h1>{activeChatId ? 'Welcome back.' : mode === 'chat' ? <>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></> : mode === 'create' ? 'What are we making?' : 'What should Lumi run?'}</h1>
+              <span className="lumi-kicker">LUMI V4 ✦ {mode === 'run' ? 'ACTIONS' : mode.toUpperCase()}</span>
+              <h1>{activeChatId ? 'Welcome back.' : mode === 'chat' ? <>Let’s jump in, <span className="lumi-greeting-name">{greetingName}.</span></> : mode === 'create' ? 'What are we making?' : 'What would you like to do?'}</h1>
               <p>{mode === 'chat' ? 'Think with Lumi using the full project context.' : mode === 'create' ? 'Create polished content, releases, copy, and production material.' : 'Prepare real Studio actions, gather missing info, and review before anything changes.'}</p>
             </div>
 
@@ -762,7 +773,7 @@ export default function StudioLumi() {
               {quickPrompts.map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
             </div>
 
-            {publishMessage && <div className="studio-lumi-success">{publishMessage} <a href="https://ebgplus.app" target="_blank" rel="noreferrer">View site ↗</a></div>}
+            {publishMessage && <div className="studio-lumi-success"><span>{publishMessage}</span> <button type="button" aria-label="Dismiss notification" onClick={() => setPublishMessage('')}>×</button> <a href="https://ebgplus.app" target="_blank" rel="noreferrer">View site ↗</a></div>}
             {error && <div className="studio-lumi-error welcome-error">{error}</div>}
 
             {publications.length > 0 && (
@@ -794,7 +805,8 @@ export default function StudioLumi() {
                     <div className="lumi-generated-image">
                       <img src={message.imageUrl} alt={message.imagePrompt || 'Lumi generated image'} />
                       <div>
-                        <a href={message.imageUrl} target="_blank" rel="noreferrer">Open image ↗</a>
+                        <a href={message.imageUrl} target="_blank" rel="noreferrer">Expand ↗</a>
+                        <button type="button" onClick={() => void downloadImage(message.imageUrl!)}>Download ↓</button>
                         <button type="button" onClick={() => openImageGenerator(message.imagePrompt || '')}>Regenerate</button>
                       </div>
                     </div>
@@ -809,7 +821,7 @@ export default function StudioLumi() {
               {busy && <article className="lumi thinking"><span>Lumi ✦</span><p>thinking with your production context…</p></article>}
             </div>
 
-            {publishMessage && <div className="studio-lumi-success">{publishMessage} <a href="https://ebgplus.app" target="_blank" rel="noreferrer">View site ↗</a></div>}
+            {publishMessage && <div className="studio-lumi-success"><span>{publishMessage}</span> <button type="button" aria-label="Dismiss notification" onClick={() => setPublishMessage('')}>×</button> <a href="https://ebgplus.app" target="_blank" rel="noreferrer">View site ↗</a></div>}
             {error && <div className="studio-lumi-error">{error}</div>}
 
             <div className="lumi-conversation-footer">
