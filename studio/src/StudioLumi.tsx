@@ -793,14 +793,6 @@ export default function StudioLumi() {
 
         {hasConversation && (
           <main className="studio-lumi-chat">
-            <div className="studio-lumi-chat-context">
-              <span className="lumi-spark">✦</span>
-              <div>
-                <strong>{selectedShow?.title || 'Lumi Studio'}</strong>
-                <small>{selectedShow ? `${selectedShow.genre || 'Series'} · ${selectedEpisodes.length} episode${selectedEpisodes.length === 1 ? '' : 's'}` : 'Production context'}</small>
-              </div>
-            </div>
-
             <div className="studio-lumi-messages">
               {messages.map((message, index) => (
                 <article className={message.role} key={`${message.role}-${index}`}>
