@@ -21,13 +21,23 @@ const notificationsPage = `function NotificationsPage({ cms, account }: { cms: C
   const [readIds, setReadIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(storageKey) ?? '[]') as string[] } catch { return [] }
   })
-  const [myApplications, setMyApplications] = useState<ViewerApplication[]>([])
+  const [myApplications, setMyApplications] = useState<Array<{ id: string; show_id: string; status: string; created_at: string }>>([])
 
   useEffect(() => {
     let active = true
-    void loadMyCastingApplications()
-      .then((rows) => { if (active) setMyApplications(rows) })
-      .catch((error) => console.error('Could not load casting alerts.', error))
+    void loadCastingApplications()
+      .then((rows: Awaited<ReturnType<typeof loadCastingApplications>>) => {
+        if (!active) return
+        setMyApplications(rows
+          .filter((row) => Boolean(row.id))
+          .map((row) => ({
+            id: String(row.id),
+            show_id: 'heartspell-house',
+            status: row.status ?? 'New',
+            created_at: row.created_at ?? new Date().toISOString(),
+          })))
+      })
+      .catch((error: unknown) => console.error('Could not load casting alerts.', error))
     return () => { active = false }
   }, [])
 
