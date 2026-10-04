@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
-import { loadProjectCms, saveProjectCms } from '../../src/lib/studioData'
+import { loadProjectCms, saveProjectCms, uploadStudioProjectMedia } from '../../src/lib/studioData'
+
+import { AudioSizeError, transcribeUploadedAudio, type Transcription } from './lyricsAudio'
 
 type TimedLyric = { start: number; end: number; text: string }
 type MusicArtist = { id: string; name: string }
@@ -144,21 +146,25 @@ export default function StudioMusicLyricsV2() {
     setBusy(true)
     setMessage('Listening to the uploaded track and timing the lyrics…')
     try {
-      const response = await fetch(`${endpoint.replace(/\/$/, '')}/transcribe-lyrics`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+      const payload = await transcribeUploadedAudio({
+        audioUrl: selectedTrack.audioUrl,
+        progress: setMessage,
+        upload: (file) => uploadStudioProjectMedia(file, projectId, `lyrics/${selectedTrack.id}`),
+        transcribe: async (audioUrl) => {
+          const response = await fetch(`${endpoint.replace(/\/$/, '')}/transcribe-lyrics`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({ audioUrl, trackId: selectedTrack.id }),
+          })
+          const result = await response.json().catch(() => ({})) as Transcription & { error?: string }
+          if (!response.ok) {
+            const message = result.error || `Timed lyric transcription failed (${response.status}).`
+            if (response.status === 413 || /larger than|too large|size limit|24\s*MB/i.test(message)) throw new AudioSizeError(message)
+            throw new Error(message)
+          }
+          return result
         },
-        body: JSON.stringify({ audioUrl: selectedTrack.audioUrl, trackId: selectedTrack.id }),
       })
-      const payload = await response.json().catch(() => ({})) as {
-        text?: string
-        timedLyrics?: TimedLyric[]
-        language?: string | null
-        error?: string
-      }
-      if (!response.ok) throw new Error(payload.error || `Timed lyric transcription failed (${response.status}).`)
       const nextLines = cleanTimedLyrics(payload.timedLyrics)
       if (!nextLines.length) throw new Error('No vocal lyric lines were detected in this track.')
       setTimedLyrics(nextLines)
