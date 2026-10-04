@@ -251,19 +251,34 @@ export default function StudioMusicManagerV1() {
     }
     setBusy(true)
     try {
+      const losslessFile = form.get('losslessFile') as File
+      const atmosFile = form.get('atmosFile') as File
+      const primaryLossless = /\.flac$/i.test(audioFile.name) || (/\.wav$/i.test(audioFile.name) && form.get('confirmPcm') === 'on')
+      if (losslessFile?.size && !/\.(flac|wav)$/i.test(losslessFile.name)) throw new Error('Use a FLAC or PCM WAV lossless master.')
+      if (atmosFile?.size && !/\.(mp4|m4a)$/i.test(atmosFile.name)) throw new Error('Use an Atmos DD+ JOC mix in MP4 or M4A.')
+      if (atmosFile?.size && form.get('confirmAtmos') !== 'on') throw new Error('Confirm that your alternate file contains a genuine Dolby Atmos mix.')
+      if (primaryLossless && losslessFile?.size) throw new Error('Your main file is already lossless. Leave the alternate lossless upload empty.')
       const audioUrl = await uploadStudioProjectMedia(audioFile, projectId, `music/audio/${artistId}`)
+      const losslessUrl = primaryLossless ? audioUrl : losslessFile?.size ? await uploadStudioProjectMedia(losslessFile, projectId, `music/lossless/${artistId}`) : ''
+      const losslessMimeType = primaryLossless ? (/\.flac$/i.test(audioFile.name) ? 'audio/flac' : 'audio/wav') : losslessFile?.size ? (/\.flac$/i.test(losslessFile.name) ? 'audio/flac' : 'audio/wav') : ''
+      const atmosUrl = atmosFile?.size ? await uploadStudioProjectMedia(atmosFile, projectId, `music/atmos/${artistId}`) : ''
       const track: MusicTrack = {
         id: `${slugify(title) || 'track'}-${Date.now()}`,
         artistId,
         releaseId: String(form.get('releaseId') ?? '') || undefined,
         title,
         audioUrl,
+        losslessUrl,
+        losslessMimeType,
+        atmosUrl,
         trackNumber: Number(form.get('trackNumber') ?? 1),
         duration: String(form.get('duration') ?? ''),
         explicit: form.get('explicit') === 'on',
       }
       if (!(await saveMusic({ ...music, tracks: [...music.tracks, track] }, `${title} uploaded.`))) return
       formElement.reset()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Track could not be uploaded. Your inputs are retained.')
     } finally {
       setBusy(false)
     }
@@ -413,7 +428,7 @@ export default function StudioMusicManagerV1() {
         {view === 'catalog' && (
           <section className="music-v2-section">
             <div className="music-v2-section-head"><div><span>CATALOG</span><h3>Tracks</h3></div></div>
-            <form className="music-studio-card music-studio-form music-v2-track-form" onSubmit={uploadTrack}><label>Artist<select name="artistId" required defaultValue=""><option value="">Select artist</option>{music.artists.map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label><label>Release<select name="releaseId" defaultValue=""><option value="">Standalone</option>{music.releases.map((release) => <option key={release.id} value={release.id}>{artistName(release.artistId)} — {release.title}</option>)}</select></label><label>Track title<input name="title" required /></label><label>Track #<input name="trackNumber" type="number" min="1" defaultValue="1" /></label><label>Duration<input name="duration" placeholder="3:42" /></label><label>Audio<input name="audio" type="file" accept="audio/*,.flac" required /></label><label className="music-check"><input name="explicit" type="checkbox" /> Explicit</label><div className="full"><button className="button" disabled={busy}>{busy ? 'Uploading…' : 'Upload Track'}</button></div></form>
+            <form className="music-studio-card music-studio-form music-v2-track-form" onSubmit={uploadTrack}><label>Artist<select name="artistId" required defaultValue=""><option value="">Select artist</option>{music.artists.map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label><label>Release<select name="releaseId" defaultValue=""><option value="">Standalone</option>{music.releases.map((release) => <option key={release.id} value={release.id}>{artistName(release.artistId)} — {release.title}</option>)}</select></label><label>Track title<input name="title" required /></label><label>Track #<input name="trackNumber" type="number" min="1" defaultValue="1" /></label><label>Duration<input name="duration" placeholder="3:42" /></label><label className="full">Song file<input name="audio" type="file" accept="audio/*,.flac,.wav" required /><small>Upload once. FLAC is automatically available as lossless; MP3/M4A plays as standard stereo.</small></label><label className="music-check full"><input name="confirmPcm" type="checkbox" /> If uploading WAV, this is a lossless PCM master.</label><details className="studio-upload-versions full"><summary>Optional alternate audio versions</summary><p>Only add these if you have a different master or Atmos mix. Everything saves with the same Upload Track button.</p><label>Alternate lossless master<input name="losslessFile" type="file" accept=".flac,.wav" /></label><label>Dolby Atmos mix<input name="atmosFile" type="file" accept=".mp4,.m4a" /></label><label className="music-check"><input name="confirmAtmos" type="checkbox" /> This is an actual Dolby Atmos DD+ JOC mix.</label></details><label className="music-check"><input name="explicit" type="checkbox" /> Explicit</label><div className="full"><button className="button" disabled={busy}>{busy ? 'Uploading…' : 'Upload Track'}</button></div></form>
             <MusicCollectionActions tracks={previewTracks} /><div className="music-track-list">{music.tracks.map((track) => <article key={track.id}><div className="music-track-number">{track.trackNumber}</div><div><strong>{track.title}{track.explicit ? '  E' : ''}</strong><small>{artistName(track.artistId)} · {releaseName(track.releaseId)} {track.duration ? `· ${track.duration}` : ''}</small></div><EbgAudioPlayer src={track.audioUrl} track={previewTracks.find(item => item.id === track.id)} queue={previewTracks} /><StudioAudioSources key={`${projectId}-${track.id}`} projectId={projectId} track={track} onSave={async patch => !!(await saveMusic({ ...music, tracks: music.tracks.map(item => item.id === track.id ? { ...item, ...patch } : item) }, `${track.title} audio sources saved.`))} /></article>)}{!music.tracks.length && <p className="music-empty">No tracks uploaded yet.</p>}</div>
           </section>
         )}

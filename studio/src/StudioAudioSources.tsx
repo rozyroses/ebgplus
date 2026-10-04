@@ -35,7 +35,7 @@ export default function StudioAudioSources({ projectId, track, onSave }: { proje
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Audio sources could not be saved.') }
     finally { setBusy(false) }
   }
-  return <details className="studio-audio-sources"><summary>Manage audio quality · {track.title}</summary><form onSubmit={save}>
+  return <details className="studio-audio-sources"><summary>Edit existing audio sources · {track.title}</summary><form onSubmit={save}>
     <p>Keep a standard stereo source for fallback. Add a genuine FLAC/PCM WAV master or Dolby Atmos DD+ JOC mix. For large masters, use a hosted URL if your storage upload limit is reached.</p>
     <label>Lossless URL<input name="losslessUrl" type="url" defaultValue={track.losslessUrl || ''} /></label>
     <label>Lossless format<select name="losslessMimeType" defaultValue={track.losslessMimeType || 'audio/flac'}><option value="audio/flac">FLAC</option><option value="audio/wav">PCM WAV</option></select></label>
