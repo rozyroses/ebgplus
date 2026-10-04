@@ -1,6 +1,13 @@
 name: Deploy EBG Studio to Cloudflare Pages
 
 on:
+  push:
+    branches: [feat/ebg-studio-app]
+    paths:
+      - "studio/**"
+      - "src/lib/**"
+      - "src/components/MusicPlayer.tsx"
+      - ".github/workflows/deploy-studio-cloudflare.yml"
   workflow_dispatch:
 
 permissions:

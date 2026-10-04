@@ -144,6 +144,47 @@ const parseTab = (): StudioTab => {
   return TABS.some((tab) => tab.id === value) ? value : 'overview'
 }
 
+// EBG_STUDIO_V3_SHELL
+type StudioWorkspaceId = 'overview' | 'content' | 'audience' | 'tools'
+type StudioTool = StudioTab | 'forms' | 'inbox' | 'music' | 'news' | 'lumi'
+
+const TOOL_LABELS: Record<string, string> = {
+  overview: 'Overview',
+  series: 'Series',
+  episodes: 'Episodes',
+  media: 'Media',
+  music: 'Music',
+  talent: 'Cast & Talent',
+  casting: 'Casting',
+  forms: 'Forms',
+  inbox: 'Inbox',
+  polls: 'Polls & Voting',
+  notifications: 'Notifications',
+  news: 'News',
+  team: 'Team',
+  lumi: 'Lumi',
+}
+
+const STUDIO_WORKSPACES: Array<{ id: StudioWorkspaceId; label: string; icon: string; copy: string; tools: StudioTool[] }> = [
+  { id: 'overview', label: 'Overview', icon: '✦', copy: 'What needs your attention right now.', tools: ['overview'] },
+  { id: 'content', label: 'Content', icon: '▤', copy: 'Shows, episodes, media, and music.', tools: ['series', 'episodes', 'media', 'music'] },
+  { id: 'audience', label: 'Audience', icon: '◎', copy: 'Talent, casting, forms, messages, polls, and updates.', tools: ['talent', 'casting', 'forms', 'inbox', 'polls', 'notifications'] },
+  { id: 'tools', label: 'Tools', icon: '⌘', copy: 'Newsroom, team access, and Lumi.', tools: ['news', 'team', 'lumi'] },
+]
+
+const readStudioTheme = (): 'light' | 'dark' => {
+  const saved = localStorage.getItem('ebg.studio.theme.v1')
+  if (saved === 'light' || saved === 'dark') return saved
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function StudioThemeToggle({ theme, onChange }: { theme: 'light' | 'dark'; onChange: (next: 'light' | 'dark') => void }) {
+  const next = theme === 'light' ? 'dark' : 'light'
+  return <button className="studio-theme-toggle" type="button" onClick={() => onChange(next)} aria-label={`Switch to ${next} mode`}>
+    <span aria-hidden="true">{theme === 'light' ? '☾' : '☀'}</span><strong>{theme === 'light' ? 'Dark' : 'Light'}</strong>
+  </button>
+}
+
 function App() {
   const [authState, setAuthState] = useState<AuthState | null>(null)
   const [booting, setBooting] = useState(true)
@@ -230,6 +271,8 @@ function StudioSignIn({
 
 function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onSignedOut: () => void }) {
   const [tab, setTabState] = useState<StudioTab>(parseTab)
+  const [activeTool, setActiveTool] = useState<StudioTool>(() => (window.location.hash.replace(/^#\/?/, '') || 'overview') as StudioTool)
+  const [theme, setTheme] = useState<'light' | 'dark'>(readStudioTheme)
   const [cms, setCms] = useState<CmsData>(emptyCms)
   const [projects, setProjects] = useState<Array<StudioProject & { cms: CmsData }>>([])
   const [projectId, setProjectId] = useState('')
@@ -245,13 +288,31 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   const setTab = (next: StudioTab) => {
     window.location.hash = next
     setTabState(next)
+    setActiveTool(next)
+  }
+
+  const goToTool = (next: StudioTool) => {
+    window.location.hash = next
+    setActiveTool(next)
+    if (TABS.some((item) => item.id === next)) setTabState(next as StudioTab)
+    else setTabState('overview')
   }
 
   useEffect(() => {
-    const sync = () => setTabState(parseTab())
+    const sync = () => {
+      const raw = (window.location.hash.replace(/^#\/?/, '') || 'overview') as StudioTool
+      setActiveTool(raw)
+      setTabState(parseTab())
+    }
     window.addEventListener('hashchange', sync)
     return () => window.removeEventListener('hashchange', sync)
   }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.studioTheme = theme
+    document.documentElement.style.colorScheme = theme
+    localStorage.setItem('ebg.studio.theme.v1', theme)
+  }, [theme])
 
   const refreshAuxiliary = async () => {
     const token = authState.session.access_token
@@ -604,32 +665,67 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   const activeEpisodes = cms.episodes.filter((episode) => episode.publishStatus === 'live').length
   const openPolls = polls.filter((poll) => poll.status === 'open').length
   const openCasting = casting.filter((app) => !['Cast', 'Declined', 'Removed'].includes(app.status)).length
+  const activeWorkspace = STUDIO_WORKSPACES.find((workspace) => workspace.tools.includes(activeTool)) ?? STUDIO_WORKSPACES[0]
 
   return (
-    <div className="studio-shell">
-      <aside className="sidebar">
-        <button className="brand-button" type="button" onClick={() => setTab('overview')}><span className="studio-mark">EBG</span><strong>STUDIO</strong></button>
+    <div className="studio-shell studio-v3-shell">
+      <aside className="sidebar studio-compat-nav" aria-hidden="true">
         <nav>
-          {TABS.map((item) => (
-            <button key={item.id} type="button" className={tab === item.id ? 'active' : ''} onClick={() => setTab(item.id)}>
-              <span>{item.icon}</span>{item.label}
-            </button>
-          ))}
+          {TABS.map((item) => <button key={item.id} type="button" onClick={() => setTab(item.id)}>{item.label}</button>)}
         </nav>
-        <div className="sidebar-footer">
-          <small>Signed in as</small><strong>{authState.account.email}</strong><span>{authState.account.role}</span>
-          <button type="button" onClick={() => void signOutNow()}>Sign out</button>
-        </div>
       </aside>
 
       <div className="studio-main">
-        <header className="topbar">
-          <div><p className="eyebrow">EBG STUDIO / {TABS.find((item) => item.id === tab)?.label}</p><h1>{TABS.find((item) => item.id === tab)?.label}</h1></div>
-          <div className="top-actions">
-            {cms.shows.length > 0 && <select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select>}
-            <a className="button secondary" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
+        <header className="studio-v3-topbar">
+          <button className="studio-v3-brand" type="button" onClick={() => goToTool('overview')}>
+            <span>EBG+</span><strong>Studio</strong><em>3</em>
+          </button>
+
+          <nav className="studio-v3-workspaces" aria-label="Studio workspaces">
+            {STUDIO_WORKSPACES.map((workspace) => (
+              <button key={workspace.id} type="button" className={activeWorkspace.id === workspace.id ? 'active' : ''} onClick={() => goToTool(workspace.tools[0])}>
+                <span>{workspace.icon}</span><strong>{workspace.label}</strong>
+              </button>
+            ))}
+          </nav>
+
+          <div className="studio-v3-actions">
+            <div className="studio-v3-feature-shortcuts" aria-label="Studio feature shortcuts">
+              <button type="button" className={activeTool === 'music' ? 'active' : ''} onClick={() => goToTool('music')}><span>♫</span><strong>Music</strong></button>
+              <button type="button" className={activeTool === 'lumi' ? 'active' : ''} onClick={() => goToTool('lumi')}><span>✦</span><strong>Lumi</strong></button>
+            </div>
+            <label className="studio-v3-project">
+              <span>Project</span>
+              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+                {projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
+              </select>
+            </label>
+            <details className="studio-v3-new-project">
+              <summary>＋ New</summary>
+              <form onSubmit={createProject}>
+                <strong>New production</strong>
+                <label>Name<input name="title" required maxLength={120} placeholder="Production name" /></label>
+                <label>Type<select name="projectKind" defaultValue="show"><option value="show">Show / Series</option><option value="music">Music</option><option value="mixed">Mixed / Universe</option></select></label>
+                <button type="submit" disabled={creatingProject}>{creatingProject ? 'Creating…' : 'Create'}</button>
+              </form>
+            </details>
+            {cms.shows.length > 0 && <label className="studio-v3-production"><span>Title</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
+            <StudioThemeToggle theme={theme} onChange={setTheme} />
+            <a className="studio-v3-view" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
           </div>
         </header>
+
+        <section className="studio-v3-context">
+          <div>
+            <p>EBG Studio / {activeWorkspace.label}</p>
+            <h1>{TOOL_LABELS[activeTool] ?? activeWorkspace.label}</h1>
+            <span>{activeWorkspace.copy}</span>
+          </div>
+          <nav className="studio-v3-tools" aria-label={activeWorkspace.label + " tools"}>
+            {activeWorkspace.tools.map((tool) => <button key={tool} type="button" className={activeTool === tool ? 'active' : ''} onClick={() => goToTool(tool)}>{TOOL_LABELS[tool]}</button>)}
+          </nav>
+          <div className="studio-v3-account"><span>{authState.account.role}</span><strong>{authState.account.email}</strong><button type="button" onClick={() => void signOutNow()}>Sign out</button></div>
+        </section>
 
         {message && <div className="message"><span>{message}</span><button type="button" onClick={() => setMessage('')}>×</button></div>}
 

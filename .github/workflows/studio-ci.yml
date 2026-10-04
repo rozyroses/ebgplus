@@ -7,15 +7,20 @@ on:
     paths:
       - 'studio/**'
       - 'src/lib/**'
+      - 'src/components/MusicPlayer.tsx'
+      - 'scripts/test-*-music*.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/studio-ci.yml'
   pull_request:
     branches:
       - main
+      - feat/ebg-studio-app
     paths:
       - 'studio/**'
       - 'src/lib/**'
+      - 'src/components/MusicPlayer.tsx'
+      - 'scripts/test-*-music*.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/studio-ci.yml'
@@ -42,6 +47,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify music playback and saves
+        run: |
+          node scripts/test-music-playback.mjs
+          node scripts/test-studio-music-save.mjs
 
       - name: Build EBG Studio
         run: npm run studio:build

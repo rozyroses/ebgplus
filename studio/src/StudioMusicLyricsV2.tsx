@@ -178,20 +178,15 @@ export default function StudioMusicLyricsV2() {
       }))
       .filter((line) => line.text)
       .sort((a, b) => a.start - b.start)
-    const nextMusic: MusicCatalog = {
-      ...music,
-      tracks: music.tracks.map((track) => track.id === selectedTrack.id ? {
-        ...track,
-        lyrics: lyrics.trim(),
-        timedLyrics: normalizedTimedLyrics,
-      } : track),
-    }
-    const nextCms: CmsData = { ...cms, music: nextMusic }
     setBusy(true)
     setMessage('')
     try {
       if (!projectId) throw new Error('Choose a Studio project first.')
+      const latest = await loadProjectCms<CmsData>(projectId)
+      if (!latest?.music?.tracks.some(track => track.id === selectedTrack.id)) throw new Error('This track was removed. Reopen the music library.')
+      const nextCms: CmsData = { ...latest, music: { ...latest.music, tracks: latest.music.tracks.map(track => track.id === selectedTrack.id ? { ...track, lyrics: lyrics.trim(), timedLyrics: normalizedTimedLyrics } : track) } }
       await saveProjectCms(projectId, nextCms)
+      window.dispatchEvent(new CustomEvent('ebg-studio-music-change'))
       setCms(nextCms)
       setTimedLyrics(normalizedTimedLyrics)
       setMessage(normalizedTimedLyrics.length ? `${normalizedTimedLyrics.length} timed lyric lines saved and synced to this track.` : 'Timed lyrics cleared from this track.')

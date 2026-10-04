@@ -6,6 +6,11 @@ import {
   uploadStudioProjectMedia,
 } from '../../src/lib/studioData'
 
+import { EbgAudioPlayer, EbgMusicDock, MusicCollectionActions } from '../../src/components/MusicPlayer'
+import { catalogTrack } from '../../src/lib/musicPlayback'
+import { mergeMusicEdits } from './mergeMusicEdits'
+import StudioAudioSources from './StudioAudioSources'
+
 type PublishStatus = 'draft' | 'scheduled' | 'live' | 'archived'
 type ReleaseType = 'single' | 'ep' | 'album'
 type MusicView = 'home' | 'artists' | 'releases' | 'catalog' | 'videos' | 'new-release'
@@ -35,6 +40,9 @@ type MusicTrack = {
   artistId: string
   releaseId?: string
   title: string
+  losslessUrl?: string
+  losslessMimeType?: string
+  atmosUrl?: string
   audioUrl: string
   trackNumber: number
   duration?: string
@@ -126,14 +134,18 @@ export default function StudioMusicManagerV1() {
 
   const saveMusic = async (nextMusic: MusicCatalog, note = 'Music library saved.') => {
     if (!cms || !projectId) return
-    const nextCms: CmsData = { ...cms, music: nextMusic }
-    setCms(nextCms)
-    setMusic(nextMusic)
     try {
+      const latest = await loadProjectCms<CmsData>(projectId) ?? {}
+      const merged = mergeMusicEdits(music, nextMusic, latest.music ?? emptyMusic)
+      const nextCms: CmsData = { ...latest, music: merged }
       await saveProjectCms(projectId, nextCms)
+      setCms(nextCms)
+      setMusic(merged)
       setMessage(note)
+      return true
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Music changes could not be saved.')
+      return false
     }
   }
 
@@ -190,7 +202,7 @@ export default function StudioMusicManagerV1() {
         bio: String(form.get('bio') ?? ''),
         label: String(form.get('label') ?? ''),
       }
-      await saveMusic({ ...music, artists: [...music.artists, artist] }, `${name} added.`)
+      if (!(await saveMusic({ ...music, artists: [...music.artists, artist] }, `${name} added.`))) return
       formElement.reset()
     } finally {
       setBusy(false)
@@ -215,7 +227,7 @@ export default function StudioMusicManagerV1() {
         publishStatus: draft.publishStatus,
         explicit: draft.explicit,
       }
-      await saveMusic({ ...music, releases: [...music.releases, release] }, `${release.title} created.`)
+      if (!(await saveMusic({ ...music, releases: [...music.releases, release] }, `${release.title} created.`))) return
       setDraft(emptyDraft())
       setCoverFile(null)
       setWizardStep(1)
@@ -250,7 +262,7 @@ export default function StudioMusicManagerV1() {
         duration: String(form.get('duration') ?? ''),
         explicit: form.get('explicit') === 'on',
       }
-      await saveMusic({ ...music, tracks: [...music.tracks, track] }, `${title} uploaded.`)
+      if (!(await saveMusic({ ...music, tracks: [...music.tracks, track] }, `${title} uploaded.`))) return
       formElement.reset()
     } finally {
       setBusy(false)
@@ -288,7 +300,7 @@ export default function StudioMusicManagerV1() {
         releaseDate: String(form.get('releaseDate') ?? new Date().toISOString().slice(0, 10)),
         publishStatus: String(form.get('publishStatus') ?? 'draft') as PublishStatus,
       }
-      await saveMusic({ ...music, videos: [...music.videos, video] }, `${title} video uploaded.`)
+      if (!(await saveMusic({ ...music, videos: [...music.videos, video] }, `${title} video uploaded.`))) return
       formElement.reset()
     } finally {
       setBusy(false)
@@ -305,11 +317,18 @@ export default function StudioMusicManagerV1() {
     }, `${release.title} deleted.`)
   }
 
+  const previewTracks = music.tracks.map(track => catalogTrack(track, artistName(track.artistId), music.releases.find(release => release.id === track.releaseId)?.cover))
+  useEffect(() => {
+    const sync = () => { void refresh(projectId) }
+    window.addEventListener('ebg-studio-music-change', sync)
+    return () => window.removeEventListener('ebg-studio-music-change', sync)
+  }, [projectId])
+
   if (!active) return null
 
   return (
     <section className="studio-music-layer music-v2" aria-label="Music Studio">
-      <div className="studio-music-scroll">
+      <EbgMusicDock key={projectId} /><div className="studio-music-scroll">
         <header className="music-v2-header">
           <div>
             <p className="eyebrow">EBG STUDIO / MUSIC</p>
@@ -395,7 +414,7 @@ export default function StudioMusicManagerV1() {
           <section className="music-v2-section">
             <div className="music-v2-section-head"><div><span>CATALOG</span><h3>Tracks</h3></div></div>
             <form className="music-studio-card music-studio-form music-v2-track-form" onSubmit={uploadTrack}><label>Artist<select name="artistId" required defaultValue=""><option value="">Select artist</option>{music.artists.map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label><label>Release<select name="releaseId" defaultValue=""><option value="">Standalone</option>{music.releases.map((release) => <option key={release.id} value={release.id}>{artistName(release.artistId)} — {release.title}</option>)}</select></label><label>Track title<input name="title" required /></label><label>Track #<input name="trackNumber" type="number" min="1" defaultValue="1" /></label><label>Duration<input name="duration" placeholder="3:42" /></label><label>Audio<input name="audio" type="file" accept="audio/*,.flac" required /></label><label className="music-check"><input name="explicit" type="checkbox" /> Explicit</label><div className="full"><button className="button" disabled={busy}>{busy ? 'Uploading…' : 'Upload Track'}</button></div></form>
-            <div className="music-track-list">{music.tracks.map((track) => <article key={track.id}><div className="music-track-number">{track.trackNumber}</div><div><strong>{track.title}{track.explicit ? '  E' : ''}</strong><small>{artistName(track.artistId)} · {releaseName(track.releaseId)} {track.duration ? `· ${track.duration}` : ''}</small></div><audio controls preload="none" src={track.audioUrl} /></article>)}{!music.tracks.length && <p className="music-empty">No tracks uploaded yet.</p>}</div>
+            <MusicCollectionActions tracks={previewTracks} /><div className="music-track-list">{music.tracks.map((track) => <article key={track.id}><div className="music-track-number">{track.trackNumber}</div><div><strong>{track.title}{track.explicit ? '  E' : ''}</strong><small>{artistName(track.artistId)} · {releaseName(track.releaseId)} {track.duration ? `· ${track.duration}` : ''}</small></div><EbgAudioPlayer src={track.audioUrl} track={previewTracks.find(item => item.id === track.id)} queue={previewTracks} /><StudioAudioSources key={`${projectId}-${track.id}`} projectId={projectId} track={track} onSave={async patch => !!(await saveMusic({ ...music, tracks: music.tracks.map(item => item.id === track.id ? { ...item, ...patch } : item) }, `${track.title} audio sources saved.`))} /></article>)}{!music.tracks.length && <p className="music-empty">No tracks uploaded yet.</p>}</div>
           </section>
         )}
 
