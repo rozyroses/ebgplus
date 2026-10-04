@@ -43,6 +43,23 @@ body :is(.content-card,.music-v2-release-card,.home-shortcut,.profile-card-selec
 body :is(.applications-empty,.music-v2-empty,.studio3-empty,.forms2-empty) { padding: 32px 24px; background: var(--surface-2) !important; color: var(--muted) !important; border: 1px dashed var(--border); border-radius: 14px; font-size: 1rem; }
 body .footer { background: var(--surface) !important; color: var(--muted) !important; border-color: var(--border); }
 body .footer a { color: var(--ink) !important; font-size: .875rem; }
+/* Legacy inbox, notices, information pages and catalogs must use the same theme. */
+body :is(.ebg-inbox-hero,.ebg-inbox-row,.ebg-inbox-thread,.network-notification-card,.info-card,.original-card-v2,.music-v2-track-list article,.music-v2-video-grid article,.music-v2-artist-grid article) {
+  background: var(--surface) !important; color: var(--ink) !important; border-color: var(--border) !important; box-shadow: var(--shadow-soft);
+}
+body :is(.ebg-inbox-thread header,.ebg-inbox-thread form) { background: var(--surface) !important; color: var(--ink); }
+body :is(.ebg-inbox-hero p,.ebg-inbox-copy p,.ebg-inbox-copy small,.ebg-inbox-copy>div span,.ebg-inbox-chat article small,.network-notification-card p,.network-notification-card small,.music-v2-track-meta small,.info-card p,.original-card-v2 p,.original-card-v2 small) { color: var(--muted) !important; }
+body :is(.ebg-inbox-count,.ebg-inbox-avatar,.network-notification-icon,.ebg-inbox-chat article,.ebg-inbox-filters button) { background: var(--surface-2) !important; color: var(--ink) !important; border-color: var(--border) !important; }
+body :is(.ebg-inbox-row.unread,.network-notification-card.unread,.ebg-inbox-chat article.mine,.ebg-inbox-filters button.active) { background: var(--subtle) !important; color: var(--brand) !important; border-color: var(--brand) !important; }
+body :is(.ebg-inbox-thread header>button,.notification-read-button) { color: var(--brand) !important; min-height: 44px; }
+body :is(.music-v2-track-meta strong,.music-v2-release-card h3,.music-v2-artist-grid h3,.info-card h2,.original-card-v2 h2) { color: var(--ink) !important; }
+.editorial-page-hero { padding: clamp(24px,4vw,48px); background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; margin-bottom: 28px; }
+.editorial-page-hero h1 { margin-block: 8px 16px; }
+.editorial-page-hero>p:last-child { color: var(--muted); max-width: 760px; }
+body .music-v2-track-list article { min-width: 0; padding: 18px; border-radius: 14px; }
+.music-catalog-tools { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; padding: 18px; margin-block: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+.music-catalog-tools label { display: grid; gap: 6px; font-size: .875rem; flex: 1; min-width: min(200px,100%); }
+.music-catalog-tools .btn { flex-shrink: 0; }
 /* Studio: quiet workspace, clear hierarchy, controls at readable sizes. */
 body .studio-route { background: var(--canvas) !important; color: var(--ink) !important; }
 body .studio3 { color: var(--ink); }

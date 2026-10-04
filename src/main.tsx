@@ -11,6 +11,7 @@ import './styles/pastel-refresh.css'
 import './styles/studio-v3.css'
 import './styles/theme-mode.css'
 import './styles/app-refresh.css'
+import './styles/music-player.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
