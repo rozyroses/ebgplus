@@ -158,6 +158,9 @@ export default function StudioMusicManagerV1() {
       setProjectId(next)
       setView('home')
       setWizardStep(1)
+      setEditingRelease(null)
+      setDraft(emptyDraft())
+      setCoverFile(null)
       void refresh(next)
     }
     window.addEventListener('hashchange', syncHash)
@@ -228,7 +231,7 @@ export default function StudioMusicManagerV1() {
         publishStatus: draft.publishStatus,
         explicit: draft.explicit,
       }
-      if (!(await saveMusic({ ...music, releases: editingRelease ? music.releases.map(item => item.id === editingRelease.id ? { ...item, ...release } : item) : [...music.releases, release] }, `${release.title} ${editingRelease ? 'updated' : 'created'}. Live releases sync to EBG+.`))) return
+      if (!(await saveMusic({ ...music, tracks: editingRelease ? music.tracks.map(track => track.releaseId === release.id ? { ...track, artistId: release.artistId } : track) : music.tracks, releases: editingRelease ? music.releases.map(item => item.id === editingRelease.id ? { ...item, ...release } : item) : [...music.releases, release] }, `${release.title} ${editingRelease ? 'updated' : 'created'}. Live releases sync to EBG+.`))) return
       setEditingRelease(null)
       setDraft(emptyDraft())
       setCoverFile(null)
