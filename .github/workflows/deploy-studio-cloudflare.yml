@@ -47,14 +47,6 @@ jobs:
       - name: Build standalone Studio
         run: npm run studio:build
 
-      - name: Ensure Cloudflare Pages project exists
-        shell: bash
-        run: |
-          PROJECTS="$(npx --yes wrangler@latest pages project list --json)"
-          if ! printf '%s' "$PROJECTS" | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const x=JSON.parse(s);process.exit(x.some(p=>p.name===process.env.STUDIO_PROJECT_NAME)?0:1)})"; then
-            npx --yes wrangler@latest pages project create "$STUDIO_PROJECT_NAME" --production-branch=main
-          fi
-
       - name: Deploy Studio
         uses: cloudflare/wrangler-action@v3
         with:
