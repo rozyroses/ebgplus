@@ -10,6 +10,7 @@ import './styles/viewer-theme.css'
 import './styles/pastel-refresh.css'
 import './styles/studio-v3.css'
 import './styles/theme-mode.css'
+import './styles/app-refresh.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
