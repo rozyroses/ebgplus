@@ -19,6 +19,7 @@ env:
   VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  VITE_STUDIO_LYRICS_URL: ${{ vars.VITE_STUDIO_LYRICS_URL || 'https://ebg-studio-lyrics.roosevelt-wooden.workers.dev' }}
   STUDIO_PROJECT_NAME: ebg-studio
 
 jobs:
