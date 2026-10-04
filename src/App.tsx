@@ -1124,7 +1124,7 @@ function LandingPage({ cms }: { cms: CmsData }) {
       <header className="eh-header">
         <Link className="eh-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
         <nav aria-label="Main navigation"><a href="#discover">Discover</a><a href="#universe">Our universe</a><a href="#creators">For creators</a></nav>
-        <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+ <span aria-hidden="true">↗</span></Link></div>
+        <div className="eh-account"><ThemeToggle compact /><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
       </header>
       <section className="eh-intro" aria-labelledby="eh-title">
         <div><p className="eh-eyebrow"><span /> ORIGINALS. MUSIC. CULTURE.</p><h1 id="eh-title">Find your people.<br />Feel <em>everything.</em></h1></div>
@@ -1616,6 +1616,7 @@ function AppLayout({
 
   return (
     <div className="app-shell">
+      <a className="app-skip-link" href="#app-content">Skip to content</a>
       <aside className="viewer-sidebar" aria-label="EBG+ sidebar">
         <Link className="wordmark" to="/app/home" aria-label="EBG+ home">EBG+</Link>
         <p className="sidebar-caption">YOUR ENTERTAINMENT. YOUR WORLD.</p>
@@ -1676,6 +1677,7 @@ function AppLayout({
         </div>
       </header>
 
+      <div id="app-content" tabIndex={-1}>
       <Routes>
         <Route
           path="home"
@@ -1739,6 +1741,7 @@ function AppLayout({
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </div>
       <EbgMusicDock />
       <MobileNav />
       <Footer compact />
@@ -3704,6 +3707,19 @@ function MobileNav() {
   const location = useLocation()
   const [waffleOpen, setWaffleOpen] = useState(false)
   const closeWaffle = () => setWaffleOpen(false)
+
+  useEffect(() => { setWaffleOpen(false) }, [location.pathname])
+  useEffect(() => {
+    if (!waffleOpen) return
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setWaffleOpen(false)
+        document.querySelector<HTMLButtonElement>('.mobile-waffle-button')?.focus()
+      }
+    }
+    document.addEventListener('keydown', dismiss)
+    return () => document.removeEventListener('keydown', dismiss)
+  }, [waffleOpen])
 
   return (
     <>

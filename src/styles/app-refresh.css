@@ -1,0 +1,93 @@
+/* Shared editorial system. Keep this after legacy component themes. */
+:root, :root[data-theme='light'] {
+  --brand: #6550cc; --brand-hover: #503bb2; --ink: #262333;
+  --canvas: #f8f7fc; --surface: #fff; --surface-solid: #fff;
+  --surface-2: #efedf6; --subtle: #efedf6; --muted: #646073;
+  --border: #e2deec; --line: var(--border); --bg: var(--canvas);
+  --panel: var(--surface); --panel-2: var(--surface-2); --text: var(--ink);
+  --gold: var(--brand); --gold-deep: var(--brand-hover);
+  --shadow-soft: 0 8px 28px #30214f09; --radius: 18px;
+}
+:root[data-theme='dark'] {
+  --brand: #b5a4ff; --brand-hover: #c8baff; --ink: #f3efff;
+  --canvas: #15121e; --surface: #201b2c; --surface-solid: #201b2c;
+  --surface-2: #2b253b; --subtle: #2b253b; --muted: #b7aec9;
+  --border: #3b334b; --shadow-soft: 0 8px 28px #0002;
+}
+body, body .app-shell { background: var(--canvas) !important; color: var(--ink); }
+body { font-size: 1rem; line-height: 1.55; }
+.app-skip-link { position: fixed; top: -100px; left: 20px; z-index: 1000; padding: 12px 20px; background: var(--surface); color: var(--ink); border-radius: 10px; }
+.app-skip-link:focus { top: 12px; }
+body .app-shell .page { max-width: 1440px; margin-inline: auto; padding: 36px clamp(20px,4vw,64px) 100px; }
+body .page h1 { font-size: clamp(2rem,4vw,3.5rem); line-height: 1.12; letter-spacing: -.045em; }
+body .page h2 { line-height: 1.2; letter-spacing: -.025em; }
+body .page p { line-height: 1.65; }
+body .btn, body .forms2-submit { min-height: 44px; padding: 11px 20px; border-radius: 12px; background: var(--brand); color: #fff; box-shadow: none; font-size: .875rem; font-weight: 650; }
+:root[data-theme='dark'] body .btn:not(.muted), :root[data-theme='dark'] .forms2-submit { color: #20152f; }
+body .btn.muted { background: var(--surface-2) !important; color: var(--ink) !important; border: 1px solid var(--border); }
+body :is(input:not([type='checkbox']):not([type='radio']):not([type='range']),select,textarea) { min-height: 44px; padding: 11px 13px; border-radius: 10px; font-size: 1rem; background: var(--surface) !important; color: var(--ink) !important; border-color: var(--border) !important; }
+body textarea { line-height: 1.6; }
+body :is(input,select,textarea):focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+body :is(button,a,summary):focus-visible { outline: 3px solid var(--brand); outline-offset: 4px; }
+body :is(button,summary,a.btn) { touch-action: manipulation; }
+body button:disabled { cursor: not-allowed; opacity: .55; }
+body :is(.panel,.auth-card,.settings-section .panel,.application-network-card,.application-thread,.music-v2-release-card,.forms2-panel,.forms2-public-card,.studio3-panel,.studio3-composer) { background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--border) !important; border-radius: 18px; box-shadow: var(--shadow-soft) !important; }
+body :is(.nav-dropdown,.profile-dropdown,.mobile-waffle-drawer) { background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--border) !important; box-shadow: 0 20px 60px #21143126 !important; border-radius: 16px; }
+body :is(.nav-dropdown,.mobile-waffle-drawer) :is(a,button) { min-height: 44px; color: var(--ink) !important; font-size: .875rem; }
+body .topbar.app { background: var(--family-glass-strong) !important; box-shadow: none !important; border-bottom: 1px solid var(--border) !important; }
+body .topbar.app :is(.primary-nav>a,.nav-menu>summary,.right-nav>a) { font-size: .875rem !important; min-height: 44px; }
+body .topbar.app .primary-nav>a.active { background: var(--subtle) !important; color: var(--brand) !important; border-radius: 10px; }
+body .theme-toggle { min-width: 44px; min-height: 44px; box-shadow: none; }
+body :is(.content-card,.music-v2-release-card,.home-shortcut,.profile-card-select) { transition: transform 180ms ease, box-shadow 180ms ease; }
+@media(hover:hover) { body :is(.content-card,.music-v2-release-card,.home-shortcut,.profile-card-select):hover { transform: translateY(-3px); box-shadow: 0 12px 30px #30214f18 !important; } }
+body :is(.applications-empty,.music-v2-empty,.studio3-empty,.forms2-empty) { padding: 32px 24px; background: var(--surface-2) !important; color: var(--muted) !important; border: 1px dashed var(--border); border-radius: 14px; font-size: 1rem; }
+body .footer { background: var(--surface) !important; color: var(--muted) !important; border-color: var(--border); }
+body .footer a { color: var(--ink) !important; font-size: .875rem; }
+/* Studio: quiet workspace, clear hierarchy, controls at readable sizes. */
+body .studio-route { background: var(--canvas) !important; color: var(--ink) !important; }
+body .studio3 { color: var(--ink); }
+body .studio3-header { background: var(--surface) !important; border-color: var(--border); box-shadow: none; }
+body .studio3-nav { background: var(--surface-2); border-radius: 12px; }
+body .studio3-nav a { min-height: 44px; font-size: .875rem; color: var(--muted); }
+body .studio3-nav a.active { background: var(--surface); color: var(--brand); box-shadow: none; }
+body :is(.studio3-brand,.studio3-panel h2,.studio3-panel h3,.studio3-page-intro h1,.studio3-composer summary strong,.studio3-definition-list dd) { color: var(--ink); }
+body :is(.studio3-panel p,.studio3-panel small,.studio3-form-grid label,.studio3-definition-list dt,.studio3-composer summary small) { color: var(--muted); }
+body :is(.studio3-form-grid label,.studio3-mini-actions button,.studio3-row-actions button,.studio3-row-actions a,.studio3-row-actions label,.studio3-project-picker>span,.studio3-composer summary small) { font-size: .875rem; }
+body :is(.studio3-mini-actions button,.studio3-row-actions button,.studio3-row-actions a,.studio3-row-actions label) { min-height: 44px; padding: 8px 12px; background: var(--surface-2); color: var(--ink); border-color: var(--border); }
+body :is(.studio3-episode-list article,.studio3-show-rail button,.studio3-assets article,.studio3-cast-grid article,.studio3-poll-list>div,.studio3-notice-list>div) { background: var(--surface-2); border-color: var(--border); }
+body .studio3-page-intro h1 { font-size: clamp(2rem,4vw,3.5rem); }
+body .studio3-main { padding-top: 32px; }
+body .forms2-shell { background: var(--canvas); color: var(--ink); }
+body .forms2-topbar { background: var(--surface); border-color: var(--border); }
+/* The public homepage participates in the saved theme too. */
+.ebg-home { --eh-ink: var(--ink); --eh-muted: var(--muted); --eh-paper: var(--canvas); --eh-line: var(--border); --eh-purple: var(--brand); color-scheme: inherit; }
+.eh-header { min-height: 84px; }
+.eh-header nav a { padding-block: 12px; }
+.eh-header nav a:hover { color: var(--brand); }
+.eh-intro { padding-top: 44px; }
+.eh-feature { border-radius: 20px; }
+.eh-eyebrow { font-size: .75rem; }
+.eh-text-link { font-size: .875rem; }
+:root[data-theme='dark'] .eh-world { color: #262333; }
+:root[data-theme='dark'] .eh-create { background: var(--surface-2); }
+/* Leave room for both the persistent player and phone navigation. */
+@media(max-width:850px) {
+  body .app-shell .page { padding: 24px 18px 180px; }
+  body .mobile-nav.mobile-nav-v2 { background: var(--surface) !important; border: 1px solid var(--border); border-radius: 16px !important; box-shadow: 0 8px 32px #21143126; }
+  body .mobile-nav.mobile-nav-v2 a { color: var(--muted) !important; font-size: .75rem !important; }
+  body .mobile-nav.mobile-nav-v2 a[aria-current='page'] { color: var(--brand) !important; background: var(--subtle) !important; border-radius: 10px; }
+  body .studio3-header { position: relative; top: auto; }
+  body .studio3-main { padding: 24px 18px 180px; }
+  body .studio3-header-actions { flex-direction: row; flex-wrap: wrap; }
+  body .studio3-project-picker { min-width: 0; }
+  body .studio3-project-picker select { width: 100%; }
+  .eh-header { flex-wrap: wrap; gap: 14px; padding: 18px 0; }
+  .eh-header nav { display: flex !important; order: 3; width: 100%; overflow-x: auto; gap: 24px; }
+  .eh-header nav a { flex-shrink: 0; font-size: .875rem; }
+  .eh-account { gap: 12px; }
+  .eh-section { padding-block: 44px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
