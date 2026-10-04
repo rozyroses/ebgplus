@@ -11,6 +11,7 @@ import './studioCastTalentManagerV2.css'
 import './studioBrandAssetDelete.css'
 import './studioMusicManagerV1.css'
 import './studioMusicLyricsV2.css'
+import './studioFounderNews.css'
 
 const lazyTools = {
   team: lazy(() => import('./TeamAccessPanel')),
@@ -58,3 +59,11 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 import './studioMobileV4.css'
+
+import './studioV3.css'
+import './musicPlayerShared.css'
+import './musicRefresh.css'
+
+import './studioFormsNetwork.css'
+
+import './studioInbox.css'
