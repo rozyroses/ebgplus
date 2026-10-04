@@ -52,6 +52,7 @@ jobs:
         run: |
           node scripts/test-music-playback.mjs
           node scripts/test-studio-music-save.mjs
+          node scripts/test-studio-music-lyrics.mjs
 
       - name: Build EBG Studio
         run: npm run studio:build
