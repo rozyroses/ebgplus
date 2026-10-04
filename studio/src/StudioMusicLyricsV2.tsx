@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
 import { loadProjectCms, saveProjectCms } from '../../src/lib/studioData'
 
@@ -26,13 +26,14 @@ type MusicCatalog = {
 }
 type CmsData = Record<string, unknown> & { music?: MusicCatalog }
 
-const endpoint = import.meta.env.VITE_STUDIO_LYRICS_URL || ''
+const endpoint = import.meta.env.VITE_STUDIO_LYRICS_URL || 'https://ebg-studio-lyrics.roosevelt-wooden.workers.dev'
 const isMusicTab = () => window.location.hash.replace(/^#\/?/, '') === 'music'
 const cleanTimedLyrics = (value?: TimedLyric[]) => Array.isArray(value)
   ? value.filter((line) => line && Number.isFinite(line.start) && Number.isFinite(line.end) && String(line.text || '').trim())
   : []
 
 export default function StudioMusicLyricsV2() {
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const [active, setActive] = useState(isMusicTab)
   const [projectId, setProjectId] = useState(() => localStorage.getItem('ebg.studio.project.v1') ?? '')
   const [open, setOpen] = useState(false)
@@ -65,7 +66,7 @@ export default function StudioMusicLyricsV2() {
     }
   }, [])
 
-  const refresh = async () => {
+  const refresh = async (requestedTrackId = trackId) => {
     try {
       if (!projectId) {
         setCms(null)
@@ -76,7 +77,7 @@ export default function StudioMusicLyricsV2() {
       if (!next) return
       setCms(next)
       const tracks = next.music?.tracks ?? []
-      const selected = tracks.find((track) => track.id === trackId) ?? tracks[0]
+      const selected = tracks.find((track) => track.id === requestedTrackId) ?? tracks[0]
       if (selected) {
         setTrackId(selected.id)
         setLyrics(selected.lyrics ?? '')
@@ -90,6 +91,24 @@ export default function StudioMusicLyricsV2() {
   useEffect(() => {
     if (active) void refresh()
   }, [active, projectId])
+
+  useEffect(() => {
+    const launch = (event: Event) => {
+      const requested = (event as CustomEvent<{ trackId?: string }>).detail?.trackId
+      setOpen(true)
+      if (busy) return
+      setMessage('')
+      void refresh(requested)
+    }
+    window.addEventListener('ebg-studio-open-lyrics', launch)
+    return () => window.removeEventListener('ebg-studio-open-lyrics', launch)
+  }, [projectId, trackId, busy])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (open && dialog && !dialog.open) dialog.showModal()
+    return () => { if (dialog?.open) dialog.close() }
+  }, [open])
 
   const music = cms?.music
   const tracks = music?.tracks ?? []
@@ -113,7 +132,7 @@ export default function StudioMusicLyricsV2() {
       return
     }
     if (!endpoint) {
-      setMessage('Set VITE_STUDIO_LYRICS_URL to the EBG Studio timed-lyrics Worker first.')
+      setMessage('Lyrics generation is unavailable right now. You can still add and edit lines manually.')
       return
     }
     const session = readStoredSession()
@@ -203,7 +222,7 @@ export default function StudioMusicLyricsV2() {
     <>
       <button type="button" className="music-lyrics-launch" onClick={() => { setOpen(true); void refresh() }}>✦ Lyrics</button>
       {open && (
-        <section className="music-lyrics-overlay" aria-label="Music Studio Timed Lyrics Workspace">
+        <dialog ref={dialogRef} className="music-lyrics-overlay" aria-label="Music Studio Timed Lyrics Workspace" onCancel={() => setOpen(false)}>
           <div className="music-lyrics-shell">
             <header className="music-lyrics-header">
               <div><span>EBG STUDIO / MUSIC</span><h2>Timed Lyrics</h2><p>Generate lyrics from the actual uploaded song, correct the transcription, and sync every line to EBG+ playback.</p></div>
@@ -214,7 +233,7 @@ export default function StudioMusicLyricsV2() {
               <aside className="music-lyrics-track-list">
                 <span>TRACKS</span>
                 {tracks.map((track) => (
-                  <button type="button" key={track.id} className={track.id === trackId ? 'active' : ''} onClick={() => selectTrack(track.id)}>
+                  <button type="button" key={track.id} className={track.id === trackId ? 'active' : ''} disabled={busy} onClick={() => selectTrack(track.id)}>
                     <strong>{track.title}</strong>
                     <small>{music?.artists.find((artist) => artist.id === track.artistId)?.name || 'EBG Artist'}{cleanTimedLyrics(track.timedLyrics).length ? ' · Timed lyrics saved' : ''}</small>
                   </button>
@@ -235,19 +254,19 @@ export default function StudioMusicLyricsV2() {
                       <button className="button" type="button" disabled={busy} onClick={() => void saveLyrics()}>Save & Sync Lyrics</button>
                     </div>
 
-                    {message && <div className="music-lyrics-message">{message}</div>}
+                    {message && <div className="music-lyrics-message" role="status">{message}</div>}
 
-                    <section className="music-timed-editor">
+                    <section className="music-timed-editor"><button className="button secondary" type="button" disabled={busy} onClick={() => setTimedLyrics(current => { const start = current.length ? current[current.length - 1].end : 0; return [...current, { start, end: start + 3, text: '' }] })}>＋ Add lyric line</button>
                       <div className="music-timed-editor-head"><div><span>SYNCED LINES</span><h4>{timedLyrics.length ? `${timedLyrics.length} lyric lines` : 'No timed lyrics yet'}</h4></div><small>Times are in seconds. Edit any word or timing before saving.</small></div>
                       {timedLyrics.map((line, index) => (
-                        <div className="music-timed-line" key={`${index}-${line.start}`}>
-                          <label>Start<input type="number" min="0" step="0.1" value={line.start} onChange={(event) => updateTimedLine(index, { start: Number(event.target.value) })} /></label>
-                          <label>End<input type="number" min="0" step="0.1" value={line.end} onChange={(event) => updateTimedLine(index, { end: Number(event.target.value) })} /></label>
-                          <label className="lyric-text">Lyric<input value={line.text} onChange={(event) => updateTimedLine(index, { text: event.target.value })} /></label>
-                          <button type="button" onClick={() => removeTimedLine(index)} aria-label="Remove lyric line">×</button>
+                        <div className="music-timed-line" key={index}>
+                          <label>Start<input type="number" min="0" step="0.1" disabled={busy} value={line.start} onChange={(event) => updateTimedLine(index, { start: Number(event.target.value) })} /></label>
+                          <label>End<input type="number" min="0" step="0.1" disabled={busy} value={line.end} onChange={(event) => updateTimedLine(index, { end: Number(event.target.value) })} /></label>
+                          <label className="lyric-text">Lyric<input disabled={busy} value={line.text} onChange={(event) => updateTimedLine(index, { text: event.target.value })} /></label>
+                          <button type="button" disabled={busy} onClick={() => removeTimedLine(index)} aria-label="Remove lyric line">×</button>
                         </div>
                       ))}
-                      {!timedLyrics.length && <div className="music-timed-empty">Generate timed lyrics and Studio will listen to the uploaded audio, transcribe the vocals, and place each detected line on the track timeline.</div>}
+                      {!timedLyrics.length && <div className="music-timed-empty">Generate timed lyrics from audio, or use Add lyric line to enter your own words and timestamps.</div>}
                     </section>
 
                     <label className="music-lyrics-field">Plain lyrics fallback<textarea value={lyrics} onChange={(event) => setLyrics(event.target.value)} placeholder="The plain lyric transcript is also saved as a fallback for devices without timed-lyrics support." /></label>
@@ -256,7 +275,7 @@ export default function StudioMusicLyricsV2() {
               </main>
             </div>
           </div>
-        </section>
+        </dialog>
       )}
     </>
   )

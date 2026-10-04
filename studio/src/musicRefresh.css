@@ -20,3 +20,13 @@
 .studio-upload-versions summary{cursor:pointer;font-weight:700}
 .studio-upload-versions label{display:grid;gap:8px;margin-top:14px}
 .studio-upload-versions p,.music-v2-track-form small{font-size:14px;line-height:1.5;color:var(--muted)}
+
+.music-release-open{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;width:100%;padding:0;text-align:left;background:transparent;border:0;color:var(--ink);font:inherit;cursor:pointer;border-radius:14px}
+.music-release-open .music-release-copy{display:grid;align-content:center;gap:8px}.music-release-open strong{font-size:1.25rem}.music-release-open small{color:var(--brand)}
+.music-release-open:focus-visible{outline:3px solid var(--brand);outline-offset:5px}.music-release-grid>article>.music-inline-actions{grid-column:1/-1;padding-top:12px}
+.music-release-lyrics{margin:18px;padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}.music-release-lyrics>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}.music-release-lyrics p{color:var(--muted)}
+.music-track-lyrics{grid-column:1/-1;justify-self:start}
+.music-lyrics-launch{display:none!important}
+dialog.music-lyrics-overlay{width:100vw;max-width:100vw;height:100vh;max-height:100vh;margin:0;border:0;color:var(--ink)}
+.music-lyrics-overlay::backdrop{background:rgba(0,0,0,.5)}
+@media(max-width:620px){.music-release-open{grid-template-columns:84px minmax(0,1fr)}.music-release-lyrics>div{align-items:start;flex-direction:column}}
