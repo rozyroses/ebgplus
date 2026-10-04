@@ -13,6 +13,8 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 import './App.css'
+import { EbgAudioPlayer, EbgMusicDock, MusicCollectionActions, MusicQualityEditor, useMusicFavorites } from './components/MusicPlayer'
+import { catalogTrack, hasPlayableAudio } from './lib/musicPlayback'
 import './styles/public-home.css'
 import './phase157-platform-refresh.css'
 import './phase158-mobile-polish.css'
@@ -150,9 +152,6 @@ import './nav17.css'
 import './phase151-music-catalog.css'
 import './phase152-music-detail-pages.css'
 import './phase153-built-in-players.css'
-import './phase154-apple-music-player.css'
-import './phase155-persistent-music-dock.css'
-import './phase156-timed-lyrics.css'
 import './mobile-v4.css'
 
 // EBG_NAV_CLEANUP_INTEGRATED
@@ -370,7 +369,7 @@ const seedCms: CmsData = {
     {
       id: 'empress-after-dark',
       title: 'Empress V: After Dark',
-      category: 'EBG Universe',
+      category: 'Music on EBG+',
       description: 'A theatrical concert film with bold storytelling and live arrangements.',
       genre: 'Music, Performance',
       year: 2026,
@@ -881,7 +880,7 @@ function EbgFormsV2Home() {
     <EbgFormsV2Chrome>
       <section className="forms2-hero">
         <p className="forms2-eyebrow">EBG FORMS 2.0</p>
-        <h1>Step into the EBG universe.</h1>
+        <h1>Find your next opportunity.</h1>
         <p>Applications, casting calls, sign-ups, and official EBG submissions now live in one place. Choose an open form below.</p>
         <div className="forms2-form-list">
           {forms.map((form) => <Link className="forms2-form-card" key={form.id} to={'/forms/' + form.slug}><span>{form.eyebrow}</span><h2>{form.title}</h2><p>{form.description}</p><strong>Open form →</strong></Link>)}
@@ -1047,11 +1046,11 @@ function ComingSoonPage() {
         <div className="ebg-launch-main">
           <p className="coming-soon-kicker">The next chapter is almost here</p>
           <h1>Entertainment, <span>the EBG way.</span></h1>
-          <p className="coming-soon-copy">Original shows, music, stories, and a universe built around the people creating it. Join early and be first inside when EBG+ opens its doors.</p>
+          <p className="coming-soon-copy">Original shows, music, stories, and the artists creating it. Join early and be first inside when EBG+ opens its doors.</p>
           <div className="ebg-launch-pillars" aria-label="What is coming to EBG+">
             <div className="ebg-launch-pillar"><strong>Original Shows</strong>Series, reality, and new EBG+ originals.</div>
             <div className="ebg-launch-pillar"><strong>Music</strong>Artist hubs, releases, performances, and more.</div>
-            <div className="ebg-launch-pillar"><strong>EBG Universe</strong>Stories, people, worlds, and everything between.</div>
+            <div className="ebg-launch-pillar"><strong>Creators</strong>Original ideas and the people bringing them to life.</div>
           </div>
           <form className="waitlist-form" onSubmit={submit}>
           <input
@@ -1113,17 +1112,12 @@ function LandingPage({ cms }: { cms: CmsData }) {
   const [selectedId, setSelectedId] = useState('')
   const featured = shows.find((show) => show.id === selectedId) || shows[0]
   const news = (cms.news ?? []).filter((item) => item.status === 'published' && Date.parse(item.publishedAt) <= Date.now()).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
-  const worlds = [
-    { name: 'Bijou Nicole', number: '01', tag: 'THE FEELING', copy: 'R&B emotion. Pop fantasy. A world of her own.', color: 'rose' },
-    { name: 'Empress V', number: '02', tag: 'THE PRESENCE', copy: 'Big performances. Bold stories. Unmistakable energy.', color: 'blue' },
-    { name: 'Goldie Songs', number: '03', tag: 'THE SOUL', copy: 'Music with meaning. Stories that stay with you.', color: 'green' },
-  ]
   return (
     <main className="ebg-home">
       <a className="eh-skip" href="#discover">Skip to content</a>
       <header className="eh-header">
         <Link className="eh-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
-        <nav aria-label="Main navigation"><a href="#discover">Discover</a><a href="#universe">Our universe</a><a href="#creators">For creators</a></nav>
+        <nav aria-label="Main navigation"><a href="#discover">Discover</a><Link to="/app/music">Music</Link><a href="#creators">For creators</a></nav>
         <div className="eh-account"><ThemeToggle compact /><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
       </header>
       <section className="eh-intro" aria-labelledby="eh-title">
@@ -1142,10 +1136,9 @@ function LandingPage({ cms }: { cms: CmsData }) {
         <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art"><img src={show.artwork || show.banner} alt="" loading="lazy" /><span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
         {!shows.length && <p className="eh-empty">Our next chapter is on its way. Join EBG+ to discover what comes next.</p>}
       </section>
-      <section id="universe" className="eh-section eh-worlds"><div className="eh-section-heading"><div><p className="eh-eyebrow">THREE WORLDS. ONE HOME.</p><h2>Meet the heart of EBG.</h2></div><p>Different voices.<br />A shared love for the unexpected.</p></div><div className="eh-world-grid">{worlds.map((world) => <Link key={world.name} to="/auth/sign-in" className={`eh-world eh-${world.color}`}><div><span>{world.tag}</span><span>{world.number}</span></div><h3>{world.name}</h3><p>{world.copy}</p><span className="eh-world-link">Step into the world <b aria-hidden="true">↗</b></span></Link>)}</div></section>
       {news.length > 0 && <section className="eh-section"><div className="eh-section-heading"><div><p className="eh-eyebrow">THE LATEST</p><h2>Stay in the conversation.</h2></div></div><div className="eh-news-grid">{news.map((item) => <article className="eh-news" key={item.id}>{item.image && <img src={item.image} alt="" loading="lazy" />}<p className="eh-eyebrow">{item.category}</p><h3>{item.headline}</h3><p>{item.summary}</p><small>{new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</small></article>)}</div></section>}
       <section id="creators" className="eh-create"><div><p className="eh-eyebrow">MAKE YOUR NEXT CHAPTER</p><h2>Got a story?<br /><em>Give it a home.</em></h2></div><div><p>A space for creators, producers, and the people who love what they make. Start your EBG+ account and find where you belong.</p><Link className="eh-button" to="/auth/create-account">Create your account ↗</Link></div></section>
-      <footer className="eh-footer"><Link className="eh-logo" to="/">EBG<span>+</span></Link><p>Original entertainment. A shared universe.</p><nav aria-label="Footer navigation"><Link to="/about">About EBG</Link><Link to="/auth/sign-in">Sign in</Link><a href="https://studio.ebgplus.app">Creator studio ↗</a></nav><small>© {new Date().getFullYear()} EBG+</small></footer>
+      <footer className="eh-footer"><Link className="eh-logo" to="/">EBG<span>+</span></Link><p>Original shows. Independent music.</p><nav aria-label="Footer navigation"><Link to="/about">About EBG</Link><Link to="/auth/sign-in">Sign in</Link><a href="https://studio.ebgplus.app">Creator studio ↗</a></nav><small>© {new Date().getFullYear()} EBG+</small></footer>
     </main>
   )
 }
@@ -1621,7 +1614,7 @@ function AppLayout({
         <Link className="wordmark" to="/app/home" aria-label="EBG+ home">EBG+</Link>
         <p className="sidebar-caption">YOUR ENTERTAINMENT. YOUR WORLD.</p>
         <nav aria-label="Browse">
-          {[["Discover", "/app/home", "⌂"], ["Originals", "/app/originals", "✦"], ["Shows", "/app/shows", "▤"], ["Music", "/app/music", "♫"], ["The universe", "/app/universe", "◎"], ["Search", "/app/search", "⌕"]].map(([label, to, icon]) => <NavLink key={to} to={to}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
+          {[["Discover", "/app/home", "⌂"], ["Originals", "/app/originals", "✦"], ["Shows", "/app/shows", "▤"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"]].map(([label, to, icon]) => <NavLink key={to} to={to}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
         </nav>
         <p className="sidebar-caption">YOUR SPACE</p>
         <nav aria-label="Your library">
@@ -1644,7 +1637,6 @@ function AppLayout({
             <summary>Explore <span aria-hidden="true">⌄</span></summary>
             <div className="nav-dropdown" onClick={() => setOpenNavMenu(null)}>
               <Link to="/app/originals">EBG Originals</Link>
-              <Link to="/app/universe">EBG Universe</Link>
               <Link to="/app/news">News</Link>
             </div>
           </details>
@@ -1697,7 +1689,6 @@ function AppLayout({
         <Route path="music/artist/:artistId" element={<MusicArtistPage cms={cms} />} />
         <Route path="music/release/:releaseId" element={<MusicReleasePage cms={cms} />} />
         <Route path="originals" element={<OriginalsPage cms={cms} />} />
-        <Route path="universe" element={<UniversePage cms={cms} />} />
         <Route path="news" element={<NewsPage cms={cms} />} />
         <Route
           path="shows/:showId"
@@ -1962,7 +1953,7 @@ function HomePage({
             <Link to="/app/applications">My Applications →</Link>
           </article>
           <article className="home-pulse-card">
-            <div><span className="pulse-badge">{newestEpisode ? 'New Release' : 'Discover'}</span><h3>{newestEpisode ? newestEpisode.title : 'Explore EBG+'}</h3><p>{newestEpisode && newestShow ? `New from ${newestShow.title}.` : 'Discover originals, music, specials, and the wider EBG universe.'}</p></div>
+            <div><span className="pulse-badge">{newestEpisode ? 'New Release' : 'Discover'}</span><h3>{newestEpisode ? newestEpisode.title : 'Explore EBG+'}</h3><p>{newestEpisode && newestShow ? `New from ${newestShow.title}.` : 'Discover originals, music, and specials.'}</p></div>
             {newestEpisode ? <Link to={`/app/watch/${newestEpisode.id}`}>Watch Now →</Link> : <Link to="/app/shows">Browse Shows →</Link>}
           </article>
         </div>
@@ -2008,7 +1999,7 @@ function ShowsPage({ cms }: { cms: CmsData }) {
         <div>
           <p className="eyebrow">Explore EBG+</p>
           <h1>Shows & Movies</h1>
-          <p>Original series, films, specials, reality, and stories from across the EBG universe.</p>
+          <p>Original series, films, specials, reality, and stories from across EBG.</p>
         </div>
       </header>
 
@@ -2264,187 +2255,6 @@ function formatPlayerTime(value: number) {
   if (!Number.isFinite(value) || value < 0) return '0:00'
   const total = Math.floor(value)
   return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0')
-}
-
-// EBG_PHASE155_PERSISTENT_MUSIC_DOCK
-// EBG_PHASE156_TIMED_LYRICS
-type EbgTimedLyric = { start: number; end: number; text: string }
-type EbgMusicTrackDetail = {
-  src: string
-  title: string
-  artist: string
-  artwork?: string
-  lyrics?: string
-  timedLyrics?: EbgTimedLyric[]
-}
-
-function EbgAudioPlayer({
-  src,
-  title = 'Now Playing',
-  artist = 'EBG+',
-  artwork,
-  lyrics,
-  timedLyrics,
-}: {
-  src: string
-  title?: string
-  artist?: string
-  artwork?: string
-  lyrics?: string
-  timedLyrics?: EbgTimedLyric[]
-}) {
-  const play = () => {
-    window.dispatchEvent(new CustomEvent<EbgMusicTrackDetail>('ebg-music-play', {
-      detail: { src, title, artist, artwork, lyrics, timedLyrics },
-    }))
-  }
-
-  return (
-    <button type="button" className="ebg-track-launcher" onClick={play} aria-label={'Play ' + title}>
-      <span className="ebg-track-launcher-art">{artwork ? <img src={artwork} alt="" /> : '♪'}</span>
-      <span className="ebg-track-launcher-copy"><strong>{title}</strong><small>{artist}</small></span>
-      <span className="ebg-track-launcher-play">▶</span>
-    </button>
-  )
-}
-
-function EbgMusicDock() {
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const [track, setTrack] = useState<EbgMusicTrackDetail | null>(null)
-  const [expanded, setExpanded] = useState(false)
-  const [playing, setPlaying] = useState(false)
-  const [current, setCurrent] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const [muted, setMuted] = useState(false)
-
-  useEffect(() => {
-    const onPlayTrack = (event: Event) => {
-      const detail = (event as CustomEvent<EbgMusicTrackDetail>).detail
-      if (!detail?.src) return
-      setTrack(detail)
-      setCurrent(0)
-      setDuration(0)
-    }
-    window.addEventListener('ebg-music-play', onPlayTrack)
-    return () => window.removeEventListener('ebg-music-play', onPlayTrack)
-  }, [])
-
-  useEffect(() => {
-    if (!track?.src) return
-    const media = audioRef.current
-    if (!media) return
-    media.load()
-    void media.play().catch(() => undefined)
-  }, [track?.src])
-
-  const timedLyrics = track?.timedLyrics ?? []
-  const activeLyricIndex = timedLyrics.findIndex((line) => current >= line.start && current < line.end)
-
-  useEffect(() => {
-    if (!expanded || activeLyricIndex < 0) return
-    const node = document.querySelector<HTMLElement>('[data-ebg-lyric-index="' + activeLyricIndex + '"]')
-    node?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [activeLyricIndex, expanded])
-
-  if (!track) return null
-
-  const toggle = async () => {
-    const media = audioRef.current
-    if (!media) return
-    if (media.paused) {
-      try { await media.play() } catch { return }
-    } else {
-      media.pause()
-    }
-  }
-
-  const seek = (value: number) => {
-    const media = audioRef.current
-    if (!media) return
-    media.currentTime = value
-    setCurrent(value)
-  }
-
-  const close = () => {
-    const media = audioRef.current
-    if (media) media.pause()
-    setTrack(null)
-    setExpanded(false)
-    setPlaying(false)
-  }
-
-  return (
-    <>
-      <audio
-        ref={audioRef}
-        src={track.src}
-        preload="metadata"
-        onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
-        onTimeUpdate={(event) => setCurrent(event.currentTarget.currentTime)}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => { setPlaying(false); setCurrent(0) }}
-        onVolumeChange={(event) => { setVolume(event.currentTarget.volume); setMuted(event.currentTarget.muted) }}
-      />
-
-      <aside className="ebg-music-dock" aria-label="Now playing">
-        <button type="button" className="ebg-music-dock-open" onClick={() => setExpanded(true)} aria-label="Open Now Playing">
-          <span className="ebg-music-dock-art">{track.artwork ? <img src={track.artwork} alt="" /> : '♪'}</span>
-          <span className="ebg-music-dock-copy"><strong>{track.title}</strong><small>{track.artist}</small></span>
-        </button>
-        <button type="button" className="ebg-music-dock-play" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{playing ? '❚❚' : '▶'}</button>
-        <div className="ebg-music-dock-progress">
-          <input type="range" min="0" max={Math.max(duration, 0.01)} step="0.1" value={Math.min(current, duration || 0)} onChange={(event) => seek(Number(event.target.value))} aria-label="Seek" />
-        </div>
-        <button type="button" className="ebg-music-dock-close" onClick={close} aria-label="Close player">×</button>
-      </aside>
-
-      {expanded && (
-        <div className="ebg-now-playing-overlay" role="dialog" aria-modal="true" aria-label="Now Playing">
-          <button type="button" className="ebg-now-playing-dismiss" onClick={() => setExpanded(false)} aria-label="Close Now Playing">⌄</button>
-          <div className="ebg-now-playing-shell">
-            <section className="ebg-now-playing-main">
-              <div className="ebg-now-playing-art">{track.artwork ? <img src={track.artwork} alt="" /> : <span>♪</span>}</div>
-              <div className="ebg-now-playing-copy"><span>NOW PLAYING</span><h2>{track.title}</h2><p>{track.artist}</p></div>
-              <div className="ebg-now-playing-timeline">
-                <span>{formatPlayerTime(current)}</span>
-                <input type="range" min="0" max={Math.max(duration, 0.01)} step="0.1" value={Math.min(current, duration || 0)} onChange={(event) => seek(Number(event.target.value))} aria-label="Seek" />
-                <span>-{formatPlayerTime(Math.max(duration - current, 0))}</span>
-              </div>
-              <div className="ebg-now-playing-controls">
-                <button type="button" onClick={() => seek(Math.max(current - 10, 0))} aria-label="Back 10 seconds">↶</button>
-                <button type="button" className="primary" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{playing ? '❚❚' : '▶'}</button>
-                <button type="button" onClick={() => seek(Math.min(current + 10, duration || current + 10))} aria-label="Forward 10 seconds">↷</button>
-              </div>
-              <div className="ebg-now-playing-volume">
-                <button type="button" onClick={() => { const media = audioRef.current; if (!media) return; media.muted = !media.muted; setMuted(media.muted) }} aria-label={muted ? 'Unmute' : 'Mute'}>{muted || volume === 0 ? '🔇' : '🔊'}</button>
-                <input type="range" min="0" max="1" step="0.05" value={volume} onChange={(event) => { const media = audioRef.current; if (!media) return; media.volume = Number(event.target.value); media.muted = false; setMuted(false); setVolume(media.volume) }} aria-label="Volume" />
-              </div>
-            </section>
-            <section className="ebg-now-playing-lyrics ebg-synced-lyrics">
-              <span>LYRICS</span>
-              {timedLyrics.length ? (
-                <div className="ebg-synced-lyrics-scroll">
-                  {timedLyrics.map((line, index) => (
-                    <button
-                      type="button"
-                      key={index + '-' + line.start}
-                      data-ebg-lyric-index={index}
-                      className={index === activeLyricIndex ? 'active' : index < activeLyricIndex ? 'past' : ''}
-                      onClick={() => seek(line.start)}
-                    >
-                      {line.text}
-                    </button>
-                  ))}
-                </div>
-              ) : track.lyrics?.trim() ? <div className="ebg-plain-lyrics">{track.lyrics}</div> : <p>Lyrics haven’t been added for this song yet.</p>}
-            </section>
-          </div>
-        </div>
-      )}
-    </>
-  )
 }
 
 function EbgVideoPlayer({ src, poster, title = 'EBG+ Video', autoPlay = false, startAt = 0, onProgress, onEnded }: { src: string; poster?: string; title?: string; autoPlay?: boolean; startAt?: number; onProgress?: (seconds: number) => void; onEnded?: () => void }) {
@@ -3133,6 +2943,7 @@ function EbgStudioHub({
         </div>}
 
         {tab==='content' && <div className="studio3-stack">
+          <MusicQualityEditor tracks={cms.music?.tracks ?? []} onSave={(updated) => onUpdateCms({ ...cms, music: { ...(cms.music ?? {}), tracks: updated } })} />
           {incomingAssetRaw && <section className="studio3-panel lumi-studio-handoff">
             <div className="lumi-studio-handoff-preview">
               {incomingAssetUrl ? <img src={incomingAssetUrl} alt={incomingAssetName} /> : <div className="lumi-studio-handoff-invalid">Image link unavailable</div>}
@@ -3410,6 +3221,10 @@ function CastingPage({ onSubmitApplication }: { onSubmitApplication: (app: Casti
 
 // EBG_PHASE152_MUSIC_DETAIL_PAGES
 function MusicPage({ cms }: { cms: CmsData }) {
+  const [query, setQuery] = useState('')
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
+  const [sort, setSort] = useState('catalog')
+  const favorites = useMusicFavorites()
   const music = cms.music ?? { artists: [], releases: [], tracks: [], videos: [] }
   const now = Date.now()
   const isPublished = (status?: string, releaseDate?: string) => status === 'live' || (status === 'scheduled' && !!releaseDate && new Date(releaseDate).getTime() <= now)
@@ -3419,11 +3234,16 @@ function MusicPage({ cms }: { cms: CmsData }) {
   const tracks = (music.tracks ?? []).filter((track: any) => !track.releaseId || publishedReleaseIds.has(track.releaseId))
   const artists = music.artists ?? []
   const artistName = (artistId: string) => artists.find((artist: any) => artist.id === artistId)?.name ?? 'EBG Artist'
+  const visibleTracks = tracks.filter((track: any) => {
+    const details = catalogTrack(track, artistName(track.artistId))
+    return (!favoritesOnly || favorites.includes(details.id)) && `${track.title} ${details.artist}`.toLowerCase().includes(query.trim().toLowerCase())
+  }).sort((a: any, b: any) => sort === 'title' ? String(a.title).localeCompare(String(b.title)) : sort === 'artist' ? artistName(a.artistId).localeCompare(artistName(b.artistId)) : 0)
   const featured = releases.find((release: any) => release.id === music.featuredReleaseId) ?? releases[0]
   const featuredTracks = featured ? tracks.filter((track: any) => track.releaseId === featured.id).sort((a: any, b: any) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0)) : []
 
   return (
     <main className="page music-v2-page">
+      <div className="music-catalog-tools"><label>Find a song or artist<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search songs and artists" /></label><label>Sort songs<select value={sort} onChange={event => setSort(event.target.value)}><option value="catalog">Catalog order</option><option value="title">Song title</option><option value="artist">Artist</option></select></label><button className="btn muted" type="button" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(!favoritesOnly)}>{favoritesOnly ? '♥ Favorites' : '♡ Favorites'}</button></div>
       {featured && (
         <section className="music-v2-hero">
           <Link className="music-v2-cover music-v2-cover-link" to={'/app/music/release/' + featured.id}>{featured.cover ? <img src={featured.cover} alt={featured.title + ' cover'} /> : <span>♫</span>}</Link>
@@ -3432,7 +3252,7 @@ function MusicPage({ cms }: { cms: CmsData }) {
             <h1><Link to={'/app/music/release/' + featured.id}>{featured.title}</Link></h1>
             <p className="music-v2-artist"><Link to={'/app/music/artist/' + featured.artistId}>{artistName(featured.artistId)}</Link></p>
             <p>{featured.genre || 'Music'}{featured.releaseDate ? ' · ' + new Date(featured.releaseDate).getFullYear() : ''}{featured.explicit ? ' · Explicit' : ''}</p>
-            {featuredTracks[0]?.audioUrl && <EbgAudioPlayer src={featuredTracks[0].audioUrl} title={featuredTracks[0].title || featured.title} artist={artistName(featured.artistId)} artwork={featured.cover || undefined} lyrics={featuredTracks[0].lyrics || ''} timedLyrics={featuredTracks[0].timedLyrics || []} />}
+            {featuredTracks[0] && hasPlayableAudio(featuredTracks[0]) && <EbgAudioPlayer track={catalogTrack(featuredTracks[0], artistName(featured.artistId), featured.cover)} queue={featuredTracks.map((item: any) => catalogTrack(item, artistName(featured.artistId), featured.cover))} src={featuredTracks[0].audioUrl || ''} title={featuredTracks[0].title || featured.title} artist={artistName(featured.artistId)} artwork={featured.cover || undefined} lyrics={featuredTracks[0].lyrics || ''} timedLyrics={featuredTracks[0].timedLyrics || []} />}
           </div>
         </section>
       )}
@@ -3450,13 +3270,14 @@ function MusicPage({ cms }: { cms: CmsData }) {
       </section>
 
       {tracks.length > 0 && <section className="music-v2-section">
-        <div className="music-v2-section-head"><div><p className="eyebrow">LISTEN NOW</p><h2>Songs</h2></div></div>
-        <div className="music-v2-track-list">{tracks.map((track: any) => (
+        <div className="music-v2-section-head"><div><p className="eyebrow">LISTEN NOW</p><h2>Songs</h2></div><MusicCollectionActions tracks={visibleTracks.map((item: any) => catalogTrack(item, artistName(item.artistId), releases.find((r: any) => r.id === item.releaseId)?.cover))} /></div>
+        <div className="music-v2-track-list">{visibleTracks.map((track: any) => (
           <article key={track.id}>
             <div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small><Link to={'/app/music/artist/' + track.artistId}>{artistName(track.artistId)}</Link></small></div></div>
-            {track.audioUrl && <EbgAudioPlayer src={track.audioUrl} title={track.title} artist={artistName(track.artistId)} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}
+            {hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artistName(track.artistId), releases.find((r: any) => r.id === track.releaseId)?.cover)} queue={visibleTracks.map((item: any) => catalogTrack(item, artistName(item.artistId), releases.find((r: any) => r.id === item.releaseId)?.cover))} src={track.audioUrl || ''} title={track.title} artist={artistName(track.artistId)} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}
           </article>
         ))}</div>
+        {!visibleTracks.length && <div className="music-v2-empty"><h3>{favoritesOnly ? 'No saved songs match.' : 'No songs match your search.'}</h3><p>{favoritesOnly ? 'Favorite songs in the player to find them here. Favorites are saved on this device.' : 'Try another title or artist.'}</p></div>}
       </section>}
 
       {videos.length > 0 && <section className="music-v2-section">
@@ -3496,7 +3317,7 @@ function MusicArtistPage({ cms }: { cms: CmsData }) {
       <Link className="music-detail-back" to="/app/music">← Music</Link>
       <section className="music-artist-hero">
         <div className="music-artist-avatar">{artist.image ? <img src={artist.image} alt="" /> : <span>{artist.name?.slice(0,1) || '♫'}</span>}</div>
-        <div><p className="eyebrow">ARTIST</p><h1>{artist.name}</h1>{artist.label && <p className="music-detail-muted">{artist.label}</p>}{artist.bio && <p className="music-artist-bio">{artist.bio}</p>}</div>
+        <div><p className="eyebrow">ARTIST</p><h1>{artist.name}</h1>{artist.label && <p className="music-detail-muted">{artist.label}</p>}{artist.bio && <p className="music-artist-bio">{artist.bio}</p>}<MusicCollectionActions tracks={tracks.map((item: any) => catalogTrack(item, artist.name, releases.find((r: any) => r.id === item.releaseId)?.cover || artist.image))} /></div>
       </section>
 
       <section className="music-v2-section">
@@ -3506,7 +3327,7 @@ function MusicArtistPage({ cms }: { cms: CmsData }) {
         ))}</div> : <div className="music-v2-empty"><h3>No live releases yet.</h3></div>}
       </section>
 
-      {tracks.length > 0 && <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">CATALOG</p><h2>Songs</h2></div></div><div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || 'EBG+'}</small></div></div>{track.audioUrl && <EbgAudioPlayer src={track.audioUrl} title={track.title} artist={artist.name} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || artist.image || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div></section>}
+      {tracks.length > 0 && <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">CATALOG</p><h2>Songs</h2></div></div><div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || 'EBG+'}</small></div></div>{hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artist.name, releases.find((r: any) => r.id === track.releaseId)?.cover || artist.image)} queue={tracks.map((item: any) => catalogTrack(item, artist.name, releases.find((r: any) => r.id === item.releaseId)?.cover || artist.image))} src={track.audioUrl || ''} title={track.title} artist={artist.name} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || artist.image || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div></section>}
 
       {videos.length > 0 && <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">WATCH</p><h2>Music Videos</h2></div></div><div className="music-v2-video-grid">{videos.map((video: any) => <article key={video.id}><EbgVideoPlayer poster={video.thumbnail || undefined} src={video.videoUrl} /><h3>{video.title}</h3></article>)}</div></section>}
     </main>
@@ -3529,10 +3350,10 @@ function MusicReleasePage({ cms }: { cms: CmsData }) {
       <Link className="music-detail-back" to="/app/music">← Music</Link>
       <section className="music-release-hero">
         <div className="music-release-art">{release.cover ? <img src={release.cover} alt={release.title + ' cover'} /> : <span>♫</span>}</div>
-        <div className="music-release-info"><p className="eyebrow">{String(release.type || 'release').toUpperCase()}</p><h1>{release.title}</h1>{artist && <h2><Link to={'/app/music/artist/' + artist.id}>{artist.name}</Link></h2>}<p className="music-detail-muted">{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}{release.explicit ? ' · Explicit' : ''}</p><p>{tracks.length} {tracks.length === 1 ? 'song' : 'songs'}</p></div>
+        <div className="music-release-info"><p className="eyebrow">{String(release.type || 'release').toUpperCase()}</p><h1>{release.title}</h1>{artist && <h2><Link to={'/app/music/artist/' + artist.id}>{artist.name}</Link></h2>}<p className="music-detail-muted">{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}{release.explicit ? ' · Explicit' : ''}</p><p>{tracks.length} {tracks.length === 1 ? 'song' : 'songs'}</p><MusicCollectionActions tracks={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} /></div>
       </section>
 
-      <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">TRACKLIST</p><h2>{release.title}</h2></div></div>{tracks.length ? <div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || (artist?.name ?? 'EBG+')}</small></div></div>{track.audioUrl && <EbgAudioPlayer src={track.audioUrl} title={track.title} artist={artist?.name || 'EBG+'} artwork={release.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div> : <div className="music-v2-empty"><h3>No tracks attached to this release yet.</h3></div>}</section>
+      <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">TRACKLIST</p><h2>{release.title}</h2></div></div>{tracks.length ? <div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || (artist?.name ?? 'EBG+')}</small></div></div>{hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artist?.name || 'EBG+', release.cover)} queue={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} src={track.audioUrl || ''} title={track.title} artist={artist?.name || 'EBG+'} artwork={release.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div> : <div className="music-v2-empty"><h3>No tracks attached to this release yet.</h3></div>}</section>
     </main>
   )
 }
@@ -3541,20 +3362,8 @@ function OriginalsPage({ cms }: { cms: CmsData }) {
   const originals = cms.shows.filter((show) => show.category.toLowerCase().includes('original'))
   return (
     <main className="page originals-page-v2">
-      <section className="universe-hero"><p className="eyebrow">EBG+ ORIGINALS</p><h1>Stories made inside the EBG universe.</h1><p>Reality, scripted concepts, music films, specials, experiments, and creator-led projects made for EBG+.</p></section>
+      <section className="editorial-page-hero"><p className="eyebrow">EBG+ ORIGINALS</p><h1>Original stories. Only on EBG+.</h1><p>Reality, scripted concepts, music films, specials, experiments, and creator-led projects made for EBG+.</p></section>
       {originals.length ? <div className="originals-grid-v2">{originals.map((show) => <Link key={show.id} to={'/app/shows/' + show.id} className="original-card-v2"><div className="original-art" style={{ backgroundImage: 'url(' + show.artwork + ')' }}><span>{show.status}</span></div><div><p className="eyebrow">{show.category}</p><h2>{show.title}</h2><p>{show.description}</p><small>{show.genre} · {show.year} · {show.maturity}</small></div></Link>)}</div> : <section className="panel"><h2>More originals are being prepared.</h2><p>Projects marked as EBG+ Originals in Studio will appear here automatically.</p></section>}
-    </main>
-  )
-}
-
-function UniversePage({ cms }: { cms: CmsData }) {
-  const universeShows = cms.shows.filter((show) => ['bijou', 'empress', 'goldie'].some((name) => (show.title + ' ' + show.category + ' ' + show.description).toLowerCase().includes(name)))
-  return (
-    <main className="page universe-page-v3">
-      <section className="universe-hero"><p className="eyebrow">EBG UNIVERSE</p><h1>Music, people, shows, eras, and stories all connected.</h1><p>The EBG Universe is the living world around EBG+ — where artists, originals, relationships, collaborations, performances, releases, behind-the-scenes moments, and major creative eras connect.</p></section>
-      <section className="universe-founders-panel"><div><p className="eyebrow">THE FOUNDERS' WORLDS</p><h2>Start with the people shaping the universe.</h2></div><div className="universe-founder-list"><article><strong>Bijou Nicole</strong><p>Pop and R&B storytelling, cinematic visual eras, performance, fashion, original programming, and a creative universe built around transformation and imagination.</p></article><article><strong>Empress V</strong><p>Dramatic live energy, theatrical visual storytelling, emotionally bold music, collaborations, and performance-led projects designed to feel larger than the screen.</p></article><article><strong>Goldie Songs</strong><p>Soulful music, reflection, conversations, documentary-minded storytelling, and artist stories centered on growth, honesty, and connection.</p></article></div></section>
-      <section className="universe-map-grid"><article><span>01</span><h3>People</h3><p>Artists, cast, collaborators, creative partners, and personalities who move through EBG projects.</p></article><article><span>02</span><h3>Music & Eras</h3><p>Albums, singles, performances, visual eras, tours, and the stories surrounding each release.</p></article><article><span>03</span><h3>Originals</h3><p>Series, reality concepts, specials, films, and experiments created inside EBG.</p></article><article><span>04</span><h3>Relationships</h3><p>Creative partnerships, friendships, casts, collaborations, and recurring connections across projects.</p></article><article><span>05</span><h3>Timeline</h3><p>Major releases, premieres, announcements, tours, casting moments, and milestones as the universe grows.</p></article><article><span>06</span><h3>Places & Events</h3><p>Venues, cities, sets, travel, premieres, performances, and moments that become part of EBG history.</p></article></section>
-      {universeShows.length > 0 && <section className="universe-projects"><div className="section-title"><p className="eyebrow">CONNECTED PROJECTS</p><h2>Explore the universe on EBG+</h2></div><div className="originals-grid-v2">{universeShows.slice(0, 8).map((show) => <Link key={show.id} to={'/app/shows/' + show.id} className="original-card-v2"><div className="original-art" style={{ backgroundImage: 'url(' + show.artwork + ')' }} /><div><h3>{show.title}</h3><p>{show.description}</p></div></Link>)}</div></section>}
     </main>
   )
 }
@@ -3565,7 +3374,7 @@ function NewsPage({ cms }: { cms: CmsData }) {
   const rest = featured ? published.filter((item) => item.id !== featured.id) : published
   return (
     <main className="page news-page-v2">
-      <section className="universe-hero"><p className="eyebrow">EBG NEWS</p><h1>What's happening across EBG.</h1><p>Official announcements, releases, casting updates, premieres, artist news, platform updates, and stories from across the EBG universe.</p></section>
+      <section className="editorial-page-hero"><p className="eyebrow">EBG NEWS</p><h1>What's happening across EBG.</h1><p>Official announcements, releases, casting updates, premieres, artist news, platform updates, and stories from across EBG.</p></section>
       {featured ? <><article className="news-lead">{featured.image && <img src={featured.image} alt="" />}<div><span>{featured.category}</span><h2>{featured.headline}</h2><p>{featured.summary}</p><small>By {featured.author} · {new Date(featured.publishedAt).toLocaleDateString()}</small><div className="news-body">{featured.body}</div></div></article><div className="news-grid-v2">{rest.map((item) => <article key={item.id}>{item.image && <img src={item.image} alt="" />}<span>{item.category}</span><h3>{item.headline}</h3><p>{item.summary}</p><small>By {item.author} · {new Date(item.publishedAt).toLocaleDateString()}</small></article>)}</div></> : <section className="panel"><p className="eyebrow">NEWSROOM</p><h2>No stories published yet.</h2><p>Founder-published stories from EBG Studio will appear here.</p></section>}
     </main>
   )
@@ -3613,7 +3422,7 @@ function PublicInfoShell({ eyebrow, title, intro, children }: { eyebrow: string;
 
 function AboutEbgPage() {
   return (
-    <PublicInfoShell eyebrow="About EBG" title="Stories, music, personalities, and worlds that keep growing." intro="EBG+ is the streaming home for EBG originals, reality programming, cinematic music experiences, specials, and the wider EBG universe.">
+    <PublicInfoShell eyebrow="About EBG" title="Stories, music, personalities, and worlds that keep growing." intro="EBG+ is the streaming home for EBG originals, reality programming, cinematic music experiences, specials, and artist stories.">
       <div className="info-grid">
         <section className="info-card"><h2>What lives here</h2><p>EBG+ brings together series, music films, interviews, behind-the-scenes moments, interactive fan experiences, and original projects in one place.</p></section>
         <section className="info-card"><h2>Built around creators</h2><p>Bijou Nicole, Empress V, and Goldie Songs are central creative pillars of the EBG world, with room for new talent, collaborators, and original productions to grow alongside them.</p></section>
@@ -3685,7 +3494,7 @@ function PublicPartnershipsPage() {
       <div className="info-grid">
         <section className="info-card"><h2>Brand & sponsorship</h2><p>Integrated campaigns, sponsored experiences, event support, and thoughtful brand participation around EBG programming.</p></section>
         <section className="info-card"><h2>Production & distribution</h2><p>Production resources, location partnerships, post-production, distribution opportunities, platform expansion, and strategic collaborations.</p></section>
-        <section className="info-card"><h2>Music & talent</h2><p>Performance opportunities, original music, artist collaborations, creative talent, and projects that fit the EBG universe.</p></section>
+        <section className="info-card"><h2>Music & talent</h2><p>Performance opportunities, original music, artist collaborations, creative talent, and projects that fit EBG.</p></section>
         <section className="info-card"><h2>Start a conversation</h2><p>Send a concise introduction, organization or project name, what you are proposing, and the best way to reach you.</p><div className="info-contact"><a href="mailto:hello@ebgplus.app?subject=EBG%2B%20Partnership%20Inquiry">hello@ebgplus.app</a></div></section>
       </div>
     </PublicInfoShell>
@@ -3729,7 +3538,7 @@ function MobileNav() {
         </button>
         {waffleOpen && <><button className="mobile-waffle-backdrop" type="button" aria-label="Close navigation" onClick={closeWaffle} /><nav className="mobile-waffle-drawer" aria-label="Mobile menu">
           <div className="mobile-waffle-head"><span>Explore EBG+</span><button type="button" onClick={closeWaffle} aria-label="Close menu">×</button></div>
-          <div className="mobile-waffle-section"><span className="mobile-waffle-label">Watch</span><Link to="/app/home" onClick={closeWaffle}>Home</Link><Link to="/app/shows" onClick={closeWaffle}>Shows</Link><Link to="/app/originals" onClick={closeWaffle}>EBG Originals</Link><Link to="/app/movies" onClick={closeWaffle}>Movies & Specials</Link><Link to="/app/music" onClick={closeWaffle}>Music</Link><Link to="/app/universe" onClick={closeWaffle}>EBG Universe</Link><Link to="/app/news" onClick={closeWaffle}>News</Link><Link to="/app/search" onClick={closeWaffle}>Search</Link></div>
+          <div className="mobile-waffle-section"><span className="mobile-waffle-label">Watch</span><Link to="/app/home" onClick={closeWaffle}>Home</Link><Link to="/app/shows" onClick={closeWaffle}>Shows</Link><Link to="/app/originals" onClick={closeWaffle}>EBG Originals</Link><Link to="/app/movies" onClick={closeWaffle}>Movies & Specials</Link><Link to="/app/music" onClick={closeWaffle}>Music</Link><Link to="/app/news" onClick={closeWaffle}>News</Link><Link to="/app/search" onClick={closeWaffle}>Search</Link></div>
           <div className="mobile-waffle-section"><span className="mobile-waffle-label">Library</span><Link to="/app/my-list" onClick={closeWaffle}>My List</Link><Link to="/app/applications" onClick={closeWaffle}>My Applications</Link><Link to="/app/inbox" onClick={closeWaffle}>Messages</Link><Link to="/app/notifications" onClick={closeWaffle}>Notifications</Link><a href="https://forms.ebgplus.app" onClick={closeWaffle}>Casting</a></div>
           <div className="mobile-waffle-section mobile-waffle-section-last"><span className="mobile-waffle-label">Account</span><Link to="/app/settings" onClick={closeWaffle}>Profile & Settings</Link></div>
         </nav></>}
