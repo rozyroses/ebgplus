@@ -11,8 +11,10 @@ export default function VideoPlayer({ src, poster, title = 'EBG+ Video', content
   useEffect(() => { setSpeed(preferences.speed); setVolume(preferences.volume); if(video.current) { video.current.playbackRate=preferences.speed; video.current.volume=preferences.volume } }, [preferences.speed, preferences.volume])
   const analytics = usePlaybackAnalytics(contentId, title, 'video')
   const lastSave = useRef(0)
+  const progressCallback = useRef(onProgress)
+  progressCallback.current = onProgress
   useEffect(() => { setPip(Boolean(document.pictureInPictureEnabled)); setPlaying(false); setCurrent(0); setDuration(0); setLoading(true); setError(''); setNotice(''); lastSave.current=0 }, [src])
-  const save = () => { if(video.current && !video.current.ended) onProgress?.(video.current.currentTime) }
+  const save = () => { if(video.current && !video.current.ended) progressCallback.current?.(video.current.currentTime) }
   useEffect(() => { const hidden = () => { if(document.visibilityState==='hidden') save() }; document.addEventListener('visibilitychange',hidden); return () => { save(); document.removeEventListener('visibilitychange',hidden) } }, [src])
   const toggle = async () => { const media=video.current; if(!media) return; if(media.paused) { try { await media.play(); setNotice('') } catch { setLoading(false); setNotice('Tap play to start, or try reloading the video.') } } else media.pause() }
   const seek = (value: number) => { const media=video.current; if(!media || !Number.isFinite(media.duration)) return; media.currentTime=Math.max(0,Math.min(media.duration,value)); setCurrent(media.currentTime); save() }
