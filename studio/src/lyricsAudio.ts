@@ -5,6 +5,14 @@ const CHUNK_SECONDS = 300
 
 export class AudioSizeError extends Error {}
 
+export function assertLyricTranscript(result: Transcription): void {
+  const texts = [result.text ?? '', ...(result.timedLyrics ?? []).map(line => line.text)]
+  if (texts.some(text => /preserve repeated lines and short vocal phrases/i.test(text) || /do not invent words[^\n]{0,80}(instrumental|silence)/i.test(text))) {
+    throw new Error('The lyrics service returned transcription instructions instead of song lyrics. Nothing was saved. The lyrics worker needs correcting before you generate again.')
+  }
+}
+
+
 export function encodeMonoWav(samples: Float32Array): ArrayBuffer {
   const buffer = new ArrayBuffer(44 + samples.length * 2)
   const view = new DataView(buffer)
@@ -58,7 +66,9 @@ export async function transcribeUploadedAudio(options: {
   prepare?: typeof prepareLyricsAudio
 }): Promise<Transcription> {
   try {
-    return await options.transcribe(options.audioUrl)
+    const result = await options.transcribe(options.audioUrl)
+    assertLyricTranscript(result)
+    return result
   } catch (error) {
     if (!(error instanceof AudioSizeError)) throw error
   }
@@ -70,6 +80,7 @@ export async function transcribeUploadedAudio(options: {
     options.progress(`Timing lyrics · part ${chunk.part} of ${chunk.total}…`)
     const url = await options.upload(chunk.file)
     const result = await options.transcribe(url)
+    assertLyricTranscript(result)
     if (result.text?.trim()) texts.push(result.text.trim())
     language ??= result.language
     for (const line of result.timedLyrics ?? []) {

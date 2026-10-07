@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { AudioSizeError, encodeMonoWav, prepareLyricsAudio, transcribeUploadedAudio } from '../studio/src/lyricsAudio.ts'
+import { assertLyricTranscript, AudioSizeError, encodeMonoWav, prepareLyricsAudio, transcribeUploadedAudio } from '../studio/src/lyricsAudio.ts'
 
 const wav = new DataView(encodeMonoWav(new Float32Array([-2, -1, 0, 1, 2])))
 assert.equal(wav.getUint32(24, true), 16000)
@@ -52,3 +52,8 @@ try {
   globalThis.OfflineAudioContext = originalContext
 }
 console.log('Large audio is downmixed into bounded WAV parts; timestamps join correctly, small files and authorization errors avoid conversion.')
+
+assert.throws(() => assertLyricTranscript({ timedLyrics: [{ start: 0, end: 7, text: 'Preserve repeated lines and short vocal phrases. Do not invent words.' }] }), /instructions instead of song lyrics/)
+assert.doesNotThrow(() => assertLyricTranscript({ timedLyrics: Array.from({ length: 10 }, (_, i) => ({ start: i, end: i + 1, text: 'I love you' })) }))
+await assert.rejects(transcribeUploadedAudio({ audioUrl: 'song', transcribe: async () => ({ text: 'Preserve repeated lines and short vocal phrases.' }), upload: async () => '', progress() {} }), /instructions instead of song lyrics/)
+console.log('Instruction leakage is rejected; real repeated choruses remain allowed.')

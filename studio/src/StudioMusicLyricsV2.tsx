@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { readStoredSession } from '../../src/lib/auth'
 import { loadProjectCms, saveProjectCms, uploadStudioProjectMedia } from '../../src/lib/studioData'
 
-import { AudioSizeError, transcribeUploadedAudio, type Transcription } from './lyricsAudio'
+import { assertLyricTranscript, AudioSizeError, transcribeUploadedAudio, type Transcription } from './lyricsAudio'
 
 type TimedLyric = { start: number; end: number; text: string }
 type MusicArtist = { id: string; name: string }
@@ -206,6 +206,7 @@ export default function StudioMusicLyricsV2() {
     setBusy(true)
     setMessage('')
     try {
+      assertLyricTranscript({ text: lyrics, timedLyrics: normalizedTimedLyrics })
       if (!projectId) throw new Error('Choose a Studio project first.')
       const latest = await loadProjectCms<CmsData>(projectId)
       if (!latest?.music?.tracks.some(track => track.id === selectedTrack.id)) throw new Error('This track was removed. Reopen the music library.')
