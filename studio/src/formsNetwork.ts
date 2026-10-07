@@ -9,7 +9,27 @@ export type NetworkMessage = { id:string; submission_id:string; sender_account_i
 const token = () => { const s = readStoredSession(); if (!s) throw new Error('Studio session expired.'); return s.access_token }
 export async function loadForms(){ const t=token(); const forms=await db.select<NetworkForm>('ebg_forms','order=created_at.desc',t); const qs=await db.select<NetworkFormQuestion>('ebg_form_questions','order=position.asc',t); return forms.map(f=>({...f,questions:qs.filter(q=>q.form_id===f.id)})) }
 export async function loadSubmissions(formId?:string){ const t=token(); return db.select<NetworkSubmission>('ebg_form_submissions',`${formId?`form_id=eq.${encodeURIComponent(formId)}&`:''}order=created_at.desc`,t) }
-export async function createForm(input:{title:string;slug:string;eyebrow:string;description:string;status:NetworkForm['status'];submitMessage:string;questions:Array<Omit<NetworkFormQuestion,'id'|'form_id'>>}){ const t=token(); const [form]=await db.insert<NetworkForm>('ebg_forms',{title:input.title,slug:input.slug,eyebrow:input.eyebrow,description:input.description,status:input.status,submit_message:input.submitMessage},t); if(!form) throw new Error('Form could not be created.'); if(input.questions.length){ await db.insert<NetworkFormQuestion>('ebg_form_questions',input.questions.map((q,i)=>({...q,form_id:form.id,position:i})),t) } return form }
+export async function createForm(input:{title:string;slug:string;eyebrow:string;description:string;status:NetworkForm['status'];submitMessage:string;questions:Array<Omit<NetworkFormQuestion,'id'|'form_id'>>}){
+  const t=token()
+  if (!input.title.trim() || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug)) throw new Error('Add a title and a URL slug containing lowercase letters, numbers, and hyphens.')
+  if (!input.questions.length) throw new Error('Add at least one question.')
+  const [form]=await db.insert<NetworkForm>('ebg_forms',{title:input.title,slug:input.slug,eyebrow:input.eyebrow,description:input.description,status:'draft',submit_message:input.submitMessage},t)
+  if(!form) throw new Error('Form could not be created.')
+  try {
+    await db.insert<NetworkFormQuestion>('ebg_form_questions',input.questions.map((q,i)=>({...q,form_id:form.id,position:i})),t)
+    if(input.status !== 'draft') {
+      const [published] = await db.update<NetworkForm>('ebg_forms',`id=eq.${encodeURIComponent(form.id)}`,{status:input.status},t)
+      if(!published) throw new Error('Publishing was not permitted.')
+      return published
+    }
+    return form
+  } catch(error) {
+    // A failed question upload must never leave an empty form publicly open.
+    try { await db.remove('ebg_forms',`id=eq.${encodeURIComponent(form.id)}`,t) }
+    catch { throw new Error('Creation failed. An unpublished draft remains; refresh and delete it before retrying.') }
+    throw error
+  }
+}
 export async function updateForm(id:string,values:Partial<Pick<NetworkForm,'title'|'slug'|'eyebrow'|'description'|'status'|'submit_message'>>){ const t=token(); const [row]=await db.update<NetworkForm>('ebg_forms',`id=eq.${encodeURIComponent(id)}`,values,t); return row }
 export async function deleteForm(id:string){ return db.remove<NetworkForm>('ebg_forms',`id=eq.${encodeURIComponent(id)}`,token()) }
 export async function updateSubmission(id:string,values:Partial<Pick<NetworkSubmission,'status'|'internal_notes'>>){ const t=token(); const [row]=await db.update<NetworkSubmission>('ebg_form_submissions',`id=eq.${encodeURIComponent(id)}`,values,t); return row }

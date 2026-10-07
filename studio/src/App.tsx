@@ -22,6 +22,7 @@ import {
 } from '../../src/lib/pollData'
 
 const StudioPublishingCenter = lazy(() => import('./StudioPublishingCenter'))
+const FormsNetworkWorkspace = lazy(() => import('./FormsNetworkWorkspace'))
 
 type StaffRole = 'editor' | 'producer' | 'administrator' | 'founder'
 type PublishStatus = 'draft' | 'scheduled' | 'live' | 'archived'
@@ -111,7 +112,7 @@ type TeamAccount = {
 
 // EBG_STUDIO_V4_GLOBAL_WORKSPACES
 // V4_BUILD_COMPAT_2_V2
-type StudioTab = 'publishing' | 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
+type StudioTab = 'forms' | 'publishing' | 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
 
 const STAFF_ROLES = new Set<StaffRole>(['editor', 'producer', 'administrator', 'founder'])
 const CASTING_STATUSES: CastingApplication['status'][] = ['New', 'Reviewing', 'Callback', 'Interview', 'Finalist', 'Cast', 'Declined', 'Removed']
@@ -125,6 +126,7 @@ const TABS: Array<{ id: StudioTab; label: string; icon: string }> = [
   { id: 'series', label: 'Series', icon: '▣' },
   { id: 'talent', label: 'Cast & Talent', icon: '◎' },
   { id: 'casting', label: 'Casting', icon: '◇' },
+  { id: 'forms', label: 'Forms', icon: '▤' },
   { id: 'polls', label: 'Polls & Voting', icon: '◉' },
   { id: 'media', label: 'Media', icon: '▧' },
   { id: 'team', label: 'Team', icon: '♙' },
@@ -738,6 +740,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         {message && <div className="message"><span>{message}</span><button type="button" onClick={() => setMessage('')}>×</button></div>}
 
         <main className="workspace">
+          {tab === 'forms' && <Suspense fallback={<p>Opening forms…</p>}><FormsNetworkWorkspace /></Suspense>}
           {tab === 'publishing' && <Suspense fallback={<p>Opening publishing center…</p>}><StudioPublishingCenter key={projectId} projectId={projectId} /></Suspense>}
           {tab === 'overview' && (
             <>
