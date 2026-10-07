@@ -1,0 +1,20 @@
+.music-distribution { margin: 24px 0; padding: 24px; border: 1px solid var(--border, #8884); border-radius: 20px; background: var(--surface, #8881); }
+.music-distribution h4 { font-size: 1.3rem; margin: 12px 0; }
+.music-distribution p { line-height: 1.6; }
+.distribution-status { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.distribution-status strong { padding: 10px 14px; border-radius: 12px; background: #8882; font-size: .85rem; }
+.music-distribution .music-check { margin: 20px 0; }
+.public-release { min-height: 100dvh; box-sizing: border-box; background: #131019; color: #f8f4ff; padding: 40px max(24px, calc((100vw - 560px) / 2)); text-align: center; font-family: system-ui, sans-serif; }
+.public-release a { color: inherit; }
+.public-release-brand { display: block; font-weight: 800; letter-spacing: .2em; text-decoration: none; margin-bottom: 30px; }
+.public-release-cover { width: min(100%, 360px); aspect-ratio: 1; object-fit: cover; border-radius: 24px; box-shadow: 0 20px 70px #0006; }
+.public-release h1 { font-size: clamp(2rem, 6vw, 3.2rem); margin: 12px 0; }
+.public-release h2 { font-size: 1.2rem; }
+.public-release p { color: #ccc2dc; }
+.public-release article { display: grid; gap: 12px; text-align: left; padding: 16px 0; }
+.public-release audio { width: 100%; }
+.public-release-platforms { display: grid; gap: 12px; margin: 28px 0; }
+.public-release-platforms a { padding: 18px; border: 1px solid #ffffff30; border-radius: 16px; text-decoration: none; background: #ffffff09; }
+.public-release-platforms a:first-child { background: #d9c5ff; color: #20112f; font-weight: 700; }
+.public-release small { color: #ac9ebb; }
+@media (max-width: 600px) { .music-distribution { padding: 16px; } .music-distribution .music-v2-step-actions { flex-wrap: wrap; } }

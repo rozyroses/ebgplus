@@ -10,6 +10,8 @@ import { EbgAudioPlayer, EbgMusicDock, MusicCollectionActions } from '../../src/
 import { catalogTrack } from '../../src/lib/musicPlayback'
 import { mergeMusicEdits } from './mergeMusicEdits'
 import StudioAudioSources from './StudioAudioSources'
+import MusicDistributionPanel from './MusicDistributionPanel'
+import type { DistributionDetails, Platform } from './musicDistribution'
 
 type PublishStatus = 'draft' | 'scheduled' | 'live' | 'archived'
 type ReleaseType = 'single' | 'ep' | 'album'
@@ -24,6 +26,8 @@ type MusicArtist = {
 }
 
 type MusicRelease = {
+  distribution?: DistributionDetails
+  streamingLinks?: Partial<Record<Platform, string>>
   id: string
   artistId: string
   title: string
@@ -414,6 +418,7 @@ export default function StudioMusicManagerV1() {
           <section className="music-v2-wizard">
             <div className="music-v2-wizard-head"><div><span>{editingRelease ? 'EDIT RELEASE' : 'NEW RELEASE'}</span><h3>{editingRelease ? editingRelease.title : `Step ${wizardStep} of 4`}</h3></div><button type="button" onClick={() => setView('home')}>×</button></div>
             <div className="music-v2-progress">{[1,2,3,4].map((step) => <span key={step} className={wizardStep >= step ? 'active' : ''}>{step}</span>)}</div>
+            {editingRelease && <MusicDistributionPanel key={`${projectId}-${editingRelease.id}`} projectId={projectId} release={music.releases.find(item => item.id === editingRelease.id) ?? editingRelease} tracks={music.tracks.filter(track => track.releaseId === editingRelease.id)} onSave={async patch => !!(await saveMusic({ ...music, releases: music.releases.map(item => item.id === editingRelease.id ? { ...item, ...patch } : item) }, 'Distribution details saved. Streaming delivery requires a partner connection.'))} />}
             {editingRelease && <section className="music-release-lyrics"><h4>Tracks & timed lyrics</h4><p>Generate lyrics from a song or edit its saved words and timestamps.</p>{music.tracks.filter(track => track.releaseId === editingRelease.id).map(track => <div key={track.id}><strong>{track.title}</strong><button className="button secondary" type="button" onClick={() => openLyrics(track.id)}>Generate / edit timed lyrics</button></div>)}{!music.tracks.some(track => track.releaseId === editingRelease.id) && <p>No tracks attached yet. Add a song from Catalog and select this release.</p>}</section>}
 
 
