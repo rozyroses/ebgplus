@@ -1,0 +1,21 @@
+/* Tool pages belong to the shared shell, rather than covering its navigation. */
+.workspace > .studio-series-v2-layer,.workspace > .studio-episodes-v2-layer,.workspace > .studio-cast-v2-layer,.workspace > .studio-music-layer,.workspace > .studio-music-v1-layer,.workspace > .team-access-overlay,.workspace > .studio-lumi-overlay { position:relative!important; inset:auto!important; width:100%!important; height:auto!important; min-height:0!important; max-width:none!important; z-index:auto!important; overflow:visible!important; padding:0!important; background:transparent!important; }
+.workspace .studio-series-v2-scroll,.workspace .studio-episodes-v2-scroll,.workspace .studio-cast-v2-scroll,.workspace .studio-music-scroll { height:auto!important; overflow:visible!important; padding:0!important; }
+.studio-v3-shell,.studio-main { min-height:100vh; height:auto!important; overflow:visible!important; }
+.studio-v3-topbar { position:sticky; top:0; z-index:90; }
+.studio-v3-context { position:relative; z-index:1; }
+.workspace { min-width:0; overflow:visible!important; }
+.studio-inbox-layout { display:grid; grid-template-columns:minmax(240px,.7fr) minmax(0,1.3fr); gap:20px; align-items:start; }
+.studio-inbox-list { max-height:650px; overflow:auto; overscroll-behavior:contain; }
+.studio-inbox-row > div { min-width:0; }
+.studio-inbox-row,.studio-inbox-toolbar button,.studio-inbox-state-actions button { color:var(--studio-text)!important; background:var(--studio-surface)!important; border-color:var(--studio-line)!important; }
+.studio-inbox-row small,.studio-inbox-row p,.studio-inbox-row-head span,.studio-inbox-thread-head span,.studio-inbox-chat small { color:var(--studio-muted)!important; }
+.studio-inbox-row.active { outline:2px solid var(--studio-accent); }
+.studio-inbox-chat { overscroll-behavior:contain; }
+.studio-inbox-chat article { overflow-wrap:anywhere; }
+.studio-inbox-toolbar input { min-width:0; width:100%; }
+@media(max-width:850px) { .studio-inbox-layout { grid-template-columns:1fr; } .studio-inbox-list { max-height:330px; } }
+.studio-inbox-row { grid-template-columns:minmax(0,1fr) auto!important; }
+.connected-studio-settings { display:grid; gap:18px; max-width:900px; }
+.connected-studio-settings label { display:grid; gap:8px; }
+html:has(dialog[open]),body:has(dialog[open]),body:has(.cast-v2-modal-backdrop),body:has(.lumi-publish-backdrop),body:has(.lumi-voice-panel) { overflow:hidden!important; }
