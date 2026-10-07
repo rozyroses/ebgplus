@@ -13,6 +13,7 @@ import './studioMusicManagerV1.css'
 import './studioMusicLyricsV2.css'
 import './studioFounderNews.css'
 import './musicDistribution.css'
+import './studioPublishingCenter.css'
 
 const lazyTools = {
   team: lazy(() => import('./TeamAccessPanel')),

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { restoreAuth, signIn, signOut, type AuthState } from '../../src/lib/auth'
 import { db } from '../../src/lib/supabase'
@@ -20,6 +20,8 @@ import {
   type Poll,
   type PollResult,
 } from '../../src/lib/pollData'
+
+const StudioPublishingCenter = lazy(() => import('./StudioPublishingCenter'))
 
 type StaffRole = 'editor' | 'producer' | 'administrator' | 'founder'
 type PublishStatus = 'draft' | 'scheduled' | 'live' | 'archived'
@@ -109,7 +111,7 @@ type TeamAccount = {
 
 // EBG_STUDIO_V4_GLOBAL_WORKSPACES
 // V4_BUILD_COMPAT_2_V2
-type StudioTab = 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
+type StudioTab = 'publishing' | 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
 
 const STAFF_ROLES = new Set<StaffRole>(['editor', 'producer', 'administrator', 'founder'])
 const CASTING_STATUSES: CastingApplication['status'][] = ['New', 'Reviewing', 'Callback', 'Interview', 'Finalist', 'Cast', 'Declined', 'Removed']
@@ -117,6 +119,7 @@ const TABS: Array<{ id: StudioTab; label: string; icon: string }> = [
   { id: 'overview', label: 'Overview', icon: '⌂' },
   { id: 'lumi', label: 'Chat', icon: '✦' },
   { id: 'music', label: 'Music', icon: '♫' },
+  { id: 'publishing', label: 'Review & Publish', icon: '✓' },
   { id: 'episodes', label: 'Episodes', icon: '▶' },
   { id: 'notifications', label: 'News & Notifications', icon: '◌' },
   { id: 'series', label: 'Series', icon: '▣' },
@@ -154,6 +157,7 @@ const TOOL_LABELS: Record<string, string> = {
   episodes: 'Episodes',
   media: 'Media',
   music: 'Music',
+  publishing: 'Review & Publish',
   talent: 'Cast & Talent',
   casting: 'Casting',
   forms: 'Forms',
@@ -167,7 +171,7 @@ const TOOL_LABELS: Record<string, string> = {
 
 const STUDIO_WORKSPACES: Array<{ id: StudioWorkspaceId; label: string; icon: string; copy: string; tools: StudioTool[] }> = [
   { id: 'overview', label: 'Overview', icon: '✦', copy: 'What needs your attention right now.', tools: ['overview'] },
-  { id: 'content', label: 'Content', icon: '▤', copy: 'Shows, episodes, media, and music.', tools: ['series', 'episodes', 'media', 'music'] },
+  { id: 'content', label: 'Content', icon: '▤', copy: 'Shows, episodes, media, and music.', tools: ['series', 'episodes', 'media', 'music', 'publishing'] },
   { id: 'audience', label: 'Audience', icon: '◎', copy: 'Talent, casting, forms, messages, polls, and updates.', tools: ['talent', 'casting', 'forms', 'inbox', 'polls', 'notifications'] },
   { id: 'tools', label: 'Tools', icon: '⌘', copy: 'Newsroom, team access, and Lumi.', tools: ['news', 'team', 'lumi'] },
 ]
@@ -734,6 +738,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         {message && <div className="message"><span>{message}</span><button type="button" onClick={() => setMessage('')}>×</button></div>}
 
         <main className="workspace">
+          {tab === 'publishing' && <Suspense fallback={<p>Opening publishing center…</p>}><StudioPublishingCenter key={projectId} projectId={projectId} /></Suspense>}
           {tab === 'overview' && (
             <>
               <section className="hero-panel"><div><p className="eyebrow">STUDIO HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Chat with Lumi, upload music, publish episodes, and send news or notifications from one Studio.</p><div className="hero-actions"><button className="button" onClick={() => setTab('lumi')}>Open Lumi</button><button className="button secondary" onClick={() => setTab('music')}>Upload music</button><button className="button secondary" onClick={() => setTab('episodes')}>Post episode</button></div></div><div className="hero-stat"><strong>{projects.length}</strong><span>Studio project{projects.length === 1 ? '' : 's'}</span></div></section>

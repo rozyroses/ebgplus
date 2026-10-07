@@ -202,6 +202,7 @@ export default function StudioEpisodesManagerV2() {
           <div>
             <p className="eyebrow">RELEASE WORKFLOW / V2</p>
             <h2>{isMovie ? 'Movie release' : 'Episodes'}</h2>
+            <a className="button secondary" href="#publishing">Review & Publish</a>
             <p>{isMovie ? 'Manage the feature video, release timing, artwork preview, and publishing state.' : 'Organize seasons, schedule releases, preview media, and move episodes from draft to live.'}</p>
           </div>
           <div className="episodes-v2-header-actions">

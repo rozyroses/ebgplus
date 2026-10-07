@@ -337,7 +337,7 @@ export default function StudioMusicManagerV1() {
 
   const editRelease = (release: MusicRelease) => {
     setEditingRelease(release)
-    setDraft({ artistId: release.artistId, type: release.type, title: release.title, genre: release.genre || '', releaseDate: release.releaseDate, publishStatus: release.publishStatus, explicit: !!release.explicit })
+    setDraft({ artistId: release.artistId, type: release.type, title: release.title, genre: release.genre || '', releaseDate: release.releaseDate?.slice(0, 10) || '', publishStatus: release.publishStatus, explicit: !!release.explicit })
     setCoverFile(null)
     setView('new-release')
     setWizardStep(2)
@@ -371,7 +371,7 @@ export default function StudioMusicManagerV1() {
             <h2>Music Studio</h2>
             <p>One clean place to create releases, upload tracks, manage artists, and publish videos.</p>
           </div>
-          <div className="music-v2-header-actions"><button className="button secondary" type="button" onClick={() => openLyrics()}>Generate / edit timed lyrics</button>
+          <div className="music-v2-header-actions"><a className="button secondary" href="#publishing">Review & Publish</a><button className="button secondary" type="button" onClick={() => openLyrics()}>Generate / edit timed lyrics</button>
             <button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setView('new-release'); setWizardStep(1) }}>＋ New Release</button>
             <a className="button secondary" href="https://ebgplus.app/app/music" target="_blank" rel="noreferrer">View Music ↗</a>
           </div>
