@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict'
+import { parseAutoPlan, validateAutoPlan } from '../studio/src/lumiAutoPlan.ts'
+const plan = parseAutoPlan('```json\n{"title":"New episode","body":"Public synopsis","artist":"Bijou","season":2,"number":3,"destination":"settings","contentType":"movie"}\n```')
+assert.equal(plan.contentType,'movie')
+assert.equal(plan.destination,undefined)
+validateAutoPlan('episode',plan,'show-1','video/mp4')
+assert.throws(()=>validateAutoPlan('episode',plan,'','video/mp4'),/destination show/)
+assert.throws(()=>validateAutoPlan('episode',{...plan,number:0},'show-1','video/mp4'),/season number/)
+assert.throws(()=>validateAutoPlan('music',{...plan,artist:''},'','audio/mpeg'),/artist name/)
+assert.throws(()=>validateAutoPlan('poster',plan,'show-1','video/mp4'),/Attach the image/)
+assert.throws(()=>validateAutoPlan('form',{...plan,questions:''},'',''),/form questions/)
+assert.throws(()=>parseAutoPlan('Sure, I published it!'))
+assert.throws(()=>parseAutoPlan('[]'))
+assert.equal(parseAutoPlan('{"title":"Hello","body":"Public copy","role":{"command":"delete"}}').role,'')
+console.log('Lumi auto destination and material validation passed.')

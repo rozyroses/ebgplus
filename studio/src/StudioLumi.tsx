@@ -1,6 +1,8 @@
+import { readLumiReferences } from './lumiReferences'
+import LumiAutoUpload from './LumiAutoUpload'
 import LumiVoiceInput from './LumiVoiceInput'
 import LumiHandoffReview from './LumiHandoffReview'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { loadAuthState, readStoredSession } from '../../src/lib/auth'
 import {
   createLumiChat,
@@ -149,6 +151,8 @@ const preparePublicationDraft = (text: string, fallback: string) => {
 
 export default function StudioLumi() {
   const [voiceOpen, setVoiceOpen] = useState(false)
+  const [autoMode, setAutoMode] = useState(false)
+  const autoUpload = useRef<((text: string) => Promise<string>) | null>(null)
   const [active, setActive] = useState(isLumiTab)
   const [projectId, setProjectId] = useState(readProjectId)
   const [projectMeta, setProjectMeta] = useState<Pick<StudioProject, 'id' | 'title' | 'project_kind'> | null>(null)
@@ -177,6 +181,8 @@ export default function StudioLumi() {
   const [imageKind, setImageKind] = useState<LumiImageKind>('custom')
   const [imageAspect, setImageAspect] = useState<LumiImageAspect>('square')
   const [imageGenerating, setImageGenerating] = useState(false)
+  const [referenceFiles, setReferenceFiles] = useState<File[]>([])
+  useEffect(() => { setReferenceFiles([]); setAutoMode(false) }, [projectId, active])
   const greetingName = useMemo(() => profileName || 'there', [profileName])
 
   const refreshProject = async (nextProjectId = projectId) => {
@@ -366,6 +372,7 @@ export default function StudioLumi() {
         prompt: imagePrompt.trim(),
         kind: imageKind,
         aspect: imageAspect,
+        referenceImages: await readLumiReferences(referenceFiles),
       })
 
       const imageTurn: LumiMessage = {
@@ -377,6 +384,7 @@ export default function StudioLumi() {
       const completed = [...beforeImage, imageTurn]
       setMessages(completed)
       setImageOpen(false)
+      setReferenceFiles([])
 
       const saved = await saveLumiChat(chatId, completed, workingChat?.messages?.length ? undefined : `Image: ${imagePrompt.trim()}`)
       setChats((current) => [saved, ...current.filter((chat) => chat.id !== saved.id)])
@@ -590,6 +598,32 @@ export default function StudioLumi() {
     const text = String(form.get('message') ?? '').trim()
     if (!text) return
 
+    if (autoMode) {
+      setBusy(true)
+      setError('')
+      const nextMessages = [...messages, { role: 'user' as const, text }]
+      setMessages(nextMessages)
+      formElement.reset()
+      try {
+        let chatId = activeChatId
+        if (!chatId) {
+          const chat = await createLumiChat(projectId, text)
+          chatId = chat.id
+          setActiveChatId(chatId)
+          setChats(current => [chat, ...current])
+        }
+        await saveLumiChat(chatId, nextMessages)
+        if (!autoUpload.current) throw new Error('Auto upload is no longer active. Enable it again.')
+        const reply = await autoUpload.current(text)
+        const completed = [...nextMessages, { role: 'lumi' as const, text: reply }]
+        setMessages(completed)
+        const saved = await saveLumiChat(chatId, completed)
+        setChats(current => [saved, ...current.filter(chat => chat.id !== saved.id)])
+      } catch (err) { setError(err instanceof Error ? err.message : 'Auto upload could not complete.') }
+      finally { setBusy(false) }
+      return
+    }
+
     const imageIntent = /\b(generate|make|create|design|render|draw)\b[\s\S]{0,48}\b(image|art|artwork|cover|cover art|poster|visual|graphic|portrait|photo|picture)\b/i.test(text)
       || /\b(cover art|album cover|single cover|promo poster|character visual|social graphic)\b/i.test(text)
 
@@ -759,6 +793,8 @@ export default function StudioLumi() {
           </section>
         </aside>
 
+        <LumiAutoUpload key={projectId} projectId={projectId} endpoint={endpoint} onPermissionChange={setAutoMode} requestRef={autoUpload} />
+
         {!hasConversation && (
           <main className="studio-lumi-welcome">
             <div className="lumi-ambient-glow" aria-hidden="true" />
@@ -770,7 +806,7 @@ export default function StudioLumi() {
 
             <form className="studio-lumi-composer hero-composer" onSubmit={send}>
               <button type="button" className="button secondary" aria-label="Voice input" disabled={!projectId || busy} onClick={() => setVoiceOpen(true)}>Mic</button>
-              <input id="studio-lumi-input" name="message" placeholder={projectId ? 'Ask Lumi anything…' : 'Choose a Studio project first'} autoComplete="off" disabled={!projectId || busy} />
+              <input id="studio-lumi-input" name="message" placeholder={projectId ? autoMode ? 'Give Lumi the material to publish…' : 'Ask Lumi anything…' : 'Choose a Studio project first'} autoComplete="off" disabled={!projectId || busy} />
               <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">➜</button>
             </form>
 
@@ -795,7 +831,7 @@ export default function StudioLumi() {
               </section>
             )}
 
-            <small className="lumi-readonly-note">Lumi can publish News, viewer notifications, and Music releases only after you review and approve the details.</small>
+            <small className="lumi-readonly-note">Use Auto upload to authorize direct publishing, or keep using the review flow.</small>
           </main>
         )}
 
@@ -814,6 +850,7 @@ export default function StudioLumi() {
                         <button type="button" onClick={() => void downloadImage(message.imageUrl!)}>Download ↓</button>
                         <button type="button" onClick={() => openImageGenerator(message.imagePrompt || '')}>Regenerate</button>
                         <button type="button" onClick={() => setHandoff({ projectId, image: message.imageUrl, text: message.imagePrompt || '' })}>Use in Studio ↗</button>
+                        <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('lumi-auto-image', { detail: { projectId, imageUrl: message.imageUrl, text: message.imagePrompt || '' } }))}>Auto upload ↗</button>
                       </div>
                     </div>
                   )}
@@ -837,7 +874,7 @@ export default function StudioLumi() {
               </div>
               <form className="studio-lumi-composer" onSubmit={send}>
                 <button type="button" className="button secondary" aria-label="Voice input" disabled={!projectId || busy} onClick={() => setVoiceOpen(true)}>Mic</button>
-                <input id="studio-lumi-input" name="message" placeholder={projectId ? 'Ask Lumi anything…' : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
+                <input id="studio-lumi-input" name="message" placeholder={projectId ? autoMode ? 'Give Lumi the material to publish…' : 'Ask Lumi anything…' : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
                 <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
               </form>
               <small className="lumi-readonly-note">Lumi only sees the selected private project. Publishing always requires your review.</small>
@@ -856,6 +893,13 @@ export default function StudioLumi() {
               </header>
               <div className="lumi-info-grid">
                 <label className="full">What should Lumi make?<textarea rows={6} required value={imagePrompt} placeholder="A glossy early-2000s R&B album cover with..." onChange={(event) => setImagePrompt(event.target.value)} /></label>
+                <label className="full">Reference images<input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={imageGenerating} onChange={(event) => {
+                  const files = Array.from(event.currentTarget.files || [])
+                  if (files.length > 3 || files.some(file => file.size > 3 * 1024 * 1024 || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type))) { setError('Choose up to 3 PNG, JPEG, or WebP images under 3 MB each.'); event.currentTarget.value = ''; return }
+                  setReferenceFiles(files)
+                }} /><small>Used by Muse for identity, pose, clothes, or visual style. Tell Lumi what to preserve in each reference.</small>
+                {referenceFiles.map((file, index) => <span key={`${file.name}-${index}`}>{file.name} <button type="button" disabled={imageGenerating} onClick={() => setReferenceFiles(files => files.filter((_, i) => i !== index))} aria-label={`Remove ${file.name}`}>Remove</button></span>)}
+                </label>
                 <label>Image type<select value={imageKind} onChange={(event) => setImageKind(event.target.value as LumiImageKind)}><option value="cover-art">Cover Art</option><option value="promo-poster">Promo Poster</option><option value="character-visual">Character Visual</option><option value="social-graphic">Social Graphic</option><option value="custom">Custom</option></select></label>
                 <label>Shape<select value={imageAspect} onChange={(event) => setImageAspect(event.target.value as LumiImageAspect)}><option value="square">Square</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label>
               </div>

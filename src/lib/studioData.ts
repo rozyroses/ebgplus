@@ -407,6 +407,7 @@ export const generateLumiImage = async (input: {
   prompt: string
   kind: LumiImageKind
   aspect: LumiImageAspect
+  referenceImages?: string[]
 }) => {
   const session = requireSession()
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')

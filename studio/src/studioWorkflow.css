@@ -26,3 +26,14 @@ html:has(dialog[open]),body:has(dialog[open]),body:has(.cast-v2-modal-backdrop),
 .series-v2-asset-actions input[hidden] { display:none!important; }
 .series-v2-asset-actions button { min-height:42px; }
 .series-v2-asset-actions button:disabled { opacity:.45; cursor:not-allowed; }
+.lumi-auto-upload { grid-column:1/-1; margin:12px 20px; position:relative; z-index:2; }
+.lumi-auto-body { display:grid; gap:14px; padding:20px; margin-top:12px; border:1px solid var(--studio-line); border-radius:20px; background:var(--studio-surface); color:var(--studio-text); max-width:900px; }
+.lumi-auto-body fieldset { border:0; padding:0; margin:0; display:grid; gap:12px; }
+.lumi-auto-body label { display:grid; gap:8px; }
+.lumi-auto-body .lumi-auto-consent { display:flex; align-items:flex-start; gap:12px; }
+.lumi-auto-body input[type=checkbox] { width:20px; min-width:20px; height:20px; }
+.lumi-auto-body textarea,.lumi-auto-body select { width:100%; }
+.lumi-auto-body small { color:var(--studio-muted); }
+.lumi-auto-body p { margin:0; }
+.studio-lumi-shell:has(.lumi-auto-upload) { grid-template-rows:auto auto 1fr; }
+@media(min-width:901px) { .lumi-auto-upload { margin-left:280px; } .studio-lumi-shell.context-open .lumi-auto-upload { margin-right:306px; } }
