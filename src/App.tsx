@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import EbgVideoPlayer from './components/VideoPlayer'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import {
   BrowserRouter,
@@ -2251,47 +2252,6 @@ const isEpisodeReleased = (episode: Episode) => {
 }
 
 // EBG_PHASE153_BUILTIN_PLAYERS_SAFE
-function formatPlayerTime(value: number) {
-  if (!Number.isFinite(value) || value < 0) return '0:00'
-  const total = Math.floor(value)
-  return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0')
-}
-
-function EbgVideoPlayer({ src, poster, title = 'EBG+ Video', autoPlay = false, startAt = 0, onProgress, onEnded }: { src: string; poster?: string; title?: string; autoPlay?: boolean; startAt?: number; onProgress?: (seconds: number) => void; onEnded?: () => void }) {
-  const ref = useRef<HTMLVideoElement | null>(null)
-  const shellRef = useRef<HTMLDivElement | null>(null)
-  const [playing, setPlaying] = useState(false)
-  const [current, setCurrent] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const toggle = async () => {
-    const media = ref.current
-    if (!media) return
-    if (media.paused) { try { await media.play() } catch { return } } else media.pause()
-  }
-  const fullscreen = async () => {
-    const shell = shellRef.current
-    if (!shell) return
-    if (document.fullscreenElement) await document.exitFullscreen()
-    else await shell.requestFullscreen()
-  }
-  return (
-    <div ref={shellRef} className="ebg-video-player" aria-label={title}>
-      <video ref={ref} src={src} poster={poster} autoPlay={autoPlay} playsInline onLoadedMetadata={(event) => { const media = event.currentTarget; setDuration(media.duration || 0); if (startAt > 0 && startAt < (media.duration || Infinity)) media.currentTime = startAt }} onTimeUpdate={(event) => { setCurrent(event.currentTarget.currentTime); if (onProgress) onProgress(event.currentTarget.currentTime) }} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); if (onEnded) onEnded() }} onVolumeChange={(event) => setVolume(event.currentTarget.volume)} />
-      <button type="button" className="ebg-video-center-play" onClick={toggle}>{playing ? '❚❚' : '▶'}</button>
-      <div className="ebg-video-controls">
-        <button type="button" className="ebg-player-icon" onClick={toggle}>{playing ? '❚❚' : '▶'}</button>
-        <span className="ebg-player-time">{formatPlayerTime(current)}</span>
-        <input className="ebg-player-progress" type="range" min="0" max={Math.max(duration, 0.01)} step="0.1" value={Math.min(current, duration || 0)} onChange={(event) => { const media = ref.current; if (!media) return; media.currentTime = Number(event.target.value); setCurrent(media.currentTime) }} aria-label="Seek" />
-        <span className="ebg-player-time">{formatPlayerTime(duration)}</span>
-        <button type="button" className="ebg-player-icon" onClick={() => { const media = ref.current; if (!media) return; media.muted = !media.muted }}>{volume === 0 || ref.current?.muted ? '🔇' : '🔊'}</button>
-        <input className="ebg-player-volume" type="range" min="0" max="1" step="0.05" value={volume} onChange={(event) => { const media = ref.current; if (!media) return; media.volume = Number(event.target.value); media.muted = false; setVolume(media.volume) }} aria-label="Volume" />
-        <button type="button" className="ebg-player-icon" onClick={fullscreen}>⛶</button>
-      </div>
-    </div>
-  )
-}
-
 function WatchPage({
   episodes,
   profile,
@@ -2304,9 +2264,11 @@ function WatchPage({
   const { episodeId } = useParams()
   const nav = useNavigate()
   const episode = episodes.find((item) => item.id === episodeId)
-  const currentIndex = episodes.findIndex((item) => item.id === episodeId)
-  const nextEpisode = currentIndex >= 0 ? episodes[currentIndex + 1] : undefined
+  const showEpisodes = episodes.filter(item => item.showId === episode?.showId && isEpisodeReleased(item)).sort((a,b) => a.season-b.season || a.number-b.number)
+  const currentIndex = showEpisodes.findIndex(item => item.id === episodeId)
+  const nextEpisode = currentIndex >= 0 ? showEpisodes[currentIndex + 1] : undefined
   const [ended, setEnded] = useState(false)
+  useEffect(() => setEnded(false), [episodeId])
 
   if (!episode) return <NotFoundPage />
 
@@ -2320,6 +2282,9 @@ function WatchPage({
         {episode.title} · S{episode.season}:E{episode.number}
       </h1>
       <EbgVideoPlayer
+        key={episode.id}
+        contentId={episode.id}
+        poster={episode.thumbnail}
         src={episode.videoUrl}
         title={episode.title}
         autoPlay
@@ -2339,7 +2304,7 @@ function WatchPage({
               Play Next
             </Link>
             <button className="btn muted" onClick={() => setEnded(false)}>
-              Cancel Autoplay
+              Dismiss
             </button>
           </div>
         </section>
@@ -3284,7 +3249,7 @@ function MusicPage({ cms }: { cms: CmsData }) {
         <div className="music-v2-section-head"><div><p className="eyebrow">WATCH</p><h2>Music Videos</h2></div></div>
         <div className="music-v2-video-grid">{videos.map((video: any) => (
           <article key={video.id}>
-            <EbgVideoPlayer poster={video.thumbnail || undefined} src={video.videoUrl} />
+            <EbgVideoPlayer contentId={video.id} title={video.title} poster={video.thumbnail || undefined} src={video.videoUrl} />
             <h3>{video.title}</h3><p><Link to={'/app/music/artist/' + video.artistId}>{artistName(video.artistId)}</Link></p>
           </article>
         ))}</div>
@@ -3329,7 +3294,7 @@ function MusicArtistPage({ cms }: { cms: CmsData }) {
 
       {tracks.length > 0 && <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">CATALOG</p><h2>Songs</h2></div></div><div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || 'EBG+'}</small></div></div>{hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artist.name, releases.find((r: any) => r.id === track.releaseId)?.cover || artist.image)} queue={tracks.map((item: any) => catalogTrack(item, artist.name, releases.find((r: any) => r.id === item.releaseId)?.cover || artist.image))} src={track.audioUrl || ''} title={track.title} artist={artist.name} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || artist.image || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div></section>}
 
-      {videos.length > 0 && <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">WATCH</p><h2>Music Videos</h2></div></div><div className="music-v2-video-grid">{videos.map((video: any) => <article key={video.id}><EbgVideoPlayer poster={video.thumbnail || undefined} src={video.videoUrl} /><h3>{video.title}</h3></article>)}</div></section>}
+      {videos.length > 0 && <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">WATCH</p><h2>Music Videos</h2></div></div><div className="music-v2-video-grid">{videos.map((video: any) => <article key={video.id}><EbgVideoPlayer contentId={video.id} title={video.title} poster={video.thumbnail || undefined} src={video.videoUrl} /><h3>{video.title}</h3></article>)}</div></section>}
     </main>
   )
 }

@@ -1,3 +1,4 @@
+import { usePlaybackAnalytics } from '../lib/playbackAnalytics'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { audioMime, catalogTrack, nextQueueIndex, selectSource, sourceSupported } from '../lib/musicPlayback'
@@ -63,6 +64,7 @@ export function EbgMusicDock() {
   const [panel, setPanel] = useState<'lyrics' | 'queue'>('queue')
   const favorites = useMusicFavorites()
   const track = queue[index]
+  const analytics = usePlaybackAnalytics(track?.id, track?.title, 'music')
   const resume = useRef({ time: 0, play: true })
   const choose = (next: number) => { audio.current?.pause(); resume.current = { time: 0, play: true }; indexRef.current = next; setIndex(next); setPosition(0); setDuration(0); setFailedSources([]); setError(''); setNotice('') }
   const changeQueue = (next: MusicTrack[]) => { queueRef.current = next; setQueue(next) }
@@ -147,7 +149,7 @@ export function EbgMusicDock() {
       const media = event.currentTarget; setDuration(Number.isFinite(media.duration) ? media.duration : 0); setLoading(false)
       if (resume.current.time && Number.isFinite(media.duration)) media.currentTime = Math.min(resume.current.time, Math.max(0, media.duration - .1))
       setPosition(media.currentTime); if (resume.current.play) void media.play().catch(() => setNotice('Ready to listen. Tap play.'))
-    }} onTimeUpdate={event => setPosition(event.currentTarget.currentTime)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => advance(true)} onWaiting={() => setLoading(true)} onCanPlay={() => setLoading(false)} onVolumeChange={event => { setVolume(event.currentTarget.volume); setMuted(event.currentTarget.muted) }} onError={() => {
+    }} onTimeUpdate={event => setPosition(event.currentTarget.currentTime)} onPlay={() => setPlaying(true)} onPlaying={analytics.onPlaying} onPause={() => { setPlaying(false); analytics.onPause() }} onEnded={() => { analytics.onEnded(); advance(true) }} onWaiting={() => { setLoading(true); analytics.onWaiting() }} onSeeking={analytics.onWaiting} onCanPlay={() => setLoading(false)} onVolumeChange={event => { setVolume(event.currentTarget.volume); setMuted(event.currentTarget.muted) }} onError={() => {
       if (!selectedSource) return
       resume.current = { time: position, play: true }; setFailedSources(previous => [...previous, selectedSource.url]); setNotice('That source could not play. Trying another compatible source.')
     }} />
