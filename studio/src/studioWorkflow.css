@@ -19,3 +19,10 @@
 .connected-studio-settings { display:grid; gap:18px; max-width:900px; }
 .connected-studio-settings label { display:grid; gap:8px; }
 html:has(dialog[open]),body:has(dialog[open]),body:has(.cast-v2-modal-backdrop),body:has(.lumi-publish-backdrop),body:has(.lumi-voice-panel) { overflow:hidden!important; }
+
+.series-v2-asset { display:grid; gap:10px; min-width:0; }
+.series-v2-asset > span { font-weight:700; color:var(--studio-muted); }
+.series-v2-asset-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.series-v2-asset-actions input[hidden] { display:none!important; }
+.series-v2-asset-actions button { min-height:42px; }
+.series-v2-asset-actions button:disabled { opacity:.45; cursor:not-allowed; }

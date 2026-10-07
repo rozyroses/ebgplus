@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { loadCmsData, saveCmsData, uploadStudioMedia } from '../../src/lib/studioData'
 
@@ -35,12 +35,36 @@ type CmsData = {
 const isSeriesTab = () => window.location.hash.replace(/^#\/?/, '') === 'series'
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
+type AssetField = 'artwork' | 'banner' | 'logoImage'
+
+function ArtworkControls({ label, value, busy, onReplace, onDelete }: {
+  label: string; value?: string; busy: boolean
+  onReplace: (file: File) => Promise<void>; onDelete: () => Promise<void>
+}) {
+  const input = useRef<HTMLInputElement>(null)
+  return <div className="series-v2-asset-actions">
+    <input ref={input} type="file" accept="image/*" hidden disabled={busy}
+      aria-label={`Upload ${label.toLowerCase()}`} onChange={(event) => {
+        const file = event.currentTarget.files?.[0]
+        event.currentTarget.value = ''
+        if (file) void onReplace(file)
+      }} />
+    <button className="button secondary" type="button" disabled={busy}
+      onClick={() => input.current?.click()} aria-label={`${value ? 'Replace' : 'Upload'} ${label.toLowerCase()}`}>
+      {value ? 'Replace' : 'Upload'}
+    </button>
+    <button className="button danger" type="button" disabled={busy || !value}
+      onClick={() => void onDelete()} aria-label={`Delete ${label.toLowerCase()}`}>Delete</button>
+  </div>
+}
+
 export default function StudioSeriesManagerV2() {
   const [active, setActive] = useState(isSeriesTab)
   const [cms, setCms] = useState<CmsData | null>(null)
   const [showId, setShowId] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const assetBusy = useRef(false)
 
   const refresh = async () => {
     try {
@@ -81,14 +105,33 @@ export default function StudioSeriesManagerV2() {
     await save({ ...cms, shows: cms.shows.map((show) => show.id === selected.id ? { ...show, ...patch } : show) }, note)
   }
 
-  const uploadMedia = async (field: 'artwork' | 'banner' | 'logoImage', file?: File) => {
-    if (!file?.size) return
+  const updateAsset = async (field: AssetField, file?: File) => {
+    if (!selected || assetBusy.current) return
+    const targetId = selected.id
+    const label = field === 'artwork' ? 'Poster' : field === 'banner' ? 'Banner' : 'Logo'
+    if (!file && !window.confirm(`Delete the ${label.toLowerCase()} from ${selected.title}?`)) return
+    if (file && (!file.type.startsWith('image/') || !file.size || file.size > 15 * 1024 * 1024)) {
+      setMessage('Choose an image smaller than 15 MB.')
+      return
+    }
+    assetBusy.current = true
     setBusy(true)
+    setMessage(file ? `Uploading ${label.toLowerCase()}…` : `Deleting ${label.toLowerCase()}…`)
     try {
       const folder = field === 'artwork' ? 'shows/posters' : field === 'banner' ? 'shows/banners' : 'shows/logos'
-      const url = await uploadStudioMedia(file, folder)
-      await patchSelected({ [field]: url } as Partial<Show>, `${field === 'logoImage' ? 'Logo' : field[0].toUpperCase() + field.slice(1)} updated.`)
+      const value = file ? await uploadStudioMedia(file, folder) : ''
+      const latest = await loadCmsData<CmsData>()
+      if (!latest?.shows.some((show) => show.id === targetId)) throw new Error('This title could not be found. Refresh the slate.')
+      const next = { ...latest, shows: latest.shows.map((show) => show.id === targetId ? { ...show, [field]: value } : show) }
+      await saveCmsData(next)
+      const saved = await loadCmsData<CmsData>()
+      if (saved?.shows.find((show) => show.id === targetId)?.[field] !== value) throw new Error('Artwork could not be saved. Please try again.')
+      setCms(saved)
+      setMessage(`${label} ${file ? 'updated' : 'deleted'} from ${selected.title}.`)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Artwork could not be saved.')
     } finally {
+      assetBusy.current = false
       setBusy(false)
     }
   }
@@ -156,7 +199,7 @@ export default function StudioSeriesManagerV2() {
             <div className="series-v2-section-title"><span>YOUR SLATE</span><strong>Titles</strong></div>
             <div className="series-v2-title-list">
               {cms.shows.map((show) => (
-                <button key={show.id} type="button" className={show.id === selected?.id ? 'active' : ''} onClick={() => setShowId(show.id)}>
+                <button key={show.id} type="button" disabled={busy} className={show.id === selected?.id ? 'active' : ''} onClick={() => setShowId(show.id)}>
                   <div>{show.artwork ? <img src={show.artwork} alt="" /> : <span>{show.title.slice(0,1)}</span>}</div>
                   <span><strong>{show.title}</strong><small>{(show.contentType ?? 'series') === 'movie' ? 'Movie' : 'Series'} · {show.status}</small></span>
                 </button>
@@ -200,9 +243,9 @@ export default function StudioSeriesManagerV2() {
                 <section className="series-v2-card">
                   <div className="series-v2-card-head"><div><span>BRAND ASSETS</span><h3>Artwork</h3></div><small>Poster · Banner · Logo</small></div>
                   <div className="series-v2-media-grid">
-                    <label><span>Poster</span><div className="series-v2-poster-preview">{selected.artwork ? <img src={selected.artwork} alt="" /> : <b>No poster</b>}</div><input type="file" accept="image/*" onChange={(event) => void uploadMedia('artwork', event.target.files?.[0])} /></label>
-                    <label><span>Banner</span><div className="series-v2-banner-preview">{selected.banner ? <img src={selected.banner} alt="" /> : <b>No banner</b>}</div><input type="file" accept="image/*" onChange={(event) => void uploadMedia('banner', event.target.files?.[0])} /></label>
-                    <label><span>Logo</span><div className="series-v2-logo-preview">{selected.logoImage ? <img src={selected.logoImage} alt="" /> : <b>{selected.logo || selected.title}</b>}</div><input type="file" accept="image/*" onChange={(event) => void uploadMedia('logoImage', event.target.files?.[0])} /></label>
+                    <div className="series-v2-asset"><span>Poster</span><div className="series-v2-poster-preview">{selected.artwork ? <img src={selected.artwork} alt="" /> : <b>No poster</b>}</div><ArtworkControls label="Poster" value={selected.artwork} busy={busy} onReplace={(file) => updateAsset('artwork', file)} onDelete={() => updateAsset('artwork')} /></div>
+                    <div className="series-v2-asset"><span>Banner</span><div className="series-v2-banner-preview">{selected.banner ? <img src={selected.banner} alt="" /> : <b>No banner</b>}</div><ArtworkControls label="Banner" value={selected.banner} busy={busy} onReplace={(file) => updateAsset('banner', file)} onDelete={() => updateAsset('banner')} /></div>
+                    <div className="series-v2-asset"><span>Logo</span><div className="series-v2-logo-preview">{selected.logoImage ? <img src={selected.logoImage} alt="" /> : <b>{selected.logo || selected.title}</b>}</div><ArtworkControls label="Logo" value={selected.logoImage} busy={busy} onReplace={(file) => updateAsset('logoImage', file)} onDelete={() => updateAsset('logoImage')} /></div>
                   </div>
                 </section>
               </>
