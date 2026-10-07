@@ -407,6 +407,7 @@ export const generateLumiImage = async (input: {
   prompt: string
   kind: LumiImageKind
   aspect: LumiImageAspect
+  referenceImages?: string[]
 }) => {
   const session = requireSession()
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
@@ -445,4 +446,18 @@ export async function transcribeLumiAudio(projectId: string, audio: Blob, signal
   const result = await response.json().catch(() => ({}))
   if (!response.ok || typeof result.text !== 'string') throw new Error(result.error || 'Voice transcription failed.')
   return result.text
+}
+
+export const prepareLumiMaterial = async (input: { projectId: string; destination: string; material: string }) => {
+  const session = requireSession()
+  const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  if (!url || !anonKey) throw new Error('Supabase is not configured.')
+  const response = await fetch(`${url}/functions/v1/lumi-prepare`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: anonKey },
+    body: JSON.stringify(input),
+  })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok || !payload.reply) throw new Error(payload.error || 'Lumi could not prepare this upload.')
+  return String(payload.reply)
 }
