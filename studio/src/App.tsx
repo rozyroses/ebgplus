@@ -22,6 +22,7 @@ import {
 } from '../../src/lib/pollData'
 
 const StudioPublishingCenter = lazy(() => import('./StudioPublishingCenter'))
+const StudioAnalytics = lazy(() => import('./StudioAnalytics'))
 const FormsNetworkWorkspace = lazy(() => import('./FormsNetworkWorkspace'))
 
 type StaffRole = 'editor' | 'producer' | 'administrator' | 'founder'
@@ -112,11 +113,12 @@ type TeamAccount = {
 
 // EBG_STUDIO_V4_GLOBAL_WORKSPACES
 // V4_BUILD_COMPAT_2_V2
-type StudioTab = 'forms' | 'publishing' | 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
+type StudioTab = 'analytics' | 'forms' | 'publishing' | 'overview' | 'lumi' | 'music' | 'series' | 'episodes' | 'talent' | 'casting' | 'polls' | 'media' | 'notifications' | 'team'
 
 const STAFF_ROLES = new Set<StaffRole>(['editor', 'producer', 'administrator', 'founder'])
 const CASTING_STATUSES: CastingApplication['status'][] = ['New', 'Reviewing', 'Callback', 'Interview', 'Finalist', 'Cast', 'Declined', 'Removed']
 const TABS: Array<{ id: StudioTab; label: string; icon: string }> = [
+  { id: 'analytics', label: 'Analytics', icon: '▥' },
   { id: 'overview', label: 'Overview', icon: '⌂' },
   { id: 'lumi', label: 'Chat', icon: '✦' },
   { id: 'music', label: 'Music', icon: '♫' },
@@ -160,6 +162,7 @@ const TOOL_LABELS: Record<string, string> = {
   media: 'Media',
   music: 'Music',
   publishing: 'Review & Publish',
+  analytics: 'Analytics',
   talent: 'Cast & Talent',
   casting: 'Casting',
   forms: 'Forms',
@@ -174,7 +177,7 @@ const TOOL_LABELS: Record<string, string> = {
 const STUDIO_WORKSPACES: Array<{ id: StudioWorkspaceId; label: string; icon: string; copy: string; tools: StudioTool[] }> = [
   { id: 'overview', label: 'Overview', icon: '✦', copy: 'What needs your attention right now.', tools: ['overview'] },
   { id: 'content', label: 'Content', icon: '▤', copy: 'Shows, episodes, media, and music.', tools: ['series', 'episodes', 'media', 'music', 'publishing'] },
-  { id: 'audience', label: 'Audience', icon: '◎', copy: 'Talent, casting, forms, messages, polls, and updates.', tools: ['talent', 'casting', 'forms', 'inbox', 'polls', 'notifications'] },
+  { id: 'audience', label: 'Audience', icon: '◎', copy: 'Talent, casting, forms, messages, polls, and updates.', tools: ['analytics', 'talent', 'casting', 'forms', 'inbox', 'polls', 'notifications'] },
   { id: 'tools', label: 'Tools', icon: '⌘', copy: 'Newsroom, team access, and Lumi.', tools: ['news', 'team', 'lumi'] },
 ]
 
@@ -740,6 +743,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         {message && <div className="message"><span>{message}</span><button type="button" onClick={() => setMessage('')}>×</button></div>}
 
         <main className="workspace">
+          {tab === 'analytics' && <Suspense fallback={<p>Opening analytics…</p>}><StudioAnalytics /></Suspense>}
           {tab === 'forms' && <Suspense fallback={<p>Opening forms…</p>}><FormsNetworkWorkspace /></Suspense>}
           {tab === 'publishing' && <Suspense fallback={<p>Opening publishing center…</p>}><StudioPublishingCenter key={projectId} projectId={projectId} /></Suspense>}
           {tab === 'overview' && (
