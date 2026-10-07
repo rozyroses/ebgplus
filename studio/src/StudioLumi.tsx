@@ -1,3 +1,4 @@
+import LumiVoiceInput from './LumiVoiceInput'
 import LumiHandoffReview from './LumiHandoffReview'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { loadAuthState, readStoredSession } from '../../src/lib/auth'
@@ -147,6 +148,7 @@ const preparePublicationDraft = (text: string, fallback: string) => {
 }
 
 export default function StudioLumi() {
+  const [voiceOpen, setVoiceOpen] = useState(false)
   const [active, setActive] = useState(isLumiTab)
   const [projectId, setProjectId] = useState(readProjectId)
   const [projectMeta, setProjectMeta] = useState<Pick<StudioProject, 'id' | 'title' | 'project_kind'> | null>(null)
@@ -767,7 +769,7 @@ export default function StudioLumi() {
             </div>
 
             <form className="studio-lumi-composer hero-composer" onSubmit={send}>
-              <span className="composer-spark" aria-hidden="true">✦</span>
+              <button type="button" className="button secondary" aria-label="Voice input" disabled={!projectId || busy} onClick={() => setVoiceOpen(true)}>Mic</button>
               <input id="studio-lumi-input" name="message" placeholder={projectId ? 'Ask Lumi anything…' : 'Choose a Studio project first'} autoComplete="off" disabled={!projectId || busy} />
               <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">➜</button>
             </form>
@@ -834,7 +836,7 @@ export default function StudioLumi() {
                 {quickPrompts.map((prompt) => <button type="button" key={prompt} onClick={() => fillPrompt(prompt)}>{prompt}</button>)}
               </div>
               <form className="studio-lumi-composer" onSubmit={send}>
-                <span className="composer-spark" aria-hidden="true">✦</span>
+                <button type="button" className="button secondary" aria-label="Voice input" disabled={!projectId || busy} onClick={() => setVoiceOpen(true)}>Mic</button>
                 <input id="studio-lumi-input" name="message" placeholder={projectId ? 'Ask Lumi anything…' : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
                 <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
               </form>
@@ -932,6 +934,10 @@ export default function StudioLumi() {
           </div>
         )}
       </div>
+      {voiceOpen && projectId && <LumiVoiceInput key={projectId} projectId={projectId} onClose={() => setVoiceOpen(false)} onUse={text => {
+        const input = document.querySelector<HTMLInputElement>('#studio-lumi-input')
+        if (input) { input.value = [input.value.trim(), text].filter(Boolean).join(' '); input.focus() }
+      }} />}
     </section>
   )
 }

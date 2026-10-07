@@ -1,0 +1,5 @@
+
+.lumi-voice-panel { position: fixed; z-index: 1000; inset: 15% max(20px, calc((100vw - 600px)/2)) auto; max-height: 75vh; overflow: auto; padding: 24px; border: 1px solid #555; border-radius: 18px; background: #17171c; color: #eee; box-shadow: 0 20px 80px #0009; display: grid; gap: 16px; }
+.lumi-voice-panel > div { display:flex; justify-content:space-between; align-items:center; }
+.lumi-voice-panel label { display:grid; gap:8px; }
+.lumi-voice-panel textarea { min-height:140px; width:100%; padding:12px; background:#25252c; color:inherit; border:1px solid #666; border-radius:10px; }

@@ -434,3 +434,15 @@ export const generateLumiImage = async (input: {
   return { imageUrl: payload.imageUrl, prompt: payload.prompt || input.prompt }
 }
 
+
+export async function transcribeLumiAudio(projectId: string, audio: Blob, signal: AbortSignal): Promise<string> {
+  const session = requireSession()
+  const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Studio is not configured.')
+  const body = new FormData(); body.append('projectId', projectId); body.append('audio', audio, 'message.wav')
+  const response = await fetch(`${url}/functions/v1/lumi-transcribe`, { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, apikey: key }, body, signal })
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok || typeof result.text !== 'string') throw new Error(result.error || 'Voice transcription failed.')
+  return result.text
+}
