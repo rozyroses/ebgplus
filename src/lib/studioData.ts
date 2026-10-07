@@ -435,3 +435,17 @@ export const generateLumiImage = async (input: {
   return { imageUrl: payload.imageUrl, prompt: payload.prompt || input.prompt }
 }
 
+
+export const prepareLumiMaterial = async (input: { projectId: string; destination: string; material: string }) => {
+  const session = requireSession()
+  const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '')
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  if (!url || !anonKey) throw new Error('Supabase is not configured.')
+  const response = await fetch(`${url}/functions/v1/lumi-prepare`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: anonKey },
+    body: JSON.stringify(input),
+  })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok || !payload.reply) throw new Error(payload.error || 'Lumi could not prepare this upload.')
+  return String(payload.reply)
+}

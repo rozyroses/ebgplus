@@ -793,7 +793,7 @@ export default function StudioLumi() {
           </section>
         </aside>
 
-        <LumiAutoUpload key={projectId} projectId={projectId} endpoint={endpoint} onPermissionChange={setAutoMode} requestRef={autoUpload} />
+        <LumiAutoUpload key={projectId} projectId={projectId} onPermissionChange={setAutoMode} requestRef={autoUpload} />
 
         {!hasConversation && (
           <main className="studio-lumi-welcome">
