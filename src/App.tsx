@@ -1777,10 +1777,9 @@ function HomePage({
     return () => window.clearInterval(timer)
   }, [homeShows.length])
 
-  const moveHero = (direction: -1 | 1) => {
-    if (!homeShows.length) return
-    setHeroIndex((current) => (current + direction + homeShows.length) % homeShows.length)
-  }
+  const heroLogoIsUnique = hero?.logoImage && !homeShows.some(
+    (show) => show.id !== hero.id && show.logoImage?.trim() === hero.logoImage?.trim(),
+  )
 
   return (
     <main className="page home-v2">
@@ -1808,10 +1807,10 @@ function HomePage({
           <div className="home-carousel-brand-stage">
             <div className="desktop-hero-panel">
               <Link className="home-carousel-brand-link" to={`/app/shows/${hero.id}`} aria-label={`Open ${hero.title}`}>
-                {hero.logoImage ? (
+                {heroLogoIsUnique ? (
                   <img className="home-carousel-brand-logo" src={hero.logoImage} alt={`${hero.title} logo`} />
                 ) : (
-                  <span className="home-carousel-brand-fallback">{hero.logo || hero.title}</span>
+                  <span className="home-carousel-brand-fallback">{hero.title}</span>
                 )}
               </Link>
               <p className="desktop-hero-meta">{hero.year} · {hero.maturity} · {hero.genre}</p>
@@ -1820,8 +1819,7 @@ function HomePage({
           </div>
 
           {homeShows.length > 1 && (
-            <div className="home-carousel-controls" aria-label="Featured shows">
-              <button type="button" className="home-carousel-arrow" onClick={() => moveHero(-1)} aria-label="Previous featured show">‹</button>
+            <div className="home-carousel-controls home-slide-bars" role="group" aria-label="Featured shows">
               <div className="home-carousel-dots">
                 {homeShows.map((show, index) => (
                   <button
@@ -1834,7 +1832,6 @@ function HomePage({
                   />
                 ))}
               </div>
-              <button type="button" className="home-carousel-arrow" onClick={() => moveHero(1)} aria-label="Next featured show">›</button>
             </div>
           )}
         </section>

@@ -1,0 +1,59 @@
+/* Keep carousel branding unboxed across themes; indicators use slim bars. */
+.home-v2 .home-featured-hero.home-carousel-hero .desktop-hero-panel {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars {
+  position: absolute !important;
+  z-index: 10 !important;
+  bottom: 16px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars .home-carousel-dots {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars button {
+  position: relative !important;
+  display: block !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer;
+}
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255,255,255,.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars button.active::before,
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars button:hover::before {
+  background: white;
+}
+.home-v2 .home-featured-hero.home-carousel-hero .home-slide-bars button:focus-visible {
+  outline: 2px solid white !important;
+  outline-offset: 2px;
+}

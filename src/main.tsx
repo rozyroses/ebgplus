@@ -14,6 +14,7 @@ import './styles/studio-v3.css'
 import './styles/theme-mode.css'
 import './styles/app-refresh.css'
 import './styles/music-player.css'
+import './styles/heroCarousel.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
