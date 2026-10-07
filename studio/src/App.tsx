@@ -314,6 +314,16 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     localStorage.setItem('ebg.studio.theme.v1', theme)
   }, [theme])
 
+  useEffect(() => {
+    const reload = (event: Event) => {
+      if ((event as CustomEvent<{ projectId: string }>).detail?.projectId !== projectId) return
+      void loadProjectCms<CmsData>(projectId).then((next) => { if (next) setCms(next) })
+        .catch(() => setMessage('Project saved. Reopen Studio to refresh the overview.'))
+    }
+    window.addEventListener('ebg-studio-cms-saved', reload)
+    return () => window.removeEventListener('ebg-studio-cms-saved', reload)
+  }, [projectId])
+
   const refreshAuxiliary = async () => {
     const token = authState.session.access_token
     const [nextCasting, nextPolls, nextTeam] = await Promise.all([

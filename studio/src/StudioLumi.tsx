@@ -1,3 +1,4 @@
+import LumiHandoffReview from './LumiHandoffReview'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { loadAuthState, readStoredSession } from '../../src/lib/auth'
 import {
@@ -168,6 +169,7 @@ export default function StudioLumi() {
   const [musicInfoOpen, setMusicInfoOpen] = useState(false)
   const [musicCoverFile, setMusicCoverFile] = useState<File | null>(null)
   const [mode, setMode] = useState<LumiMode>('chat')
+  const [handoff, setHandoff] = useState<{ projectId: string; image?: string; text: string } | null>(null)
   const [imageOpen, setImageOpen] = useState(false)
   const [imagePrompt, setImagePrompt] = useState('')
   const [imageKind, setImageKind] = useState<LumiImageKind>('custom')
@@ -230,6 +232,7 @@ export default function StudioLumi() {
       setChats([])
       setActiveChatId('')
       setPublishDraft(null)
+      setHandoff(null)
       setPublishMessage('')
       void refreshProject(next)
     }
@@ -808,12 +811,14 @@ export default function StudioLumi() {
                         <a href={message.imageUrl} target="_blank" rel="noreferrer">Expand ↗</a>
                         <button type="button" onClick={() => void downloadImage(message.imageUrl!)}>Download ↓</button>
                         <button type="button" onClick={() => openImageGenerator(message.imagePrompt || '')}>Regenerate</button>
+                        <button type="button" onClick={() => setHandoff({ projectId, image: message.imageUrl, text: message.imagePrompt || '' })}>Use in Studio ↗</button>
                       </div>
                     </div>
                   )}
                   {message.role === 'lumi' && !message.imageUrl && (
                     <div className="lumi-message-actions">
                       <button type="button" onClick={() => openPublish(message.text)}>↗ Review & Publish</button>
+                      <button type="button" onClick={() => setHandoff({ projectId, text: message.text })}>Use as Studio copy ↗</button>
                     </div>
                   )}
                 </article>
@@ -837,6 +842,8 @@ export default function StudioLumi() {
             </div>
           </main>
         )}
+
+        {handoff && <LumiHandoffReview key={handoff.projectId} {...handoff} onClose={() => setHandoff(null)} onSaved={() => { setHandoff(null); setPublishMessage('Applied to your Studio project.'); void refreshProject() }} />}
 
         {imageOpen && (
           <div className="lumi-publish-backdrop lumi-info-backdrop" role="presentation">
