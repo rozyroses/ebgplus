@@ -1,3 +1,5 @@
+import { ViewerPreferencesSync } from './lib/viewerPreferences'
+import './styles/workflowRefresh.css'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -26,6 +28,7 @@ function Root() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <ViewerPreferencesSync />
     <Root />
   </StrictMode>,
 )

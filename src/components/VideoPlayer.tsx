@@ -1,11 +1,14 @@
+import { useViewerPreferences } from '../lib/viewerPreferences'
 import { useEffect, useRef, useState } from 'react'
 import { usePlaybackAnalytics } from '../lib/playbackAnalytics'
 import './VideoPlayer.css'
 const time = (value: number) => { const seconds = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0)); return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}` }
 type SafariVideo = HTMLVideoElement & { webkitEnterFullscreen?: () => void }
 export default function VideoPlayer({ src, poster, title = 'EBG+ Video', contentId, autoPlay = false, startAt = 0, onProgress, onEnded }: { src: string; poster?: string; title?: string; contentId?: string; autoPlay?: boolean; startAt?: number; onProgress?: (seconds: number) => void; onEnded?: () => void }) {
+  const preferences = useViewerPreferences()
   const video = useRef<HTMLVideoElement>(null), shell = useRef<HTMLDivElement>(null)
-  const [playing,setPlaying] = useState(false), [current,setCurrent] = useState(0), [duration,setDuration] = useState(0), [volume,setVolume] = useState(1), [muted,setMuted] = useState(false), [speed,setSpeed] = useState(1), [loading,setLoading] = useState(true), [error,setError] = useState(''), [notice,setNotice] = useState(''), [pip,setPip] = useState(false)
+  const [playing,setPlaying] = useState(false), [current,setCurrent] = useState(0), [duration,setDuration] = useState(0), [volume,setVolume] = useState(preferences.volume), [muted,setMuted] = useState(false), [speed,setSpeed] = useState(preferences.speed), [loading,setLoading] = useState(true), [error,setError] = useState(''), [notice,setNotice] = useState(''), [pip,setPip] = useState(false)
+  useEffect(() => { setSpeed(preferences.speed); setVolume(preferences.volume); if(video.current) { video.current.playbackRate=preferences.speed; video.current.volume=preferences.volume } }, [preferences.speed, preferences.volume])
   const analytics = usePlaybackAnalytics(contentId, title, 'video')
   const lastSave = useRef(0)
   useEffect(() => { setPip(Boolean(document.pictureInPictureEnabled)); setPlaying(false); setCurrent(0); setDuration(0); setLoading(true); setError(''); setNotice(''); lastSave.current=0 }, [src])
@@ -16,6 +19,7 @@ export default function VideoPlayer({ src, poster, title = 'EBG+ Video', content
   const fullscreen = async () => { try { if(document.fullscreenElement) await document.exitFullscreen(); else if(shell.current?.requestFullscreen) await shell.current.requestFullscreen(); else (video.current as SafariVideo)?.webkitEnterFullscreen?.() } catch { setNotice('Fullscreen isn’t available in this browser.') } }
   const picture = async () => { try { if(document.pictureInPictureElement) await document.exitPictureInPicture(); else await video.current?.requestPictureInPicture() } catch { setNotice('Picture-in-picture isn’t available for this video.') } }
   return <div ref={shell} className="ebg-video-player ebg-video-v2" tabIndex={0} aria-label={`${title} player`} onKeyDown={event=>{
+    if(!preferences.keyboard) return
     if(event.target!==event.currentTarget && event.target!==video.current) return
     if(event.key===' ' || event.key.toLowerCase()==='k') { event.preventDefault(); void toggle() }
     if(event.key==='ArrowLeft') { event.preventDefault(); seek(current-10) }

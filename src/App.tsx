@@ -1,3 +1,4 @@
+import { defaultViewerPreferences, saveViewerPreferences, useViewerPreferences } from './lib/viewerPreferences'
 import EbgVideoPlayer from './components/VideoPlayer'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
@@ -1761,11 +1762,6 @@ function HomePage({
   const hero = homeShows[heroIndex] ?? homeShows[0]
   const continueWatchingEpisodes = episodes.filter((episode) => (profile.playback[episode.id] ?? 0) > 0)
   const comingSoonShows = homeShows.filter((show) => show.status === 'Coming Soon').slice(0, 3)
-  const releasedEpisodes = episodes
-    .filter((episode) => isEpisodeReleased(episode))
-    .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
-  const newestEpisode = releasedEpisodes[0]
-  const newestShow = newestEpisode ? showById.get(newestEpisode.showId) : undefined
 
   useEffect(() => {
     const nextPreferred = homeShows.findIndex((show) => show.id === cms.heroShowId)
@@ -1939,8 +1935,16 @@ function HomePage({
       </section>
 
 
-      {/* EBG_PHASE146_HOME_NEWS_POSITION */}
-      <section className="home-section">
+
+    </main>
+  )
+}
+
+
+function NetworkLinks({ cms }: { cms: CmsData }) {
+  const newestEpisode = [...cms.episodes].filter(isEpisodeReleased).sort((a,b)=>Date.parse(b.releaseDate)-Date.parse(a.releaseDate))[0]
+  const newestShow = cms.shows.find(show=>show.id===newestEpisode?.showId)
+  return (      <section className="home-section">
         <div className="home-section-head">
           <div><h2>What’s happening on EBG+</h2><p>Jump into the parts of the platform that move with you.</p></div>
         </div>
@@ -1958,11 +1962,8 @@ function HomePage({
             {newestEpisode ? <Link to={`/app/watch/${newestEpisode.id}`}>Watch Now →</Link> : <Link to="/app/shows">Browse Shows →</Link>}
           </article>
         </div>
-      </section>
-    </main>
-  )
+      </section>)
 }
-
 function ContentCard({ show, inList, onToggle }: { show: Show; inList: boolean; onToggle: () => void }) {
   return (
     <article className="content-card">
@@ -2268,7 +2269,14 @@ function WatchPage({
   const currentIndex = showEpisodes.findIndex(item => item.id === episodeId)
   const nextEpisode = currentIndex >= 0 ? showEpisodes[currentIndex + 1] : undefined
   const [ended, setEnded] = useState(false)
-  useEffect(() => setEnded(false), [episodeId])
+  const [countdown, setCountdown] = useState(8)
+  useEffect(() => { setEnded(false); setCountdown(8) }, [episodeId])
+  useEffect(() => {
+    if(!ended || !nextEpisode || !profile.autoplayNext) return
+    const timer=setInterval(()=>setCountdown(value=>Math.max(0,value-1)),1000)
+    return()=>clearInterval(timer)
+  },[ended,nextEpisode?.id,profile.autoplayNext])
+  useEffect(()=>{if(ended && countdown===0 && nextEpisode && profile.autoplayNext) nav(`/app/watch/${nextEpisode.id}`)},[ended,countdown,nextEpisode?.id,profile.autoplayNext,nav])
 
   if (!episode) return <NotFoundPage />
 
@@ -2298,6 +2306,7 @@ function WatchPage({
       {ended && nextEpisode && (
         <section className="panel">
           <h2>Next Episode</h2>
+          {profile.autoplayNext && <p role="status">Playing next in {countdown} seconds.</p>}
           <p>{nextEpisode.title}</p>
           <div className="actions">
             <Link className="btn" to={`/app/watch/${nextEpisode.id}`}>
@@ -2471,11 +2480,13 @@ function NotificationsPage({ cms, account, castingApps }: { cms: CmsData; accoun
 }
 
 function SettingsPage({ account, profile, onUpdateAccount, onSignOut }: { account: Account; profile: Profile; onUpdateAccount: (account: Account) => void; onSignOut: () => void }) {
+  const preferences = useViewerPreferences()
+  const changePreference = (patch: Partial<typeof preferences>) => { try { saveViewerPreferences({...preferences,...patch}); setState('Device preferences saved.') } catch { setState('This browser could not save preferences.') } }
   const [state, setState] = useState('')
   const [uploading, setUploading] = useState(false)
   const updateProfile = (patch: Partial<Profile>) => onUpdateAccount({ ...account, profiles: account.profiles.map((item) => item.id === profile.id ? { ...item, ...patch } : item) })
   const uploadPhoto = async (file?: File) => { if (!file) return; setUploading(true); setState(''); try { const avatar = await uploadProfilePhoto(file); updateProfile({ avatar }); setState('Profile photo updated.') } catch (error) { setState(error instanceof Error ? error.message : 'Profile photo could not be uploaded.') } finally { setUploading(false) } }
-  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel"><h2>Playback & Accessibility</h2><p>Caption, audio, language, and device preferences will live here as EBG+ expands.</p></section></div></div></main>)
+  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel connected-settings"><h2>Playback & accessibility</h2><p>These preferences are saved on this device and apply to EBG+ video playback.</p><label>Default playback speed<select value={preferences.speed} onChange={event=>changePreference({speed:Number(event.target.value)})}>{[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}</select></label><label>Default video volume<input type="range" min={0} max={1} step={0.05} value={preferences.volume} onChange={event=>changePreference({volume:Number(event.target.value)})}/></label><label><input type="checkbox" checked={preferences.keyboard} onChange={event=>changePreference({keyboard:event.target.checked})}/> Video keyboard shortcuts (space/K, arrows, F, M)</label><label><input type="checkbox" checked={preferences.reduceMotion} onChange={event=>changePreference({reduceMotion:event.target.checked})}/> Reduce interface motion</label><label><input type="checkbox" checked={preferences.largeText} onChange={event=>changePreference({largeText:event.target.checked})}/> Larger interface text</label><button className="btn muted" onClick={()=>{try { saveViewerPreferences(defaultViewerPreferences);setState('Device playback preferences reset.') } catch { setState('Could not reset device preferences.') }}}>Reset device preferences</button></section><section className="panel"><h2>Appearance</h2><p>Choose your light or dark theme.</p><ThemeToggle /></section><section className="panel"><h2>Security & account tools</h2><Link className="btn muted" to="/auth/forgot-password">Reset password</Link><Link className="btn muted" to="/profiles">Manage profiles</Link><Link className="btn muted" to="/app/inbox">Open inbox</Link><Link className="btn muted" to="/app/applications">My applications</Link></section></div></div></main>)
 }
 
 function EbgStudioHub({
@@ -3341,7 +3352,7 @@ function NewsPage({ cms }: { cms: CmsData }) {
     <main className="page news-page-v2">
       <section className="editorial-page-hero"><p className="eyebrow">EBG NEWS</p><h1>What's happening across EBG.</h1><p>Official announcements, releases, casting updates, premieres, artist news, platform updates, and stories from across EBG.</p></section>
       {featured ? <><article className="news-lead">{featured.image && <img src={featured.image} alt="" />}<div><span>{featured.category}</span><h2>{featured.headline}</h2><p>{featured.summary}</p><small>By {featured.author} · {new Date(featured.publishedAt).toLocaleDateString()}</small><div className="news-body">{featured.body}</div></div></article><div className="news-grid-v2">{rest.map((item) => <article key={item.id}>{item.image && <img src={item.image} alt="" />}<span>{item.category}</span><h3>{item.headline}</h3><p>{item.summary}</p><small>By {item.author} · {new Date(item.publishedAt).toLocaleDateString()}</small></article>)}</div></> : <section className="panel"><p className="eyebrow">NEWSROOM</p><h2>No stories published yet.</h2><p>Founder-published stories from EBG Studio will appear here.</p></section>}
-    </main>
+    <NetworkLinks cms={cms} /></main>
   )
 }
 
