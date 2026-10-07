@@ -704,12 +704,6 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
               <button type="button" className={activeTool === 'music' ? 'active' : ''} onClick={() => goToTool('music')}><span>♫</span><strong>Music</strong></button>
               <button type="button" className={activeTool === 'lumi' ? 'active' : ''} onClick={() => goToTool('lumi')}><span>✦</span><strong>Lumi</strong></button>
             </div>
-            <label className="studio-v3-project">
-              <span>Project</span>
-              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
-                {projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
-              </select>
-            </label>
             <details className="studio-v3-new-project">
               <summary>＋ New</summary>
               <form onSubmit={createProject}>
@@ -719,7 +713,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
                 <button type="submit" disabled={creatingProject}>{creatingProject ? 'Creating…' : 'Create'}</button>
               </form>
             </details>
-            {cms.shows.length > 0 && <label className="studio-v3-production"><span>Title</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
+
             <StudioThemeToggle theme={theme} onChange={setTheme} />
             <a className="studio-v3-view" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
           </div>
@@ -743,6 +737,16 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
           {tab === 'overview' && (
             <>
               <section className="hero-panel"><div><p className="eyebrow">STUDIO HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Chat with Lumi, upload music, publish episodes, and send news or notifications from one Studio.</p><div className="hero-actions"><button className="button" onClick={() => setTab('lumi')}>Open Lumi</button><button className="button secondary" onClick={() => setTab('music')}>Upload music</button><button className="button secondary" onClick={() => setTab('episodes')}>Post episode</button></div></div><div className="hero-stat"><strong>{projects.length}</strong><span>Studio project{projects.length === 1 ? '' : 's'}</span></div></section>
+              <details className="panel studio-project-switcher"><summary>Switch production</summary><div className="form-grid">
+            <label className="studio-v3-project">
+              <span>Project</span>
+              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+                {projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
+              </select>
+            </label>
+
+            {cms.shows.length > 0 && <label className="studio-v3-production"><span>Title</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{cms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
+              </div></details>
               <section className="stats-grid">
                 <Stat label="Series" value={cms.shows.length} detail={`${cms.shows.filter((show) => show.status === 'Now Streaming' || show.status === 'Current').length} active`} />
                 <Stat label="Episodes" value={cms.episodes.length} detail={`${activeEpisodes} live`} />
