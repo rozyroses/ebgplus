@@ -1121,7 +1121,7 @@ function UnsubscribePage() {
 }
 
 function LandingPage({ cms }: { cms: CmsData }) {
-  const shows = cms.shows.filter((show) => show.homeVisible !== false)
+  const shows = cms.shows.filter((show) => show.homeVisible !== false).sort((a, b) => Number(b.status === 'Now Streaming') - Number(a.status === 'Now Streaming'))
   const [selectedId, setSelectedId] = useState('')
   const featured = shows.find((show) => show.id === selectedId) || shows[0]
   const news = (cms.news ?? []).filter((item) => item.status === 'published' && Date.parse(item.publishedAt) <= Date.now()).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
@@ -1131,19 +1131,16 @@ function LandingPage({ cms }: { cms: CmsData }) {
       <header className="eh-header">
         <Link className="eh-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
         <nav aria-label="Main navigation"><a href="#discover">Discover</a><Link to="/app/music">Music</Link><a href="#creators">For creators</a></nav>
-        <div className="eh-account"><ThemeToggle compact /><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
+        <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
       </header>
-      <section className="eh-intro" aria-labelledby="eh-title">
-        <div><p className="eh-eyebrow"><span /> ORIGINALS. MUSIC. CULTURE.</p><h1 id="eh-title">Find your people.<br />Feel <em>everything.</em></h1></div>
-        <div className="eh-intro-side"><p>The stories you get into.<br />The artists you come back for.<br />All together on EBG+.</p><a href="#discover" className="eh-text-link">Explore the lineup <span aria-hidden="true">↓</span></a></div>
+      <section className="eh-cinema" aria-labelledby="eh-title">
+        {featured && <img className="eh-cinema-image" src={featured.banner || featured.artwork} alt="" fetchPriority="high" />}
+        <div className="eh-cinema-overlay" />
+        <div className="eh-cinema-copy"><p className="eh-eyebrow">INDEPENDENT VOICES. UNFORGETTABLE STORIES.</p><h1 id="eh-title">Your next<br />obsession<br /><em>lives here.</em></h1><p className="eh-cinema-lead">Original shows. Music on repeat. A whole world of creators worth discovering.</p><div className="eh-cinema-actions"><Link className="eh-button" to="/auth/create-account">Get started <span aria-hidden="true">↗</span></Link><Link className="eh-text-link" to="/app/shows">Explore EBG+ <span aria-hidden="true">→</span></Link></div></div>
+        {featured && <div className="eh-cinema-title"><p className="eh-eyebrow">IN THE SPOTLIGHT · {featured.status}</p><h2>{featured.title}</h2><p>{featured.genre}</p><Link to={`/app/shows/${featured.id}`}>Discover the series <span aria-hidden="true">↗</span></Link></div>}
+        {shows.length > 1 && <div className="eh-cinema-dots" aria-label="Choose featured title">{shows.slice(0,4).map((show,index)=><button type="button" key={show.id} aria-label={`Feature ${show.title}`} aria-pressed={featured?.id===show.id} onClick={()=>setSelectedId(show.id)}><span className="eh-dot-track"/><span className="eh-dot-number">{String(index+1).padStart(2,'0')}</span></button>)}</div>}
       </section>
-      {featured && <section className="eh-feature" aria-label="Featured on EBG+">
-        <img className="eh-feature-image" src={featured.banner || featured.artwork} alt="" fetchPriority="high" />
-        <div className="eh-feature-shade" />
-        <div className="eh-feature-top"><span>IN THE SPOTLIGHT</span><span>{featured.status}</span></div>
-        <div className="eh-feature-copy"><p className="eh-eyebrow">{featured.category || 'EBG+ ORIGINAL'}</p><h2>{featured.title}</h2><p>{featured.description}</p><div className="eh-feature-actions"><Link className="eh-button eh-button-white" to={`/app/shows/${featured.id}`}>Explore series <span aria-hidden="true">↗</span></Link><span>{featured.genre} · {featured.year}</span></div></div>
-        {shows.length > 1 && <div className="eh-feature-picker" aria-label="Choose featured title">{shows.slice(0, 4).map((show, index) => <button type="button" key={show.id} aria-pressed={featured.id === show.id} onClick={() => setSelectedId(show.id)}><span>{String(index + 1).padStart(2, '0')}</span>{show.title}</button>)}</div>}
-      </section>}
+      <div className="eh-brand-strip"><span>A HOME FOR ORIGINALS</span><span>Stories that stay with you.</span><span>Sounds that move you.</span><a href="https://studio.ebgplus.app">Made by independent creators ↗</a></div>
       <section id="discover" className="eh-section">
         <div className="eh-section-heading"><div><p className="eh-eyebrow">YOUR NEXT PLAY</p><h2>A little drama. A lot to love.</h2></div><Link className="eh-text-link" to="/app/shows">Explore all shows ↗</Link></div>
         <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art"><img src={show.artwork || show.banner} alt="" loading="lazy" /><span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
@@ -1158,15 +1155,19 @@ function LandingPage({ cms }: { cms: CmsData }) {
 
 function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="auth-page">
-      <Link className="wordmark" to="/">
-        EBG+
-      </Link>
-      <section className="auth-card">
-        <p className="eyebrow">YOUR WORLD STARTS HERE</p>
+    <main className="auth-page ebg-entry">
+      <aside className="entry-story">
+        <Link className="entry-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
+        <div className="entry-orbit" aria-hidden="true"><span>+</span></div>
+        <div className="entry-story-copy"><p className="eyebrow">STORIES. SOUNDS. YOUR PEOPLE.</p><h2>A little escape.<br />A lot to <em>love.</em></h2><p>Discover original shows and independent music. Find something that feels like you.</p></div>
+        <p className="entry-story-foot">Original voices. All together.</p>
+      </aside>
+      <div className="entry-form-side"><Link className="entry-back" to="/">← Back to EBG+</Link><section className="auth-card">
+        <p className="eyebrow">MAKE YOURSELF AT HOME</p>
         <h1>{title}</h1>
+        {title === 'Welcome back.' && <p className="entry-intro">Your next favorite is waiting. Sign in to pick up where you left off.</p>}
         {children}
-      </section>
+      </section><p className="entry-help">Here to create? <a href="https://studio.ebgplus.app">Open EBG+ Studio ↗</a></p></div>
     </main>
   )
 }
@@ -1193,7 +1194,7 @@ function SignInPage({ onSignIn }: { onSignIn: (email: string, password: string) 
   }
 
   return (
-    <AuthLayout title="Sign In">
+    <AuthLayout title="Welcome back.">
       <form onSubmit={onSubmit}>
         <label>
           Email
