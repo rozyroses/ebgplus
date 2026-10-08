@@ -1,4 +1,5 @@
-import { db, storage } from './supabase'
+import { canonicalMedia, previewMedia, uploadPrivateMedia } from './privateMedia'
+import { db } from './supabase'
 import { readStoredSession } from './auth'
 
 export type StudioCmsPayload = Record<string, unknown>
@@ -51,11 +52,12 @@ export const loadStudioIdentity = async () => {
 
 export const loadMyStudioProjects = async <T extends StudioCmsPayload = StudioCmsPayload>() => {
   const session = requireSession()
-  return db.select<StudioProject & { cms: T }>(
+  const projects = await db.select<StudioProject & { cms: T }>(
     'studio_projects',
     `owner_account_id=eq.${encodeURIComponent(session.user.id)}&order=updated_at.desc`,
     session.access_token,
   )
+  return Promise.all(projects.map(async project => ({ ...project, cms: await previewMedia(project.cms, session.access_token) })))
 }
 
 export const createStudioProject = async <T extends StudioCmsPayload = StudioCmsPayload>(input: {
@@ -82,7 +84,7 @@ export const createStudioProject = async <T extends StudioCmsPayload = StudioCms
     title: input.title.trim(),
     slug,
     project_kind: input.projectKind,
-    cms: input.cms,
+    cms: canonicalMedia(input.cms),
   }, session.access_token)
 
   if (!project) throw new Error('Studio project could not be created.')
@@ -96,7 +98,7 @@ export const loadProjectCms = async <T>(projectId: string) => {
     `id=eq.${encodeURIComponent(projectId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}&limit=1`,
     session.access_token,
   )
-  return rows[0]?.cms ?? null
+  return rows[0] ? previewMedia(rows[0].cms, session.access_token) : null
 }
 
 export const saveProjectCms = async <T>(projectId: string, value: T) => {
@@ -104,11 +106,11 @@ export const saveProjectCms = async <T>(projectId: string, value: T) => {
   const rows = await db.update<StudioProject & { cms: T }>(
     'studio_projects',
     `id=eq.${encodeURIComponent(projectId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}`,
-    { cms: value as StudioProject['cms'], updated_at: new Date().toISOString() } as Partial<StudioProject & { cms: T }>,
+    { cms: canonicalMedia(value) as StudioProject['cms'], updated_at: new Date().toISOString() } as Partial<StudioProject & { cms: T }>,
     session.access_token,
   )
   if (!rows.length) throw new Error('This Studio project could not be saved.')
-  return rows[0]
+  return { ...rows[0], cms: await previewMedia(rows[0].cms, session.access_token) }
 }
 
 export const renameStudioProject = async (projectId: string, title: string) => {
@@ -126,20 +128,15 @@ export const renameStudioProject = async (projectId: string, title: string) => {
 // Legacy global CMS helpers remain temporarily for the public viewer while the
 // catalog publishing path is migrated. Private Studio code should use project APIs.
 export const loadCmsData = async <T>() => {
-  const rows = await db.select<{ key: string; value: T }>('cms_settings', 'key=eq.cms&limit=1')
-  return rows[0]?.value ?? null
+  const session = requireSession()
+  const cms = await db.rpc<T | null>('studio_load_cms', {}, session.access_token)
+  return cms ? previewMedia(cms, session.access_token) : null
 }
 
 export const saveCmsData = async <T>(value: T) => {
   const session = requireSession()
-  const existing = await db.select<{ key: string }>('cms_settings', 'key=eq.cms&limit=1', session.access_token)
-  const payload = { value, updated_at: new Date().toISOString() }
-
-  if (existing.length) {
-    await db.update('cms_settings', 'key=eq.cms', payload, session.access_token)
-  } else {
-    await db.insert('cms_settings', { key: 'cms', ...payload }, session.access_token)
-  }
+  await db.rpc('studio_save_cms', { p_value: canonicalMedia(value) }, session.access_token)
+  window.dispatchEvent(new Event('ebg-studio-catalog-saved'))
 }
 
 export const updateCastingApplicationStatus = async (applicationId: string, status: string) => {
@@ -170,7 +167,7 @@ export const uploadStudioProjectMedia = async (file: File, projectId: string, fo
     .filter(Boolean)
     .join('/')
   const path = `studio/${session.user.id}/${safeSegment(projectId)}/${safeFolder}/${stamp}-${safeSegment(file.name)}`
-  return storage.uploadPublic('ebg-media', path, file, session.access_token)
+  return uploadPrivateMedia(file, path, session.access_token)
 }
 
 export const uploadStudioMedia = async (file: File, folder: string) => {
@@ -181,8 +178,8 @@ export const uploadStudioMedia = async (file: File, folder: string) => {
     .map(safeSegment)
     .filter(Boolean)
     .join('/')
-  const path = `${safeFolder}/${stamp}-${safeSegment(file.name)}`
-  return storage.uploadPublic('ebg-media', path, file, session.access_token)
+  const path = `catalog/${session.user.id}/${safeFolder}/${stamp}-${safeSegment(file.name)}`
+  return uploadPrivateMedia(file, path, session.access_token)
 }
 
 export type LumiPublicationKind = 'news' | 'notification'
@@ -297,11 +294,12 @@ const chatTitleFromPrompt = (prompt: string) => {
 
 export const listLumiChats = async (projectId: string) => {
   const session = requireSession()
-  return db.select<LumiChat>(
+  const chats = await db.select<LumiChat>(
     'lumi_chats',
     `project_id=eq.${encodeURIComponent(projectId)}&order=updated_at.desc`,
     session.access_token,
   )
+  return previewMedia(chats, session.access_token)
 }
 
 export const createLumiChat = async (projectId: string, firstPrompt?: string) => {
@@ -319,7 +317,7 @@ export const createLumiChat = async (projectId: string, firstPrompt?: string) =>
   )
   const chat = rows[0]
   if (!chat) throw new Error('Lumi could not create a new chat.')
-  return chat
+  return previewMedia(chat, session.access_token)
 }
 
 export const saveLumiChat = async (chatId: string, messages: LumiChatMessage[], title?: string) => {
@@ -328,7 +326,7 @@ export const saveLumiChat = async (chatId: string, messages: LumiChatMessage[], 
     'lumi_chats',
     `id=eq.${encodeURIComponent(chatId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}`,
     {
-      messages,
+      messages: canonicalMedia(messages),
       ...(title ? { title: chatTitleFromPrompt(title) } : {}),
       updated_at: new Date().toISOString(),
     },
@@ -336,7 +334,7 @@ export const saveLumiChat = async (chatId: string, messages: LumiChatMessage[], 
   )
   const chat = rows[0]
   if (!chat) throw new Error('Lumi chat could not be saved.')
-  return chat
+  return previewMedia(chat, session.access_token)
 }
 
 export const renameLumiChat = async (chatId: string, title: string) => {
@@ -350,7 +348,7 @@ export const renameLumiChat = async (chatId: string, title: string) => {
   )
   const chat = rows[0]
   if (!chat) throw new Error('Lumi chat could not be renamed.')
-  return chat
+  return previewMedia(chat, session.access_token)
 }
 
 export const deleteLumiChat = async (chatId: string) => {

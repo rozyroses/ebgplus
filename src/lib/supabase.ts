@@ -36,10 +36,10 @@ const request = async <T>(path: string, init: RequestInit = {}, token?: string):
 }
 
 export const auth = {
-  signUp(email: string, password: string) {
+  signUp(email: string, password: string, data?: Record<string, unknown>) {
     return request<SupabaseSession | { user: SupabaseSession['user']; session: SupabaseSession | null }>(
       '/auth/v1/signup',
-      { method: 'POST', body: JSON.stringify({ email, password }) },
+      { method: 'POST', body: JSON.stringify({ email, password, ...(data ? { data } : {}) }) },
     )
   },
 
@@ -120,6 +120,11 @@ export const db = {
 const encodeStoragePath = (path: string) => path.split('/').map(encodeURIComponent).join('/')
 
 export const storage = {
+  async sign(bucket: string, path: string, accessToken: string) {
+    const body = await request<{ signedURL: string }>(`/storage/v1/object/sign/${encodeURIComponent(bucket)}/${encodeStoragePath(path)}`, { method: 'POST', body: JSON.stringify({ expiresIn: 3600 }) }, accessToken)
+    if (!body.signedURL) throw new Error('Private media preview could not be opened.')
+    return `${SUPABASE_URL}/storage/v1${body.signedURL}`
+  },
   async uploadPublic(bucket: string, path: string, file: File, accessToken: string) {
     if (!supabaseConfigured) throw new Error('Supabase is not configured.')
     const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeStoragePath(path)}`, {

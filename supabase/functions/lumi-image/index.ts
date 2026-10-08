@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
     const filename = `studio/${user.id}/${projectId}/lumi-images/${Date.now()}-${crypto.randomUUID()}.png`;
 
     const { error: uploadError } = await admin.storage
-      .from("ebg-media")
+      .from("ebg-studio-private")
       .upload(filename, bytes, {
         contentType: "image/png",
         upsert: false,
@@ -180,13 +180,11 @@ Deno.serve(async (req: Request) => {
       return json(500, { error: `Image created, but Studio could not save it: ${uploadError.message}` });
     }
 
-    const { data: publicData } = admin.storage.from("ebg-media").getPublicUrl(filename);
-    if (!publicData?.publicUrl) {
-      return json(500, { error: "Image saved but its URL could not be created." });
-    }
+    const { data: privateData, error: signError } = await admin.storage.from("ebg-studio-private").createSignedUrl(filename, 3600);
+    if (signError || !privateData?.signedUrl) return json(500, { error: "Image saved but its private preview could not be opened." });
 
     return json(200, {
-      imageUrl: publicData.publicUrl,
+      imageUrl: privateData.signedUrl,
       prompt,
       provider: "muse-image-1.0",
       path: filename,

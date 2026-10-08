@@ -1,3 +1,4 @@
+import { canonicalMedia } from '../../src/lib/privateMedia'
 import { loadCmsData, loadProjectCms, saveCmsData, saveProjectCms, publishLumiContent } from '../../src/lib/studioData'
 import { createForm } from './formsNetwork'
 import { parseFormQuestions } from './formBuilder'
@@ -64,11 +65,11 @@ export async function publishAutoMaterial(projectId: string, destination: AutoDe
   }
   assertAuthorized()
   await saveCmsData(next)
-  const saved = await loadCmsData<Catalog>()
+  const saved = canonicalMedia(await loadCmsData<Catalog>())
   const exists = destination === 'show' ? saved?.shows?.some(item => item.id === id)
     : destination === 'episode' ? saved?.episodes?.some(item => item.id === id)
-    : destination === 'cast' ? saved?.shows?.find(item => item.id === showId)?.cast?.some((item: RecordItem) => item.name === plan.title && item.image === media.url)
-    : saved?.shows?.find(item => item.id === showId)?.[{ poster: 'artwork', banner: 'banner', logo: 'logoImage' }[destination as 'poster' | 'banner' | 'logo']] === media.url
+    : destination === 'cast' ? saved?.shows?.find(item => item.id === showId)?.cast?.some((item: RecordItem) => item.name === plan.title && item.image === canonicalMedia(media.url))
+    : saved?.shows?.find(item => item.id === showId)?.[{ poster: 'artwork', banner: 'banner', logo: 'logoImage' }[destination as 'poster' | 'banner' | 'logo']] === canonicalMedia(media.url)
   if (!exists) throw new Error('The catalog did not confirm this change. Check the site before retrying.')
   return 'https://ebgplus.app/app/shows/' + (destination === 'show' ? id : showId)
 }
