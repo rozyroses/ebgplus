@@ -15,10 +15,15 @@ import './studioFounderNews.css'
 import './musicDistribution.css'
 import './studioPublishingCenter.css'
 
+const StreamingRelease = lazy(() => import('./StreamingRelease'))
 const PublicMusicRelease = lazy(() => import('./PublicMusicRelease'))
 function StudioRoot() {
   const [hash, setHash] = useState(window.location.hash)
   useEffect(() => { const sync = () => setHash(window.location.hash); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync) }, [])
+  if (window.location.pathname.startsWith('/stream/')) {
+    let slug = ''; try { slug = decodeURIComponent(window.location.pathname.slice('/stream/'.length)) } catch { /* Invalid URL. */ }
+    return <Suspense fallback={<main className="public-release">Loading streaming link…</main>}><StreamingRelease slug={slug} /></Suspense>
+  }
   if (hash.startsWith('#listen/')) {
     let id = ''
     try { id = decodeURIComponent(hash.slice('#listen/'.length)) } catch { /* Unavailable release. */ }

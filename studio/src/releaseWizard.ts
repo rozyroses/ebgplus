@@ -8,3 +8,7 @@ export function attachReleaseTracks<T extends { id: string; artistId: string; re
   const pendingIds = new Set(pending.map(track => track.id))
   return [...existing.filter(track => track.releaseId !== releaseId && !pendingIds.has(track.id)), ...pending.map(track => ({ ...track, artistId, releaseId }))]
 }
+
+export function replaceTrackAudio<T extends { audioUrl:string }>(track:T,audioUrl:string,isFlac=false) {
+  return {...track,audioUrl,originalAudioUrl:undefined,losslessUrl:isFlac?audioUrl:'',losslessMimeType:isFlac?'audio/flac':'',atmosUrl:'',lyrics:'',timedLyrics:[],duration:undefined}
+}

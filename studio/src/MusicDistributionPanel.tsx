@@ -1,38 +1,16 @@
-import { useState } from 'react'
-import { cleanPlatformLinks, distributionMissing, emptyDistribution, platforms, releaseLink } from './musicDistribution'
-import type { DistributionDetails, Platform } from './musicDistribution'
-
-type Release = { id: string; title: string; cover: string; genre: string; releaseDate: string; publishStatus: string; distribution?: DistributionDetails; streamingLinks?: Partial<Record<Platform, string>> }
-export default function MusicDistributionPanel({ projectId, release, tracks, onSave }: { projectId: string; release: Release; tracks: Array<{ audioUrl: string; losslessUrl?: string }>; onSave: (patch: { distribution: DistributionDetails; streamingLinks: Partial<Record<Platform, string>> }) => Promise<boolean> }) {
-  const [details, setDetails] = useState(() => ({ ...emptyDistribution(), ...release.distribution }))
-  const [links, setLinks] = useState(release.streamingLinks ?? {})
-  const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
-  const missing = distributionMissing(release, tracks, details)
-  const url = releaseLink(projectId, release.id)
-  const save = async () => {
-    setBusy(true)
-    try {
-      const cleaned = cleanPlatformLinks(links)
-      if (await onSave({ distribution: details, streamingLinks: cleaned })) setMessage('Release details and listening links saved.')
-      else setMessage('Could not save. Check the Studio message and try again.')
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not save release details.') }
-    finally { setBusy(false) }
-  }
-  return <section className="music-distribution">
-    <p className="eyebrow">DISTRIBUTION & LISTENING LINK</p><h4>One release. Every destination.</h4>
-    <div className="distribution-status"><strong>EBG+: {release.publishStatus === 'live' ? 'Published' : release.publishStatus}</strong><strong>Streaming delivery: partner connection required</strong></div>
-    <p>Prepare your release here. Streaming submission will become available when EBG+ connects a distribution partner. Saving these details does not deliver audio to streaming services.</p>
-    <div className="music-v2-step-grid">
-      {([['label','Label'],['copyright','Copyright (©)'],['recordingRights','Recording rights (℗)'],['upc','UPC (if assigned)'],['territories','Territories']] as const).map(([key, label]) => <label key={key}>{label}<input value={details[key]} onChange={event => setDetails({ ...details, [key]: event.target.value })} /></label>)}
-      <label>Songwriter / producer credits<textarea value={details.credits} onChange={event => setDetails({ ...details, credits: event.target.value })} /></label>
-    </div>
-    <label className="music-check"><input type="checkbox" checked={details.rightsConfirmed} onChange={event => setDetails({ ...details, rightsConfirmed: event.target.checked })} /> I have the rights and permissions to distribute this release.</label>
-    <p>{missing.length ? `Still needed: ${missing.join(' · ')}` : 'Basic release details are ready. Partner-specific validation will happen before delivery.'}</p>
-    <h4>Your listening page</h4>{release.cover && <img className="distribution-release-cover" src={release.cover} alt={`${release.title} cover`} />}<p>Your listening page uses this release’s saved cover automatically. No second artwork upload is needed.</p><p>Live releases have an EBG+ player. Scheduled releases show a coming-soon page. Add direct streaming links when each platform makes your release available.</p>
-    <div className="music-v2-step-grid">{platforms.map(platform => <label key={platform.id}>{platform.name}<input type="url" placeholder={`https://${platform.host}/…`} value={links[platform.id] ?? ''} onChange={event => setLinks({ ...links, [platform.id]: event.target.value })} /></label>)}</div>
-    <div className="music-v2-step-actions"><button type="button" className="button" disabled={busy} onClick={() => void save()}>{busy ? 'Saving…' : 'Save distribution details & links'}</button>{['live','scheduled'].includes(release.publishStatus) && <><a className="button secondary" href={url} target="_blank" rel="noreferrer">Open listening page ↗</a><button type="button" className="button secondary" onClick={async () => { try { await navigator.clipboard.writeText(url); setMessage('Listening link copied.') } catch { setMessage(url) } }}>Copy release link</button></>}</div>
-    {!['live','scheduled'].includes(release.publishStatus) && <p>Publish or schedule this release to make its listening page available.</p>}
-    {message && <p role="status">{message}</p>}
-  </section>
+import { useEffect, useState } from 'react'
+import { cleanPlatformLinks, platforms } from './musicDistribution'
+import type { Platform } from './musicDistribution'
+import { db } from '../../src/lib/supabase'
+import { readStoredSession } from '../../src/lib/auth'
+import { brandedReleaseLink, cleanLinkSlug } from './streamingLinks'
+type Release={id:string;title:string;cover:string;publishStatus:string;streamingLinks?:Partial<Record<Platform,string>>}
+type Link={project_id:string;release_id:string;slug:string}
+export default function MusicDistributionPanel({projectId,release,artistName,onSave}:{projectId:string;release:Release;artistName:string;onSave:(patch:{streamingLinks:Partial<Record<Platform,string>>})=>Promise<boolean>}) {
+  const [slug,setSlug]=useState(()=>`${cleanLinkSlug(artistName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))||'artist'}/${cleanLinkSlug(release.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))||'release'}`),[savedSlug,setSavedSlug]=useState(''),[links,setLinks]=useState(release.streamingLinks||{}),[busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false),[message,setMessage]=useState('')
+  const query=`project_id=eq.${encodeURIComponent(projectId)}&release_id=eq.${encodeURIComponent(release.id)}`
+  useEffect(()=>{let active=true;const token=readStoredSession()?.access_token;if(!token){setMessage('Sign in to manage your streaming link.');return}db.select<Link>('studio_streaming_links',`${query}&limit=1`,token).then(rows=>{if(active){if(rows[0]){setSavedSlug(rows[0].slug);setSlug(rows[0].slug)}setLoaded(true)}}).catch(()=>{if(active)setMessage('Streaming links could not be loaded. Reopen this page to retry.')});return()=>{active=false}},[query])
+  const save=async()=>{setBusy(true);try{const clean=cleanLinkSlug(slug);if(clean!==slug.trim().toLowerCase()||!clean)throw new Error('Use 2–60 lowercase letters, numbers or hyphens, optionally followed by /release-name (2–80 characters).');const token=readStoredSession()?.access_token;if(!token)throw new Error('Sign in again to create a streaming link.');if(!await onSave({streamingLinks:cleanPlatformLinks(links)}))throw new Error('Platform links could not be saved. Try again.');const values={project_id:projectId,release_id:release.id,slug:clean};if(savedSlug)await db.update<Link>('studio_streaming_links',query,values,token);else await db.insert<Link>('studio_streaming_links',values,token);setSavedSlug(clean);setMessage('Streaming link saved. Artwork and release updates sync automatically.')}catch(e){const text=e instanceof Error?e.message:'Streaming link could not be saved.';setMessage(/duplicate key/i.test(text)?'That custom address is already in use. Choose another name.':text)}finally{setBusy(false)}}
+  const url=savedSlug?brandedReleaseLink(savedSlug):''
+  return <section className="music-distribution"><p className="eyebrow">STREAMING LINKS</p><h3>{release.title}</h3>{release.cover&&<img className="distribution-release-cover" src={release.cover} alt={`${release.title} cover`}/>}<p>Uses this release’s saved cover and audio automatically. Add platform destinations when your music is available there.</p><label>Custom EBG+ address<input disabled={busy} value={slug} onChange={e=>setSlug(e.target.value.toLowerCase())} placeholder="bijounicole/step-on-up"/></label><p className="music-link-preview">{brandedReleaseLink(slug)}</p><div className="music-v2-step-grid">{platforms.map(p=><label key={p.id}>{p.name}<input disabled={busy} type="url" placeholder={`https://${p.host}/…`} value={links[p.id]||''} onChange={e=>setLinks({...links,[p.id]:e.target.value})}/></label>)}</div><div className="music-v2-step-actions"><button className="button" type="button" disabled={busy||!loaded} onClick={()=>void save()}>{busy?'Saving…':savedSlug?'Save streaming link':'Generate streaming link'}</button>{url&&['live','scheduled'].includes(release.publishStatus)&&<><a className="button secondary" href={url} target="_blank" rel="noreferrer">Open streaming page ↗</a><button type="button" className="button secondary" onClick={async()=>{try{await navigator.clipboard.writeText(url);setMessage('Streaming link copied.')}catch{setMessage(url)}}}>Copy link</button></>}</div>{!['live','scheduled'].includes(release.publishStatus)&&<p>You can reserve a link now. Its public page becomes available when you publish or schedule the release.</p>}{message&&<p role="status">{message}</p>}</section>
 }

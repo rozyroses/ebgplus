@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { assertReleaseAudio, attachReleaseTracks } from '../studio/src/releaseWizard.ts'
+import { assertReleaseAudio, attachReleaseTracks, replaceTrackAudio } from '../studio/src/releaseWizard.ts'
 assert.doesNotThrow(() => assertReleaseAudio('draft',[]))
 assert.throws(() => assertReleaseAudio('live',[]),/Upload audio/)
 assert.throws(() => assertReleaseAudio('scheduled',[{audioUrl:''}]),/Upload audio/)
@@ -16,3 +16,9 @@ assert.equal(result[1].timedLyrics,lines)
 assert.equal(pending[0].releaseId,undefined)
 assert.ok(!result.some(track => track.id==='removed'))
 console.log('The release wizard attaches audio and timed lyrics together and blocks publishing without playable audio.')
+
+const oldAudio={id:'song',artistId:'artist',audioUrl:'https://audio/old.mp3',releaseId:'release',trackNumber:2,lyrics:'old words',timedLyrics:[{start:0,end:1,text:'old words'}],losslessUrl:'https://audio/old.flac',atmosUrl:'https://audio/old.m4a'}
+const replaced=replaceTrackAudio(oldAudio,'https://audio/new.mp3')
+assert.equal(replaced.id,'song');assert.equal(replaced.releaseId,'release');assert.equal(replaced.trackNumber,2);assert.deepEqual(replaced.timedLyrics,[]);assert.equal(replaced.lyrics,'');assert.equal(replaced.losslessUrl,'');assert.equal(replaced.atmosUrl,'');assert.equal(oldAudio.lyrics,'old words')
+assert.equal(replaceTrackAudio(oldAudio,'https://audio/new.flac',true).losslessUrl,'https://audio/new.flac')
+console.log('Replacing audio keeps track identity and clears lyrics and alternate mixes that no longer match.')

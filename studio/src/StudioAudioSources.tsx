@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { uploadStudioProjectMedia } from '../../src/lib/studioData'
 import { catalogTrack } from '../../src/lib/musicPlayback'
 
 type Sources = { losslessUrl?: string; losslessMimeType?: string; atmosUrl?: string }
-export default function StudioAudioSources({ projectId, track, onSave }: { projectId: string; track: Sources & { id: string; title: string }; onSave: (patch: Sources) => Promise<boolean> }) {
+export default function StudioAudioSources({ projectId, track, onSave, onBusyChange }: { projectId: string; track: Sources & { id: string; title: string }; onSave: (patch: Sources) => Promise<boolean>; onBusyChange?: (busy:boolean) => void }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  useEffect(() => { onBusyChange?.(busy) }, [busy])
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formElement = event.currentTarget
