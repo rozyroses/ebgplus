@@ -24,4 +24,10 @@ assert.equal(applyPublishReview(cms,show,'visible','',now).shows[0].homeVisible,
 const invalid = {...cms,music:{...cms.music,tracks:[]}}
 assert.throws(() => applyPublishReview(invalid,reviewItems(invalid,'music')[0],'live','',now),/audio/)
 assert.equal(applyPublishReview(invalid,reviewItems(invalid,'music')[0],'draft','',now).music.releases[0].publishStatus,'draft')
+const signed = token => ({...cms,music:{...cms.music,tracks:[{...cms.music.tracks[0],audioUrl:`https://project.supabase.co/storage/v1/object/sign/ebg-studio-private/studio/owner/project/audio.wav?token=${token}`}]}})
+const privateReview = reviewItems(signed('first'),'music')[0]
+assert.equal(applyPublishReview(signed('refreshed'),privateReview,'live','',now).music.releases[0].publishStatus,'live')
+const permanent = {...cms,music:{...cms.music,tracks:[{...cms.music.tracks[0],audioUrl:'https://project.supabase.co/functions/v1/studio-media?path=studio%2Fowner%2Fproject%2Faudio.wav'}]}}
+assert.equal(applyPublishReview(permanent,privateReview,'live','',now).music.releases[0].publishStatus,'live')
+assert.throws(() => applyPublishReview({...permanent,music:{...permanent.music,tracks:[{...permanent.music.tracks[0],audioUrl:permanent.music.tracks[0].audioUrl.replace('audio.wav','replacement.wav')}]}},privateReview,'live','',now),/changed/)
 console.log('Publishing reviews validate readiness and scheduling, retain unrelated content, record history, and reject stale reviews.')

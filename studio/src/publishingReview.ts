@@ -6,6 +6,22 @@ export type CatalogItem = { id: string; title?: string; publishStatus?: string; 
 export type ReviewCatalog = { shows?: CatalogItem[]; episodes?: CatalogItem[]; music?: { artists?: CatalogItem[]; releases?: CatalogItem[]; tracks?: CatalogItem[]; [key: string]: any }; [key: string]: any }
 export type ReviewItem = { kind: PublishKind; item: CatalogItem; subtitle: string; image: string; status: string; errors: string[]; warnings: string[]; media: Array<{id: string; title: string; url: string; kind: 'audio' | 'video'}>; fingerprint: string }
 const safeMedia = (value: unknown) => { try { return typeof value === 'string' && new URL(value).protocol === 'https:' } catch { return false } }
+// Signed preview credentials can rotate between review and the final reload.
+// Compare the permanent file identity, while retaining every content field.
+function stableReviewValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      const url = new URL(value)
+      const signed = url.pathname.match(/^\/storage\/v1\/object\/(?:sign|authenticated)\/ebg-studio-private\/(.+)$/)
+      const path = signed ? decodeURIComponent(signed[1]) : url.pathname === '/functions/v1/studio-media' ? url.searchParams.get('path') : null
+      if (url.protocol === 'https:' && path) return `${url.origin}/functions/v1/studio-media?path=${encodeURIComponent(path)}`
+    } catch { /* Ordinary text and non-media URLs are compared unchanged. */ }
+    return value
+  }
+  if (Array.isArray(value)) return value.map(stableReviewValue)
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key,item]) => [key,stableReviewValue(item)]))
+  return value
+}
 export function reviewItems(catalog: ReviewCatalog, kind: PublishKind): ReviewItem[] {
   const items = kind === 'music' ? catalog.music?.releases ?? [] : kind === 'episode' ? catalog.episodes ?? [] : catalog.shows ?? []
   return items.map(item => {
@@ -24,7 +40,7 @@ export function reviewItems(catalog: ReviewCatalog, kind: PublishKind): ReviewIt
     if (kind === 'music' && !item.genre?.trim()) warnings.push('Add a genre.')
     return { kind, item, subtitle: kind === 'music' ? parent?.name || 'No artist' : kind === 'episode' ? `${parent?.title || 'No show'} · S${item.season || 1}E${item.number || 1}` : 'Show visibility on EBG+ Home', image, status: kind === 'show' ? item.homeVisible === false ? 'hidden' : 'visible' : item.publishStatus ?? (kind === 'episode' ? 'scheduled' : 'draft'), errors, warnings,
       media: kind === 'music' ? tracks.map(track => ({id:track.id, title:track.title || 'Untitled track', url: safeMedia(track.audioUrl) ? track.audioUrl : '', kind:'audio' as const})) : kind === 'episode' && safeMedia(item.videoUrl) ? [{id:item.id, title:item.title || '', url:item.videoUrl, kind:'video' as const}] : [],
-      fingerprint: JSON.stringify({item,parent,tracks}) }
+      fingerprint: JSON.stringify(stableReviewValue({item,parent,tracks})) }
   })
 }
 export function applyPublishReview(latest: ReviewCatalog, reviewed: ReviewItem, status: string, date: string, now = new Date()): ReviewCatalog {
