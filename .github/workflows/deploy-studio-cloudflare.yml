@@ -8,6 +8,8 @@ on:
       - "src/lib/**"
       - "src/components/MusicPlayer.tsx"
       - ".github/workflows/deploy-studio-cloudflare.yml"
+      - "scripts/configure-streaming-pages.mjs"
+      - "scripts/verify-streaming-deployment.mjs"
   workflow_dispatch:
 
 permissions:
@@ -45,6 +47,9 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
 
+      - name: Configure streaming Pages build
+        run: node scripts/configure-streaming-pages.mjs
+
       - name: Build standalone Studio
         run: npm run studio:build
 
@@ -53,8 +58,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist-studio --project-name=ebg-studio --branch=main --commit-hash=${{ github.sha }}
+          command: pages deploy dist-studio --project-name=ebg-studio --branch=feat/ebg-studio-app --commit-hash=${{ github.sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Inspect streaming domain target
-        run: node scripts/inspect-streaming-hosting.mjs
+      - name: Verify published streaming assets
+        run: node scripts/verify-streaming-deployment.mjs
