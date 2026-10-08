@@ -877,7 +877,7 @@ export default function StudioLumi() {
                 <input id="studio-lumi-input" name="message" placeholder={projectId ? autoMode ? 'Give Lumi the material to publish…' : 'Ask Lumi anything…' : 'No Studio project selected'} autoComplete="off" disabled={!projectId || busy} />
                 <button className="lumi-send-button" type="submit" disabled={!projectId || busy} aria-label="Send to Lumi">{busy ? '…' : '➜'}</button>
               </form>
-              <small className="lumi-readonly-note">Lumi only sees the selected private project. Publishing always requires your review.</small>
+              <small className="lumi-readonly-note">Lumi uses the selected private project. Auto upload publishes to your authorized destination; other actions use review.</small>
             </div>
           </main>
         )}

@@ -1,3 +1,4 @@
+import { canonicalMedia } from '../../src/lib/privateMedia'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { loadCmsData, saveCmsData, uploadStudioMedia } from '../../src/lib/studioData'
@@ -124,8 +125,8 @@ export default function StudioSeriesManagerV2() {
       if (!latest?.shows.some((show) => show.id === targetId)) throw new Error('This title could not be found. Refresh the slate.')
       const next = { ...latest, shows: latest.shows.map((show) => show.id === targetId ? { ...show, [field]: value } : show) }
       await saveCmsData(next)
-      const saved = await loadCmsData<CmsData>()
-      if (saved?.shows.find((show) => show.id === targetId)?.[field] !== value) throw new Error('Artwork could not be saved. Please try again.')
+      const saved = canonicalMedia(await loadCmsData<CmsData>())
+      if (saved?.shows.find((show) => show.id === targetId)?.[field] !== canonicalMedia(value)) throw new Error('Artwork could not be saved. Please try again.')
       setCms(saved)
       setMessage(`${label} ${file ? 'updated' : 'deleted'} from ${selected.title}.`)
     } catch (error) {

@@ -756,48 +756,75 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
         {message && <div className="message"><span>{message}</span><button type="button" onClick={() => setMessage('')}>×</button></div>}
 
-        <main className="workspace…20381 tokens truncated…msData(cms)} /></label>
-                    <label>Maturity<input value={selected.maturity} onChange={(event) => setCms({ ...cms, shows: cms.shows.map((show) => show.id === selected.id ? { ...show, maturity: event.target.value } : show) })} onBlur={() => void saveCmsData(cms)} /></label>
-                    <label>Year<input type="number" value={selected.year} onChange={(event) => setCms({ ...cms, shows: cms.shows.map((show) => show.id === selected.id ? { ...show, year: Number(event.target.value) } : show) })} onBlur={() => void saveCmsData(cms)} /></label>
-                    <label>Homepage<select value={selected.homeVisible === false ? 'hidden' : 'visible'} onChange={(event) => void patchSelected({ homeVisible: event.target.value === 'visible' }, 'Homepage visibility updated.')}><option value="visible">Visible</option><option value="hidden">Hidden</option></select></label>
-                    <label className="full">Description<textarea value={selected.description} onChange={(event) => setCms({ ...cms, shows: cms.shows.map((show) => show.id === selected.id ? { ...show, description: event.target.value } : show) })} onBlur={() => void saveCmsData(cms)} /></label>
-                  </div>
-                  <div className="series-v2-actions">
-                    <button className="button" type="button" onClick={() => void save({ ...cms, heroShowId: selected.id }, `${selected.title} is now featured.`)}>Set as featured</button>
-                    <button className="button secondary" type="button" onClick={() => { window.location.hash = 'episodes' }}>Manage {type === 'movie' ? 'video' : 'episodes'} →</button>
-                    <button className="button secondary" type="button" onClick={() => { window.location.hash = 'talent' }}>Cast & talent →</button>
-                  </div>
-                </section>
+        <main className="workspace">
+          <StudioTools />
+          {tab === 'notifications' && <Suspense fallback={<p>Opening newsroom…</p>}><StudioNewsroom projectId={projectId} /></Suspense>}
+          {tab === 'settings' && <section className="panel connected-studio-settings"><h2>Studio settings</h2><p>Manage this workspace and your signed-in account.</p><label>Theme<select value={theme} onChange={event=>setTheme(event.target.value as 'light'|'dark')}><option value="dark">Dark</option><option value="light">Light</option></select></label><label>Active production<select value={projectId} onChange={event=>setProjectId(event.target.value)}>{projects.map(project=><option key={project.id} value={project.id}>{project.title}</option>)}</select></label><p>Switching production updates project uploads, music, Lumi, and publishing. Series, casting, forms, inbox, and analytics use the shared EBG+ network.</p><div><strong>{authState.account.email}</strong><p>Role: {authState.account.role}</p></div><a className="button secondary" href="https://ebgplus.app/app/settings" target="_blank" rel="noreferrer">Profile & playback settings ↗</a><a className="button secondary" href="https://ebgplus.app/auth/forgot-password" target="_blank" rel="noreferrer">Reset password ↗</a><button className="button secondary" onClick={()=>window.location.reload()}>Reload Studio data</button><button className="button secondary" onClick={()=>void signOutNow()}>Sign out of Studio</button></section>}
+          {tab === 'inbox'  && <Suspense fallback={<p>Opening inbox…</p>}><StudioInbox /></Suspense>}
+          {tab === 'analytics' && <Suspense fallback={<p>Opening analytics…</p>}><StudioAnalytics /></Suspense>}
+          {tab === 'forms' && <Suspense fallback={<p>Opening forms…</p>}><FormsNetworkWorkspace /></Suspense>}
+          {tab === 'publishing' && <Suspense fallback={<p>Opening publishing center…</p>}><StudioPublishingCenter key={projectId} projectId={projectId} /></Suspense>}
+          {tab === 'overview' && (
+            <>
+              <section className="hero-panel"><div><p className="eyebrow">STUDIO HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Chat with Lumi, upload music, publish episodes, and send news or notifications from one Studio.</p><div className="hero-actions"><button className="button" onClick={() => setTab('lumi')}>Open Lumi</button><button className="button secondary" onClick={() => setTab('music')}>Upload music</button><button className="button secondary" onClick={() => setTab('episodes')}>Post episode</button></div></div><div className="hero-stat"><strong>{projects.length}</strong><span>Studio project{projects.length === 1 ? '' : 's'}</span></div></section>
+              <details className="panel studio-project-switcher"><summary>Switch production</summary><div className="form-grid">
+            <label className="studio-v3-project">
+              <span>Project</span>
+              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+                {projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}
+              </select>
+            </label>
 
-                <section className="series-v2-card">
-                  <div className="series-v2-card-head"><div><span>BRAND ASSETS</span><h3>Artwork</h3></div><small>Poster · Banner · Logo</small></div>
-                  <div className="series-v2-media-grid">
-                    <div className="series-v2-asset"><span>Poster</span><div className="series-v2-poster-preview">{selected.artwork ? <img src={selected.artwork} alt="" /> : <b>No poster</b>}</div><ArtworkControls label="Poster" value={selected.artwork} busy={busy} onReplace={(file) => updateAsset('artwork', file)} onDelete={() => updateAsset('artwork')} /></div>
-                    <div className="series-v2-asset"><span>Banner</span><div className="series-v2-banner-preview">{selected.banner ? <img src={selected.banner} alt="" /> : <b>No banner</b>}</div><ArtworkControls label="Banner" value={selected.banner} busy={busy} onReplace={(file) => updateAsset('banner', file)} onDelete={() => updateAsset('banner')} /></div>
-                    <div className="series-v2-asset"><span>Logo</span><div className="series-v2-logo-preview">{selected.logoImage ? <img src={selected.logoImage} alt="" /> : <b>{selected.logo || selected.title}</b>}</div><ArtworkControls label="Logo" value={selected.logoImage} busy={busy} onReplace={(file) => updateAsset('logoImage', file)} onDelete={() => updateAsset('logoImage')} /></div>
-                  </div>
-                </section>
-              </>
-            )}
+            {overviewCms.shows.length > 0 && <label className="studio-v3-production"><span>Title</span><select value={selectedShow?.id ?? ''} onChange={(event) => setShowId(event.target.value)}>{overviewCms.shows.map((show) => <option key={show.id} value={show.id}>{show.title}</option>)}</select></label>}
+              </div></details>
+              <section className="stats-grid">
+                <Stat label="Series" value={overviewCms.shows.length} detail={`${overviewCms.shows.filter((show) => show.status === 'Now Streaming' || show.status === 'Current').length} active`} />
+                <Stat label="Episodes" value={overviewCms.episodes.length} detail={`${overviewCms.episodes.filter(episode => episode.publishStatus === 'live').length} live`} />
+                <Stat label="Casting" value={openCasting} detail={`${casting.length} total`} />
+                <Stat label="Live polls" value={openPolls} detail={`${polls.length} total`} />
+              </section>
 
-            <section className="series-v2-card series-v2-create">
-              <div className="series-v2-card-head"><div><span>NEW TITLE</span><h3>Add to the slate</h3></div><small>Create a series or movie</small></div>
-              <form className="series-v2-form-grid" onSubmit={createTitle}>
-                <label>Title<input name="title" required /></label>
-                <label>Content type<select name="contentType" defaultValue="series"><option value="series">Series</option><option value="movie">Movie</option></select></label>
-                <label>Category<input name="category" defaultValue="EBG+ Original" /></label>
-                <label>Genre<input name="genre" /></label>
-                <label>Year<input name="year" type="number" defaultValue={new Date().getFullYear()} /></label>
-                <label>Maturity<select name="maturity" defaultValue="TV-14"><option>TV-PG</option><option>TV-14</option><option>TV-MA</option><option>PG</option><option>PG-13</option><option>R</option></select></label>
-                <label>Status<select name="status" defaultValue="Coming Soon"><option>Coming Soon</option><option>Now Streaming</option><option>Current</option><option>Completed</option></select></label>
-                <label>Poster<input name="artwork" type="file" accept="image/*" /></label>
-                <label className="full">Description<textarea name="description" /></label>
-                <div className="full"><button className="button" disabled={busy}>{busy ? 'Creating…' : 'Create title'}</button></div>
-              </form>
-            </section>
-          </div>
-        </div>
+              <section className="two-column">
+                <div className="panel"><PanelHeading eyebrow="RECENT RELEASES" title="Episodes" /><div className="compact-list">{[...overviewCms.episodes].sort((a, b) => Date.parse(b.releaseDate) - Date.parse(a.releaseDate)).slice(0, 5).map((episode) => <article key={episode.id}><img src={episode.thumbnail || overviewCms.shows.find((show) => show.id === episode.showId)?.artwork} alt="" /><div><strong>{episode.title}</strong><span>{overviewCms.shows.find((show) => show.id === episode.showId)?.title} · S{episode.season}E{episode.number}</span></div><em>{episode.publishStatus ?? 'scheduled'}</em></article>)}</div></div>
+                <div className="panel"><PanelHeading eyebrow="CURRENT SLATE" title="Series" /><div className="poster-grid">{overviewCms.shows.slice(0, 6).map((show) => <button key={show.id} type="button" onClick={() => { setShowId(show.id); setTab('series') }}><div className="poster-image">{show.artwork ? <img src={show.artwork} alt="" /> : <span>{show.title.slice(0, 1)}</span>}</div><strong>{show.title}</strong><span>{show.status}</span></button>)}</div></div>
+              </section>
+            </>
+          )}
+
+
+
+
+
+
+
+          {tab === 'casting' && (
+            <section className="panel"><PanelHeading eyebrow="CASTING PIPELINE" title="Applications" /><div className="table-wrap"><table><thead><tr><th>Name</th><th>Series</th><th>Location</th><th>Email</th><th>Status</th></tr></thead><tbody>{casting.map((application) => <tr key={application.id}><td><strong>{application.legal_name}</strong><span>{application.age} years old</span></td><td>{cms.shows.find((show) => show.id === application.show_id)?.title ?? application.show_id ?? 'General'}</td><td>{application.city_state}</td><td>{application.email}</td><td><select value={application.status} onChange={(event) => void changeCastingStatus(application, event.target.value as CastingApplication['status'])}>{CASTING_STATUSES.map((status) => <option key={status}>{status}</option>)}</select></td></tr>)}</tbody></table></div></section>
+          )}
+
+          {tab === 'polls' && selectedShow && (
+            <>
+              <section className="panel"><PanelHeading eyebrow="AUDIENCE" title="Polls & Voting" /><div className="poll-list">{polls.filter((poll) => poll.show_id === selectedShow.id).map((poll) => <article key={poll.id}><div><span className="eyebrow">{poll.status}</span><h3>{poll.question}</h3><p>{poll.description}</p></div><div className="poll-actions"><select value={poll.status} onChange={async (event) => { await updatePoll(poll.id, { status: event.target.value as Poll['status'] }); setPolls(await loadPolls(undefined, true)); setMessage('Poll updated.') }}><option value="draft">Draft</option><option value="open">Open</option><option value="closed">Closed</option></select><button className="button secondary" type="button" onClick={() => void showPollResults(poll)}>Results</button><button className="button danger" type="button" onClick={async () => { if (!window.confirm('Delete this poll?')) return; await deletePoll(poll.id); setPolls(await loadPolls(undefined, true)); setMessage('Poll deleted.') }}>Delete</button></div>{pollResults[poll.id] && <div className="results">{pollResults[poll.id].map((result) => <div key={result.option_id}><span>{result.label}</span><strong>{result.votes} · {result.percentage}%</strong></div>)}</div>}</article>)}</div></section>
+              <section className="panel"><PanelHeading eyebrow="CREATE" title="New poll" /><form className="form-grid" onSubmit={createStudioPoll}><label className="full">Question<input name="question" required /></label><label className="full">Description<textarea name="description" /></label><label className="full">Options<textarea name="options" placeholder={'Option one\nOption two'} required /></label><label>Status<select name="status" defaultValue="draft"><option value="draft">Draft</option><option value="open">Open</option><option value="closed">Closed</option></select></label><label>Results<select name="resultsVisibility" defaultValue="live"><option value="live">Live</option><option value="after_close">After close</option><option value="hidden">Hidden</option></select></label><label>Opens<input name="opensAt" type="datetime-local" /></label><label>Closes<input name="closesAt" type="datetime-local" /></label><div className="full"><button className="button">Create poll</button></div></form></section>
+            </>
+          )}
+
+          {tab === 'media' && <Suspense fallback={<p>Opening media…</p>}><StudioMedia projectId={projectId} /></Suspense>}
+        </main>
       </div>
-    </section>
+    </div>
   )
 }
+
+function Stat({ label, value, detail }: { label: string; value: number; detail: string }) {
+  return <article className="stat-card"><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>
+}
+
+function PanelHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return <div className="panel-heading"><div><span>{eyebrow}</span><h2>{title}</h2></div></div>
+}
+
+function MediaCard({ label, src, fallback, onFile, wide = false }: { label: string; src?: string; fallback?: string; onFile: (file: File) => void; wide?: boolean }) {
+  return <article className={`media-card ${wide ? 'wide' : ''}`}><span className="eyebrow">{label}</span><div className="media-preview">{src ? <img src={src} alt="" /> : <strong>{fallback || 'No asset'}</strong>}</div><label className="button secondary">Replace<input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) onFile(file); event.currentTarget.value = '' }} /></label></article>
+}
+
+export default App

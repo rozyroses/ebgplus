@@ -18,7 +18,7 @@ export default function PublicMusicRelease({ id }: { id: string }) {
   useEffect(() => { document.title = release ? `${release.title} · Listen on EBG+` : 'Listen on EBG+' }, [release?.title])
   if (error || !catalog || !release) return <main className="public-release"><h1>{error || (!catalog ? 'Loading release…' : 'This release is not available.')}</h1><a href="https://ebgplus.app/app/music">Explore EBG+ Music</a></main>
   const artist = catalog.artists?.find(item => item.id === release.artistId)?.name ?? 'Artist'
-  const live = release.publishStatus === 'live'
+  const live = release.publishStatus === 'live' || (release.publishStatus === 'scheduled' && !!release.releaseDate && Date.parse(release.releaseDate) <= Date.now())
   const tracks = live ? (catalog.tracks ?? []).filter(track => track.releaseId === id).sort((a,b) => a.trackNumber - b.trackNumber) : []
   const links: Partial<Record<Platform, string>> = {}
   for (const platform of platforms) { try { Object.assign(links, cleanPlatformLinks({ [platform.id]: release.streamingLinks?.[platform.id] })) } catch { /* Hide invalid catalog links. */ } }
