@@ -506,7 +506,7 @@ function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const getTheme = () => {
     const saved = localStorage.getItem('ebg.theme.v1')
     if (saved === 'light' || saved === 'dark') return saved
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'dark' as const
   }
   const [theme,setTheme]=useState<'light'|'dark'>(()=>getTheme())
 
@@ -535,7 +535,7 @@ function ThemeToggle({ compact = false }: { compact?: boolean }) {
 function App() {
   useEffect(()=>{
     const saved=localStorage.getItem('ebg.theme.v1')
-    const theme=saved==='light'||saved==='dark' ? saved : (window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dark':'light')
+    const theme=saved==='light'||saved==='dark' ? saved : 'dark'
     document.documentElement.dataset.theme=theme
     document.documentElement.style.colorScheme=theme
   },[])
@@ -1130,7 +1130,7 @@ function LandingPage({ cms }: { cms: CmsData }) {
       <a className="eh-skip" href="#discover">Skip to content</a>
       <header className="eh-header">
         <Link className="eh-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
-        <nav aria-label="Main navigation"><a href="#discover">Discover</a><Link to="/app/music">Music</Link><a href="#creators">For creators</a></nav>
+        <nav aria-label="Main navigation"><a href="#discover">Discover</a><a href="#features">Features</a><Link to="/app/music">Music</Link><a href="#creators">For creators</a></nav>
         <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
       </header>
       <section className="eh-cinema" aria-labelledby="eh-title">
@@ -1146,6 +1146,17 @@ function LandingPage({ cms }: { cms: CmsData }) {
         <div className="eh-section-heading"><div><p className="eh-eyebrow">YOUR NEXT PLAY</p><h2>A little drama. A lot to love.</h2></div><Link className="eh-text-link" to="/app/shows">Explore all shows ↗</Link></div>
         <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art">{show.artwork || show.banner ? <img src={show.artwork || show.banner} alt="" loading="lazy" /> : <div className="eh-poster-fallback" aria-hidden="true"><small>EBG+ ORIGINAL</small><strong>{show.title}</strong></div>}<span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
         {!shows.length && <p className="eh-empty">Our next chapter is on its way. Join EBG+ to discover what comes next.</p>}
+      </section>
+      <section id="features" className="eh-section eh-features" aria-labelledby="features-title">
+        <div className="eh-section-heading"><div><p className="eh-eyebrow">MORE THAN YOUR NEXT PLAY</p><h2 id="features-title">One home.<br /><em>So many ways in.</em></h2></div><p>Watch, listen, connect, and create.<br />Make EBG+ your own.</p></div>
+        <div className="eh-feature-grid">
+          <article className="eh-capability eh-capability-watch"><span className="eh-capability-index">01 / WATCH</span><div className="eh-capability-symbol" aria-hidden="true">▷</div><h3>Stay for the story.</h3><p>Discover original series, explore episodes, and meet the cast behind your favorites.</p><ul><li>Shows, originals & cast profiles</li><li>Continue watching & saved progress</li><li>My List for your next watch</li><li>Fullscreen, playback speed & supported picture-in-picture</li></ul><Link to="/app/shows">Explore shows <span aria-hidden="true">↗</span></Link></article>
+          <article className="eh-capability eh-capability-listen"><span className="eh-capability-index">02 / LISTEN</span><div className="eh-capability-symbol" aria-hidden="true">♫</div><h3>Find your repeat.</h3><p>Independent artists, albums, singles, and music videos. Keep the music playing as you explore.</p><ul><li>Artist pages & release collections</li><li>Play queues, shuffle, repeat & favorites</li><li>Synced lyrics on supported tracks</li><li>Lossless & spatial audio where available*</li></ul><Link to="/app/music">Discover music <span aria-hidden="true">↗</span></Link></article>
+          <article className="eh-capability eh-capability-connect"><span className="eh-capability-index">03 / CONNECT</span><div className="eh-capability-symbol" aria-hidden="true">◎</div><h3>Be part of it.</h3><p>Follow the latest from EBG+, find an opportunity, and keep the conversation going.</p><ul><li>News, announcements & notifications</li><li>Audience polls on participating shows</li><li>Casting calls & application forms</li><li>Application tracking & applicant inbox</li></ul><a href="https://forms.ebgplus.app">Find opportunities <span aria-hidden="true">↗</span></a></article>
+          <article className="eh-capability eh-capability-create"><span className="eh-capability-index">04 / CREATE</span><div className="eh-capability-symbol" aria-hidden="true">✦</div><h3>Your vision. On EBG+.</h3><p>Bring your next release or production to life in EBG+ Studio, with Lumi alongside you.</p><ul><li>Production, episode & media management</li><li>Music uploads, release metadata & timed lyrics</li><li>Stereo mastering & branded streaming links</li><li>Lumi creative assistance & approved publishing</li><li>Scheduling, analytics, forms & talent tools</li></ul><a href="https://studio.ebgplus.app">Enter creator studio <span aria-hidden="true">↗</span></a></article>
+        </div>
+        <p className="eh-feature-note">*Audio quality depends on the uploaded mix, your browser, and your device. Streaming links connect to existing releases on other services; external distribution is not yet available.</p>
+        <div className="eh-personal"><div><p className="eh-eyebrow">YOUR EBG+, YOUR WAY</p><h3>Settle into your own space.</h3></div><p>Personal profiles, catalog search, playback preferences, light and dark themes, and account settings—all in one place.</p><Link className="eh-button" to="/auth/create-account">Find your people ↗</Link></div>
       </section>
       {news.length > 0 && <section className="eh-section"><div className="eh-section-heading"><div><p className="eh-eyebrow">THE LATEST</p><h2>Stay in the conversation.</h2></div></div><div className="eh-news-grid">{news.map((item) => <article className="eh-news" key={item.id}>{item.image && <img src={item.image} alt="" loading="lazy" />}<p className="eh-eyebrow">{item.category}</p><h3>{item.headline}</h3><p>{item.summary}</p><small>{new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</small></article>)}</div></section>}
       <section id="creators" className="eh-create"><div><p className="eh-eyebrow">MAKE YOUR NEXT CHAPTER</p><h2>Got a story?<br /><em>Give it a home.</em></h2></div><div><p>A space for creators, producers, and the people who love what they make. Start your EBG+ account and find where you belong.</p><Link className="eh-button" to="/auth/create-account">Create your account ↗</Link></div></section>

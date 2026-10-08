@@ -1,0 +1,45 @@
+/* One visual system for the EBG+ viewer, profiles and public information pages. */
+:root,:root[data-theme='dark']{
+ --brand:#c9b6ff;--brand-hover:#deceff;--ink:#f5f3f9;--muted:#b0aabb;
+ --canvas:#111116;--surface:#1b1922;--surface-solid:#1b1922;--surface-2:#25222e;--subtle:#292333;--border:#ffffff20;
+ --bg:var(--canvas);--panel:var(--surface);--panel-2:var(--surface-2);--text:var(--ink);--line:var(--border);--line-strong:#77628f;
+ --gold:var(--brand);--gold-light:#e3d5ff;--gold-deep:var(--brand-hover);--sky:#242b38;--mint:#23322d;--blush:#342532;--lilac:#2d253b;--butter:#342f25;
+ --family-glass:#17151ee6;--family-glass-strong:#17151ef5;--shadow:0 24px 60px #0004;--shadow-soft:0 8px 28px #0002;--radius:14px;color-scheme:dark;
+}
+:root[data-theme='light']{
+ --brand:#7050a8;--brand-hover:#583983;--ink:#292232;--muted:#716778;--canvas:#f4f1f7;--surface:#fff;--surface-solid:#fff;--surface-2:#ece7f1;--subtle:#e8def2;--border:#30203924;
+ --gold-light:#ddd0ef;--line-strong:#af96c7;--sky:#e4eaf4;--mint:#e3eee8;--blush:#f2e5ed;--lilac:#ede4f7;--butter:#f2eadb;
+ --family-glass:#f9f7fbe8;--family-glass-strong:#f9f7fbf5;--shadow:0 24px 60px #25162d12;--shadow-soft:0 8px 28px #25162d08;color-scheme:light;
+}
+body .app-shell,body .profiles-page,body .info-page{background:var(--canvas)!important;color:var(--ink)!important}
+body .app-shell .topbar.app{background:var(--family-glass-strong)!important;backdrop-filter:blur(20px);border-bottom:1px solid var(--border)!important}
+body .app-shell :is(.nav-dropdown,.profile-dropdown,.mobile-waffle-drawer){border-radius:12px!important;box-shadow:var(--shadow)!important}
+body :is(.app-shell,.profiles-page,.info-page) :is(h1,h2,h3){color:var(--ink);letter-spacing:-.035em}
+body :is(.app-shell,.profiles-page,.info-page) .eyebrow{color:var(--brand);letter-spacing:.16em;font-size:10px}
+body :is(.app-shell,.profiles-page,.info-page) .btn{border-radius:8px;font-size:14px;box-shadow:none}
+:root:not([data-theme='light']) body .btn:not(.muted){color:#24192e}
+body :is(.app-shell,.profiles-page,.info-page) :is(.panel,.content-card,.original-card-v2,.music-v2-release-card,.music-v2-artist-grid article,.news-lead,.news-grid-v2 article,.profile-card-select,.settings-section,.application-thread,.network-notification-card,.info-card){background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:14px!important;color:var(--ink)!important;box-shadow:none!important}
+body :is(.app-shell,.profiles-page,.info-page) :is(.editorial-page-hero,.ebg-inbox-hero,.music-artist-hero,.music-release-hero,.settings-hero,.info-hero){background:radial-gradient(ellipse at 100% 0%,var(--subtle),transparent 65%),var(--surface)!important;border:1px solid var(--border);border-radius:18px;color:var(--ink)!important;padding:clamp(24px,4vw,48px)}
+body .app-shell :is(.home-shortcut,.music-catalog-tools,.ebg-inbox-filters button,.profile-menu,.search-bar){background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--border);border-radius:10px}
+body .app-shell :is(.news-lead p,.news-grid-v2 p,.music-v2-release-card p,.music-v2-release-card small,.music-artist-bio,.music-detail-muted,.settings-section p,.profile-card-select p){color:var(--muted)!important}
+body .app-shell :is(.music-v2-track-list article,.episode-card,.search-result){background:var(--surface)!important;color:var(--ink);border:1px solid var(--border);border-radius:12px}
+body .app-shell :is(.music-v2-track-list article,.episode-card):hover{border-color:var(--line-strong)}
+body .app-shell .music-detail-back{color:var(--brand)}
+body .app-shell .ebg-video-player{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#08070b;color:white}
+body .app-shell .video-v2-controls{background:linear-gradient(transparent,#121016f5)}
+body .app-shell .video-v2-center{background:#c9b6ff;color:#21172b;border:0;box-shadow:0 12px 40px #0005}
+body .app-shell .video-v2-controls input{accent-color:#c9b6ff}
+body :is(.music-dock,.ebg-music-dock,.music-dock-panel,.music-v2-player,.ebg-audio-player){background:var(--family-glass-strong)!important;color:var(--ink)!important;border-color:var(--border)!important;box-shadow:var(--shadow-soft)}
+body .profiles-page{min-height:100svh}body .profile-card-select{transition:transform .2s,border-color .2s}body .profile-card-select:hover{border-color:var(--brand)!important;transform:translateY(-3px)}
+body .app-shell .footer{padding-block:32px;background:var(--surface)!important}
+/* Feature overview uses the same dark entrance regardless of saved viewer theme. */
+.ebg-home .eh-features{border-top:1px solid #ffffff20}.ebg-home .eh-features .eh-section-heading h2{font-size:clamp(38px,4.5vw,64px)}.ebg-home .eh-features .eh-section-heading em{color:#d2baff}.ebg-home .eh-features .eh-section-heading>p{font-size:15px;line-height:1.7;color:#b5acbf}
+.eh-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.eh-capability{position:relative;overflow:hidden;display:flex;flex-direction:column;padding:36px;border:1px solid #ffffff20;border-radius:16px;background:#1b1922;min-width:0}.eh-capability-watch{background:radial-gradient(ellipse at 100% 0%,#59446270,transparent 65%),#1b1922}.eh-capability-listen{background:radial-gradient(ellipse at 100% 0%,#3a465c80,transparent 65%),#1b1922}.eh-capability-connect{background:radial-gradient(ellipse at 100% 0%,#35534870,transparent 65%),#1b1922}.eh-capability-create{background:radial-gradient(ellipse at 100% 0%,#61455270,transparent 65%),#1b1922}.eh-capability-index{font-size:10px;letter-spacing:2px;color:#d0bddf}.eh-capability-symbol{position:absolute;right:28px;top:18px;font-size:76px;line-height:1;color:#d9c4f53a;pointer-events:none}.ebg-home .eh-capability h3{margin:42px 0 16px;font-size:clamp(26px,3vw,38px);letter-spacing:-1.3px;color:#f5f3f9;line-height:1.15}.ebg-home .eh-capability>p{font-size:14px;line-height:1.75;color:#bcb3c8;max-width:400px}.eh-capability ul{list-style:none;padding:0;margin:24px 0 30px;display:grid;gap:11px}.eh-capability li{font-size:13px;color:#e4dce9;line-height:1.55;padding-left:18px;position:relative}.eh-capability li:before{content:'+';position:absolute;left:0;color:#c9b6ff}.eh-capability>a{margin-top:auto;padding-top:20px;border-top:1px solid #ffffff20;display:flex;justify-content:space-between;font-size:13px;font-weight:650;color:#d4bef1}.eh-capability>a:hover{color:#fff}.ebg-home .eh-feature-note{font-size:11px;line-height:1.7;color:#aaa0b7;margin-top:20px;max-width:880px}.eh-personal{display:grid;grid-template-columns:1fr 1fr auto;gap:32px;align-items:center;margin-top:36px;padding:32px;border:1px solid #ffffff20;border-radius:14px;background:#1b1922}.ebg-home .eh-personal h3{font-size:24px;letter-spacing:-.7px;margin-top:12px}.ebg-home .eh-personal>p{font-size:13px;line-height:1.8;color:#bcb3c8}
+@media(max-width:850px){.eh-personal{grid-template-columns:1fr 1fr}.eh-personal .eh-button{justify-self:start}.eh-capability{padding:26px}body .app-shell .mobile-nav.mobile-nav-v2{background:var(--family-glass-strong)!important;backdrop-filter:blur(20px);border-radius:12px!important}body .app-shell :is(.music-artist-hero,.music-release-hero){padding:24px}}
+@media(max-width:600px){.eh-feature-grid,.eh-personal{grid-template-columns:1fr;gap:18px}.eh-personal{padding:26px}.eh-capability{padding:28px 24px}.ebg-home .eh-capability h3{font-size:30px}.eh-capability-symbol{font-size:60px}.eh-capability li{font-size:13px}.ebg-home .eh-feature-note{font-size:11px}.eh-capability>a{min-height:44px;align-items:center}.eh-personal .eh-button{width:100%}}
+@media(prefers-reduced-motion:reduce){body .profile-card-select{transition:none}}
+body :is(.music-dock-v3,.music-dialog-v3){background:var(--family-glass-strong)!important;color:var(--ink);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(20px)}
+:root:not([data-theme='light']) body .wordmark{filter:brightness(0) invert(1);mix-blend-mode:normal}
+body .profiles-page :is(.profile-card,.profile-add-card,.manage-tools){background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important;box-shadow:none!important}
+body .profiles-page :is(.profile-card-name,.profile-select-shell h1){color:var(--ink)!important}body .profiles-page :is(.profile-card-hint,.profile-select-subcopy,.profile-select-account){color:var(--muted)!important}
+body .app-shell .settings-section{background:transparent!important;border:0!important}
