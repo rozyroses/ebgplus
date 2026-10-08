@@ -594,11 +594,23 @@ function Shell() {
 
   useEffect(() => saveJson(STORAGE.cms, cms), [cms])
   useEffect(() => {
-    void loadCmsData<CmsData>()
-      .then((remoteCms) => {
-        if (remoteCms) setCms(remoteCms)
-      })
-      .catch((error) => console.error('Could not load EBG+ Studio CMS.', error))
+    let active = true
+    let loading = false
+    const refreshCatalog = async () => {
+      if (loading || document.visibilityState === 'hidden') return
+      loading = true
+      try {
+        const remoteCms = await loadCmsData<CmsData>()
+        if (active && remoteCms) setCms(remoteCms)
+      } catch (error) { console.error('Could not refresh EBG+ catalog.', error) }
+      finally { loading = false }
+    }
+    void refreshCatalog()
+    const refresh = () => { void refreshCatalog() }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    const timer = window.setInterval(refresh, 30000)
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh) }
   }, [])
 
   useEffect(() => {
