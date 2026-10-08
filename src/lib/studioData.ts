@@ -1,6 +1,6 @@
 import { canonicalMedia, previewMedia, uploadPrivateMedia } from './privateMedia'
 import { db } from './supabase'
-import { readStoredSession } from './auth'
+import { readStoredSession, requireFreshSession } from './auth'
 
 export type StudioCmsPayload = Record<string, unknown>
 
@@ -92,7 +92,7 @@ export const createStudioProject = async <T extends StudioCmsPayload = StudioCms
 }
 
 export const loadProjectCms = async <T>(projectId: string) => {
-  const session = requireSession()
+  const session = await requireFreshSession()
   const rows = await db.select<StudioProject & { cms: T }>(
     'studio_projects',
     `id=eq.${encodeURIComponent(projectId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}&limit=1`,
@@ -102,7 +102,7 @@ export const loadProjectCms = async <T>(projectId: string) => {
 }
 
 export const saveProjectCms = async <T>(projectId: string, value: T) => {
-  const session = requireSession()
+  const session = await requireFreshSession()
   const rows = await db.update<StudioProject & { cms: T }>(
     'studio_projects',
     `id=eq.${encodeURIComponent(projectId)}&owner_account_id=eq.${encodeURIComponent(session.user.id)}`,

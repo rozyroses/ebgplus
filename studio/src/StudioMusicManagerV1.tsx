@@ -158,7 +158,7 @@ export default function StudioMusicManagerV1() {
     }
   }
 
-  const saveMusic = async (nextMusic: MusicCatalog, note = 'Music library saved.') => {
+  const saveMusic = async (nextMusic: MusicCatalog, note = 'Music library saved.', propagateError = false) => {
     if (!cms || !projectId) return
     try {
       const latest = await loadProjectCms<CmsData>(projectId) ?? {}
@@ -172,6 +172,7 @@ export default function StudioMusicManagerV1() {
       return true
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Music changes could not be saved.')
+      if (propagateError) throw error
       return false
     }
   }
@@ -519,7 +520,7 @@ export default function StudioMusicManagerV1() {
         )}
 
         {view === 'release-saved' && <section className="music-v2-section"><h3>Release saved</h3><p>Your audio, lyrics, artwork, and metadata are saved together. Create a streaming link now, or come back to Streaming links later.</p><div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setView('releases')}>Done</button><button className="button" type="button" onClick={() => setView('streaming-links')}>Create streaming link</button></div></section>}
-        {view === 'streaming-links' && <section className="music-v2-section"><h3>Streaming links</h3><p>Manage listening destinations separately from release metadata.</p><label>Release<select value={selectedReleaseId} onChange={e => setSelectedReleaseId(e.target.value)}><option value="">Choose release</option>{music.releases.map(release => <option key={release.id} value={release.id}>{artistName(release.artistId)} · {release.title}</option>)}</select></label>{music.releases.filter(release => release.id === selectedReleaseId).map(release => <MusicDistributionPanel key={`${projectId}-${release.id}`} projectId={projectId} release={release} artistName={artistName(release.artistId)} onSave={async patch => !!(await saveMusic({...music,releases:music.releases.map(item => item.id === release.id ? {...item,...patch} : item)},'Streaming destinations saved.'))} />)}{!music.releases.length && <p>Create a release first. Its artwork will be reused here automatically.</p>}</section>}
+        {view === 'streaming-links' && <section className="music-v2-section"><h3>Streaming links</h3><p>Manage listening destinations separately from release metadata.</p><label>Release<select value={selectedReleaseId} onChange={e => setSelectedReleaseId(e.target.value)}><option value="">Choose release</option>{music.releases.map(release => <option key={release.id} value={release.id}>{artistName(release.artistId)} · {release.title}</option>)}</select></label>{music.releases.filter(release => release.id === selectedReleaseId).map(release => <MusicDistributionPanel key={`${projectId}-${release.id}`} projectId={projectId} release={release} artistName={artistName(release.artistId)} onSave={async patch => !!(await saveMusic({...music,releases:music.releases.map(item => item.id === release.id ? {...item,...patch} : item)},'Streaming destinations saved.', true))} />)}{!music.releases.length && <p>Create a release first. Its artwork will be reused here automatically.</p>}</section>}
         {view === 'mastering' && <section className="music-v2-section"><h3>Mastering</h3><p>Choose a saved track to preview and apply a stereo master or attach prepared audio formats.</p><label>Track<select disabled={busy} value={masterTrackId} onChange={e => setMasterTrackId(e.target.value)}><option value="">Choose track</option>{music.tracks.map(track => <option key={track.id} value={track.id}>{artistName(track.artistId)} · {track.title}</option>)}</select></label>{music.tracks.filter(track => track.id === masterTrackId).map(track => <StudioMastering onBusyChange={setBusy} key={`${projectId}-${track.id}`} projectId={projectId} track={track} onSave={async patch => !!(await saveMusic({...music,tracks:music.tracks.map(item => item.id === track.id ? {...item,...patch} : item)},'Track audio updated.'))} />)}</section>}
 
         {view === 'artists' && (

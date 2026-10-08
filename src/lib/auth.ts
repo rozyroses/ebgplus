@@ -58,8 +58,30 @@ export const readStoredSession = (): SupabaseSession | null => {
 }
 
 const storeSession = (session: SupabaseSession | null) => {
-  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify({ ...session, expires_at: session.expires_at || Math.floor(Date.now() / 1000) + session.expires_in }))
   else localStorage.removeItem(SESSION_KEY)
+}
+
+let pendingRefresh: Promise<SupabaseSession> | null = null
+
+export async function requireFreshSession(): Promise<SupabaseSession> {
+  const stored = readStoredSession()
+  if (!stored) throw new Error('Your EBG+ session has expired. Please sign in again. Your unsaved changes are still on this page.')
+  let expiresAt = stored.expires_at || 0
+  if (!expiresAt) {
+    try { expiresAt = Number(JSON.parse(atob(stored.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp) || 0 } catch { /* Refresh legacy sessions with unknown expiry. */ }
+  }
+  if (expiresAt * 1000 > Date.now() + 60_000) return stored
+  if (!pendingRefresh) {
+    pendingRefresh = auth.refresh(stored.refresh_token).then(session => {
+      if (readStoredSession()?.refresh_token !== stored.refresh_token) throw new Error('Your session changed. Please retry saving.')
+      storeSession(session)
+      return session
+    }).catch(() => {
+      throw new Error('Your session could not be refreshed. Please sign in again, then retry saving.')
+    }).finally(() => { pendingRefresh = null })
+  }
+  return pendingRefresh
 }
 
 export const loadAuthState = async (session: SupabaseSession): Promise<AuthState> => {
@@ -86,11 +108,7 @@ export const restoreAuth = async (): Promise<AuthState | null> => {
   if (!stored) return null
 
   try {
-    const expiresAt = stored.expires_at ?? 0
-    const session = expiresAt && expiresAt * 1000 <= Date.now() + 60_000
-      ? await auth.refresh(stored.refresh_token)
-      : stored
-    storeSession(session)
+    const session = await requireFreshSession()
     await auth.getUser(session.access_token)
     return await loadAuthState(session)
   } catch {
