@@ -55,3 +55,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist-studio --project-name=ebg-studio --branch=main --commit-hash=${{ github.sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Inspect streaming domain target
+        run: node scripts/inspect-streaming-hosting.mjs
