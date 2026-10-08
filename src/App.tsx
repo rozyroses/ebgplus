@@ -1134,7 +1134,8 @@ function LandingPage({ cms }: { cms: CmsData }) {
         <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
       </header>
       <section className="eh-cinema" aria-labelledby="eh-title">
-        {featured && <img className="eh-cinema-image" src={featured.banner || featured.artwork} alt="" fetchPriority="high" />}
+        {featured && (featured.banner || featured.artwork) && <img className="eh-cinema-image" src={featured.banner || featured.artwork} alt="" fetchPriority="high" />}
+        {featured && !featured.banner && !featured.artwork && <div className="eh-cinema-fallback" aria-hidden="true"><span>EBG+</span><i /></div>}
         <div className="eh-cinema-overlay" />
         <div className="eh-cinema-copy"><p className="eh-eyebrow">INDEPENDENT VOICES. UNFORGETTABLE STORIES.</p><h1 id="eh-title">Your next<br />obsession<br /><em>lives here.</em></h1><p className="eh-cinema-lead">Original shows. Music on repeat. A whole world of creators worth discovering.</p><div className="eh-cinema-actions"><Link className="eh-button" to="/auth/create-account">Get started <span aria-hidden="true">↗</span></Link><Link className="eh-text-link" to="/app/shows">Explore EBG+ <span aria-hidden="true">→</span></Link></div></div>
         {featured && <div className="eh-cinema-title"><p className="eh-eyebrow">IN THE SPOTLIGHT · {featured.status}</p><h2>{featured.title}</h2><p>{featured.genre}</p><Link to={`/app/shows/${featured.id}`}>Discover the series <span aria-hidden="true">↗</span></Link></div>}
@@ -1143,7 +1144,7 @@ function LandingPage({ cms }: { cms: CmsData }) {
       <div className="eh-brand-strip"><span>A HOME FOR ORIGINALS</span><span>Stories that stay with you.</span><span>Sounds that move you.</span><a href="https://studio.ebgplus.app">Made by independent creators ↗</a></div>
       <section id="discover" className="eh-section">
         <div className="eh-section-heading"><div><p className="eh-eyebrow">YOUR NEXT PLAY</p><h2>A little drama. A lot to love.</h2></div><Link className="eh-text-link" to="/app/shows">Explore all shows ↗</Link></div>
-        <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art"><img src={show.artwork || show.banner} alt="" loading="lazy" /><span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
+        <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art">{show.artwork || show.banner ? <img src={show.artwork || show.banner} alt="" loading="lazy" /> : <div className="eh-poster-fallback" aria-hidden="true"><small>EBG+ ORIGINAL</small><strong>{show.title}</strong></div>}<span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
         {!shows.length && <p className="eh-empty">Our next chapter is on its way. Join EBG+ to discover what comes next.</p>}
       </section>
       {news.length > 0 && <section className="eh-section"><div className="eh-section-heading"><div><p className="eh-eyebrow">THE LATEST</p><h2>Stay in the conversation.</h2></div></div><div className="eh-news-grid">{news.map((item) => <article className="eh-news" key={item.id}>{item.image && <img src={item.image} alt="" loading="lazy" />}<p className="eh-eyebrow">{item.category}</p><h3>{item.headline}</h3><p>{item.summary}</p><small>{new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</small></article>)}</div></section>}
