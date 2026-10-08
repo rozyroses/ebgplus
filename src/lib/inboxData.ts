@@ -8,7 +8,7 @@ export type InboxNotification={id:string;account_id:string;title:string;text:str
 
 const session=()=>{const s=readStoredSession();if(!s)throw new Error('Sign in to open your EBG inbox.');return s}
 export async function loadInboxNetwork(){const s=session();const [submissions,forms,messages,notifications]=await Promise.all([
-  db.select<InboxSubmission>('ebg_form_submissions','order=last_message_at.desc.nullslast,created_at.desc',s.access_token),
+  db.rpc<InboxSubmission[]>('load_my_form_submissions',{},s.access_token),
   db.select<InboxForm>('ebg_forms','order=created_at.desc',s.access_token),
   db.select<InboxMessage>('ebg_application_messages','order=created_at.desc',s.access_token),
   db.select<InboxNotification>('account_notifications','order=created_at.desc',s.access_token),

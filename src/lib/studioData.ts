@@ -132,14 +132,7 @@ export const loadCmsData = async <T>() => {
 
 export const saveCmsData = async <T>(value: T) => {
   const session = requireSession()
-  const existing = await db.select<{ key: string }>('cms_settings', 'key=eq.cms&limit=1', session.access_token)
-  const payload = { value, updated_at: new Date().toISOString() }
-
-  if (existing.length) {
-    await db.update('cms_settings', 'key=eq.cms', payload, session.access_token)
-  } else {
-    await db.insert('cms_settings', { key: 'cms', ...payload }, session.access_token)
-  }
+  await db.rpc('studio_save_cms', { p_value: value }, session.access_token)
 }
 
 export const updateCastingApplicationStatus = async (applicationId: string, status: string) => {
