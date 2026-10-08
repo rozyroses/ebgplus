@@ -9,6 +9,9 @@ import {
 import { EbgAudioPlayer, EbgMusicDock, MusicCollectionActions } from '../../src/components/MusicPlayer'
 import { catalogTrack } from '../../src/lib/musicPlayback'
 import { mergeMusicEdits } from './mergeMusicEdits'
+import { generateTrackLyrics } from './generateTrackLyrics'
+import { assertLyricTranscript } from './lyricsAudio'
+import { assertReleaseAudio, attachReleaseTracks } from './releaseWizard'
 import StudioAudioSources from './StudioAudioSources'
 import MusicDistributionPanel from './MusicDistributionPanel'
 import type { DistributionDetails, Platform } from './musicDistribution'
@@ -113,6 +116,17 @@ export default function StudioMusicManagerV1() {
   const [draft, setDraft] = useState<ReleaseDraft>(emptyDraft)
   const [editingRelease, setEditingRelease] = useState<MusicRelease | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState('')
+  const [wizardTracks, setWizardTracks] = useState<MusicTrack[]>([])
+  const [trackFile, setTrackFile] = useState<File | null>(null)
+  const [trackTitle, setTrackTitle] = useState('')
+  useEffect(() => {
+    if (!coverFile) { setCoverPreview(''); return }
+    const url = URL.createObjectURL(coverFile)
+    setCoverPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [coverFile])
+
 
   const refresh = async (targetProjectId = projectId) => {
     if (!targetProjectId) {
@@ -143,9 +157,10 @@ export default function StudioMusicManagerV1() {
       const latest = await loadProjectCms<CmsData>(projectId) ?? {}
       const merged = mergeMusicEdits(music, nextMusic, latest.music ?? emptyMusic)
       const nextCms: CmsData = { ...latest, music: merged }
-      await saveProjectCms(projectId, nextCms)
-      setCms(nextCms)
-      setMusic(merged)
+      const saved = await saveProjectCms(projectId, nextCms)
+      setCms(saved.cms)
+      setMusic(saved.cms.music ?? merged)
+      window.dispatchEvent(new CustomEvent('ebg-studio-cms-saved', {detail:{projectId}}))
       setMessage(note)
       return true
     } catch (error) {
@@ -165,6 +180,7 @@ export default function StudioMusicManagerV1() {
       setEditingRelease(null)
       setDraft(emptyDraft())
       setCoverFile(null)
+      setWizardTracks([]); setTrackFile(null); setTrackTitle('')
       void refresh(next)
     }
     window.addEventListener('hashchange', syncHash)
@@ -221,9 +237,12 @@ export default function StudioMusicManagerV1() {
     if (!projectId || !draft.artistId || !draft.title.trim()) return
     setBusy(true)
     try {
+      assertReleaseAudio(draft.publishStatus, wizardTracks)
+      const pendingTracks = wizardTracks.map(track => ({...track, timedLyrics:track.timedLyrics?.filter(line => Number.isFinite(line.start) && Number.isFinite(line.end) && line.text.trim()).map(line => ({...line, start:Math.max(0,line.start),end:Math.max(line.end,Math.max(0,line.start)+0.1),text:line.text.trim()})).sort((a,b) => a.start-b.start)}))
+      pendingTracks.forEach(track => assertLyricTranscript({text:track.lyrics, timedLyrics:track.timedLyrics}))
       const cover = coverFile
         ? await uploadStudioProjectMedia(coverFile, projectId, 'music/covers')
-        : editingRelease?.cover || ''
+        : music.releases.find(item => item.id === editingRelease?.id)?.cover || editingRelease?.cover || ''
       const release: MusicRelease = {
         id: editingRelease?.id || `${slugify(draft.title) || 'release'}-${Date.now()}`,
         artistId: draft.artistId,
@@ -235,17 +254,44 @@ export default function StudioMusicManagerV1() {
         publishStatus: draft.publishStatus,
         explicit: draft.explicit,
       }
-      if (!(await saveMusic({ ...music, tracks: editingRelease ? music.tracks.map(track => track.releaseId === release.id ? { ...track, artistId: release.artistId } : track) : music.tracks, releases: editingRelease ? music.releases.map(item => item.id === editingRelease.id ? { ...item, ...release } : item) : [...music.releases, release] }, `${release.title} ${editingRelease ? 'updated' : 'created'}. Live releases sync to EBG+.`))) return
+      const tracks = attachReleaseTracks(music.tracks, pendingTracks, release.id, release.artistId)
+      if (!(await saveMusic({ ...music, tracks, releases: editingRelease ? music.releases.map(item => item.id === editingRelease.id ? { ...item, ...release } : item) : [...music.releases, release] }, `${release.title} saved with ${wizardTracks.length} track${wizardTracks.length === 1 ? '' : 's'}. ${release.publishStatus === 'live' ? 'Published on EBG+ Music.' : release.publishStatus === 'scheduled' ? 'Scheduled on EBG+ Music.' : 'Draft saved.'}`))) return
       setEditingRelease(null)
       setDraft(emptyDraft())
       setCoverFile(null)
       setWizardStep(1)
+      setWizardTracks([]); setTrackFile(null); setTrackTitle('')
       setView('releases')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Release could not be saved.')
     } finally {
       setBusy(false)
     }
+  }
+
+  const uploadWizardTrack = async () => {
+    if (!projectId || !trackFile || busy) return
+    setBusy(true); setMessage('Uploading song audio…')
+    try {
+      const audioUrl = await uploadStudioProjectMedia(trackFile, projectId, `music/audio/${draft.artistId}`)
+      const title = trackTitle.trim() || (draft.type === 'single' ? draft.title.trim() : trackFile.name.replace(/\.[^.]+$/, ''))
+      const track: MusicTrack = { id: `${slugify(title) || 'track'}-${Date.now()}`, artistId:draft.artistId, title, audioUrl, trackNumber:wizardTracks.length + 1, explicit:draft.explicit }
+      if (/\.flac$/i.test(trackFile.name)) { track.losslessUrl=audioUrl; track.losslessMimeType='audio/flac' }
+      setWizardTracks(current => [...current,track]); setTrackFile(null); setTrackTitle('')
+      setMessage('Audio uploaded. Continue to generate lyrics, then save the release.')
+    } catch(error) { setMessage(error instanceof Error ? error.message : 'Audio upload failed. Try again.') }
+    finally { setBusy(false) }
+  }
+  const generateWizardLyrics = async (track: MusicTrack) => {
+    if (busy) return
+    setBusy(true); setMessage('Listening to the song and timing its lyrics…')
+    try {
+      const payload = await generateTrackLyrics(projectId, track, setMessage)
+      const timedLyrics = (payload.timedLyrics ?? []).filter(line => Number.isFinite(line.start) && Number.isFinite(line.end) && line.text?.trim())
+      setWizardTracks(current => current.map(item => item.id === track.id ? {...item, timedLyrics, lyrics:payload.text?.trim() || timedLyrics.map(line => line.text).join('\n')} : item))
+      setMessage('Timed lyrics ready. Review the words and timing below before saving.')
+    } catch(error) { setMessage(error instanceof Error ? error.message : 'Lyrics could not be generated. You can skip this step.') }
+    finally { setBusy(false) }
   }
 
   const uploadTrack = async (event: FormEvent<HTMLFormElement>) => {
@@ -339,6 +385,8 @@ export default function StudioMusicManagerV1() {
     setEditingRelease(release)
     setDraft({ artistId: release.artistId, type: release.type, title: release.title, genre: release.genre || '', releaseDate: release.releaseDate?.slice(0, 10) || '', publishStatus: release.publishStatus, explicit: !!release.explicit })
     setCoverFile(null)
+    setWizardTracks(music.tracks.filter(track => track.releaseId === release.id).map(track => ({...track})))
+    setTrackFile(null); setTrackTitle('')
     setView('new-release')
     setWizardStep(2)
   }
@@ -372,7 +420,7 @@ export default function StudioMusicManagerV1() {
             <p>One clean place to create releases, upload tracks, manage artists, and publish videos.</p>
           </div>
           <div className="music-v2-header-actions"><a className="button secondary" href="#publishing">Review & Publish</a><button className="button secondary" type="button" onClick={() => openLyrics()}>Generate / edit timed lyrics</button>
-            <button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setView('new-release'); setWizardStep(1) }}>＋ New Release</button>
+            <button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setWizardTracks([]); setTrackFile(null); setTrackTitle(''); setView('new-release'); setWizardStep(1) }}>＋ New Release</button>
             <a className="button secondary" href="https://ebgplus.app/app/music" target="_blank" rel="noreferrer">View Music ↗</a>
           </div>
         </header>
@@ -390,8 +438,8 @@ export default function StudioMusicManagerV1() {
         {view === 'home' && (
           <div className="music-v2-home">
             <section className="music-v2-welcome">
-              <div><span>YOUR CATALOG</span><h3>Make the next release.</h3><p>Start with a release, then add its tracks, lyrics, videos, and publishing details when you’re ready.</p></div>
-              <button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setWizardStep(1); setView('new-release') }}>Create release</button>
+              <div><span>YOUR CATALOG</span><h3>Make the next release.</h3><p>Add release details, cover art, audio, and timed lyrics in one flow, then publish when you’re ready.</p></div>
+              <button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setWizardTracks([]); setTrackFile(null); setTrackTitle(''); setWizardStep(1); setView('new-release') }}>Create release</button>
             </section>
             <section className="music-studio-stats">
               <article><span>ARTISTS</span><strong>{music.artists.length}</strong></article>
@@ -415,21 +463,35 @@ export default function StudioMusicManagerV1() {
         )}
 
         {view === 'new-release' && (
-          <section className="music-v2-wizard">
-            <div className="music-v2-wizard-head"><div><span>{editingRelease ? 'EDIT RELEASE' : 'NEW RELEASE'}</span><h3>{editingRelease ? editingRelease.title : `Step ${wizardStep} of 4`}</h3></div><button type="button" onClick={() => setView('home')}>×</button></div>
-            <div className="music-v2-progress">{[1,2,3,4].map((step) => <span key={step} className={wizardStep >= step ? 'active' : ''}>{step}</span>)}</div>
-            {editingRelease && <MusicDistributionPanel key={`${projectId}-${editingRelease.id}`} projectId={projectId} release={music.releases.find(item => item.id === editingRelease.id) ?? editingRelease} tracks={music.tracks.filter(track => track.releaseId === editingRelease.id)} onSave={async patch => !!(await saveMusic({ ...music, releases: music.releases.map(item => item.id === editingRelease.id ? { ...item, ...patch } : item) }, 'Distribution details saved. Streaming delivery requires a partner connection.'))} />}
-            {editingRelease && <section className="music-release-lyrics"><h4>Tracks & timed lyrics</h4><p>Generate lyrics from a song or edit its saved words and timestamps.</p>{music.tracks.filter(track => track.releaseId === editingRelease.id).map(track => <div key={track.id}><strong>{track.title}</strong><button className="button secondary" type="button" onClick={() => openLyrics(track.id)}>Generate / edit timed lyrics</button></div>)}{!music.tracks.some(track => track.releaseId === editingRelease.id) && <p>No tracks attached yet. Add a song from Catalog and select this release.</p>}</section>}
+          <section className="music-v2-wizard"><fieldset className="music-wizard-fields" disabled={busy}>
+            <div className="music-v2-wizard-head"><div><span>{editingRelease ? 'EDIT RELEASE' : 'NEW RELEASE'}</span><h3>{editingRelease ? editingRelease.title : `Step ${wizardStep} of 6`}</h3></div><button type="button" onClick={() => setView('home')}>×</button></div>
+            <div className="music-v2-progress">{[1,2,3,4,5,6].map((step) => <span key={step} className={wizardStep >= step ? 'active' : ''}>{step}</span>)}</div>
+            {editingRelease && wizardStep === 6 && <MusicDistributionPanel key={`${projectId}-${editingRelease.id}`} projectId={projectId} release={music.releases.find(item => item.id === editingRelease.id) ?? editingRelease} tracks={music.tracks.filter(track => track.releaseId === editingRelease.id)} onSave={async patch => !!(await saveMusic({ ...music, releases: music.releases.map(item => item.id === editingRelease.id ? { ...item, ...patch } : item) }, 'Distribution details saved. Streaming delivery requires a partner connection.'))} />}
+
 
 
             {wizardStep === 1 && <div className="music-v2-step"><h4>Who is releasing it?</h4><p>Choose the artist and release type.</p><div className="music-v2-step-grid"><label>Artist<select value={draft.artistId} onChange={(e) => setDraft({ ...draft, artistId: e.target.value })}><option value="">Select artist</option>{music.artists.map((artist) => <option key={artist.id} value={artist.id}>{artist.name}</option>)}</select></label><label>Release type<select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as ReleaseType })}><option value="single">Single</option><option value="ep">EP</option><option value="album">Album</option></select></label></div>{!music.artists.length && <p className="music-v2-hint">You need an artist first. <button type="button" onClick={() => setView('artists')}>Add artist →</button></p>}<div className="music-v2-step-actions"><button className="button" type="button" disabled={!draft.artistId} onClick={() => setWizardStep(2)}>Continue</button></div></div>}
 
             {wizardStep === 2 && <div className="music-v2-step"><h4>Release details</h4><p>Add the information listeners will see.</p><div className="music-v2-step-grid"><label>Title<input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label><label>Genre<input value={draft.genre} onChange={(e) => setDraft({ ...draft, genre: e.target.value })} /></label><label>Release date<input type="date" value={draft.releaseDate} onChange={(e) => setDraft({ ...draft, releaseDate: e.target.value })} /></label><label>Status<select value={draft.publishStatus} onChange={(e) => setDraft({ ...draft, publishStatus: e.target.value as PublishStatus })}><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="live">Live</option><option value="archived">Archived</option></select></label><label className="music-check"><input type="checkbox" checked={draft.explicit} onChange={(e) => setDraft({ ...draft, explicit: e.target.checked })} /> Explicit</label></div><div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(1)}>Back</button><button className="button" type="button" disabled={!draft.title.trim()} onClick={() => setWizardStep(3)}>Continue</button></div></div>}
 
-            {wizardStep === 3 && <div className="music-v2-step"><h4>Artwork</h4><p>Add the cover now or come back to it later.</p><label className="music-v2-cover-upload">Cover art<input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)} /><span>{coverFile ? coverFile.name : 'Choose image'}</span></label><div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(2)}>Back</button><button className="button" type="button" onClick={() => setWizardStep(4)}>Review</button></div></div>}
+            {wizardStep === 3 && <div className="music-v2-step"><h4>Artwork</h4><p>This cover is reused on EBG+ Music and your listening page. Upload once.</p>{(coverPreview || music.releases.find(item => item.id === editingRelease?.id)?.cover) && <img className="music-wizard-cover" src={coverPreview || music.releases.find(item => item.id === editingRelease?.id)?.cover} alt="Release cover preview" />}<label className="music-v2-cover-upload">Cover art<input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)} /><span>{coverFile ? coverFile.name : editingRelease?.cover ? 'Keep existing cover · choose only to replace' : 'Choose image'}</span></label><div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(2)}>Back</button><button className="button" type="button" onClick={() => setWizardStep(4)}>Continue</button></div></div>}
 
-            {wizardStep === 4 && <div className="music-v2-step"><h4>{editingRelease ? 'Ready to save your changes?' : 'Ready to create?'}</h4><div className="music-v2-review"><span>{coverFile ? 'New artwork ready' : editingRelease?.cover ? 'Existing artwork retained' : 'No artwork yet'}</span><strong>{draft.title}</strong><p>{artistName(draft.artistId)} · {draft.type.toUpperCase()} · {draft.releaseDate}</p><small>{draft.genre || 'No genre'} · {draft.publishStatus}{draft.explicit ? ' · Explicit' : ''}</small></div><div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(3)}>Back</button><button className="button" type="button" disabled={busy} onClick={() => void finishRelease()}>{busy ? 'Saving…' : editingRelease ? 'Save changes' : 'Create Release'}</button></div></div>}
-          </section>
+            {wizardStep === 4 && <div className="music-v2-step"><h4>Song audio</h4><p>Add the songs for this release here. Each upload is attached automatically when you save.</p>
+              {wizardTracks.map(track => <article className="music-wizard-track" key={track.id}><label>Track title<input value={track.title} onChange={event => setWizardTracks(current => current.map(item => item.id === track.id ? {...item,title:event.target.value} : item))} /></label><audio controls preload="none" src={track.audioUrl} aria-label={`Preview ${track.title}`} /><button className="button secondary" type="button" onClick={() => setWizardTracks(current => current.filter(item => item.id !== track.id).map((item,index) => ({...item,trackNumber:index+1})))}>Remove from release</button></article>)}
+              <div className="music-v2-step-grid"><label>New track title<input value={trackTitle} placeholder={draft.title || 'Song title'} onChange={event => setTrackTitle(event.target.value)} /></label><label>Song audio<input key={wizardTracks.length} type="file" accept="audio/*,.flac,.wav" onChange={event => setTrackFile(event.target.files?.[0] ?? null)} /></label></div>
+              <button className="button secondary" type="button" disabled={!trackFile || !draft.artistId} onClick={() => void uploadWizardTrack()}>Upload song</button>
+              <div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(3)}>Back</button><button className="button" type="button" onClick={() => { if (trackFile) { setMessage('Upload the selected song before continuing.'); return } setWizardStep(5) }}>Continue</button></div>
+            </div>}
+            {wizardStep === 5 && <div className="music-v2-step"><h4>Timed lyrics</h4><p>Generate from each uploaded song, review the words and timestamps, or continue without lyrics.</p>
+              {!wizardTracks.length && <p>Add audio in the previous step to generate timed lyrics.</p>}
+              {wizardTracks.map(track => <article className="music-wizard-track" key={track.id}><h5>{track.title}</h5><audio controls preload="none" src={track.audioUrl} aria-label={`Preview lyrics for ${track.title}`} /><button className="button secondary" type="button" onClick={() => void generateWizardLyrics(track)}>{track.timedLyrics?.length ? 'Regenerate timed lyrics' : 'Generate timed lyrics'}</button><label>Lyrics<textarea value={track.lyrics || ''} onChange={event => setWizardTracks(current => current.map(item => item.id === track.id ? {...item,lyrics:event.target.value} : item))} /></label>
+                {(track.timedLyrics || []).map((line,index) => <div className="music-wizard-lyric" key={index}><label>Start (seconds)<input type="number" min="0" step="0.1" value={line.start} onChange={event => setWizardTracks(current => current.map(item => item.id === track.id ? {...item,timedLyrics:item.timedLyrics?.map((old,i) => i === index ? {...old,start:Number(event.target.value)} : old)} : item))} /></label><label>End (seconds)<input type="number" min={line.start} step="0.1" value={line.end} onChange={event => setWizardTracks(current => current.map(item => item.id === track.id ? {...item,timedLyrics:item.timedLyrics?.map((old,i) => i === index ? {...old,end:Number(event.target.value)} : old)} : item))} /></label><label>Lyric line<input value={line.text} onChange={event => setWizardTracks(current => current.map(item => item.id === track.id ? {...item,timedLyrics:item.timedLyrics?.map((old,i) => i === index ? {...old,text:event.target.value} : old)} : item))} /></label></div>)}
+              </article>)}
+              <div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(4)}>Back</button><button className="button" type="button" onClick={() => setWizardStep(6)}>Review release</button></div>
+            </div>}
+
+            {wizardStep === 6 && <div className="music-v2-step"><h4>{editingRelease ? 'Ready to save your changes?' : 'Ready to create?'}</h4><div className="music-v2-review"><span>{coverFile ? 'New artwork ready' : editingRelease?.cover ? 'Existing artwork retained' : 'No artwork yet'}</span><strong>{draft.title}</strong><p>{artistName(draft.artistId)} · {draft.type.toUpperCase()} · {draft.releaseDate}</p><p>{wizardTracks.length} track{wizardTracks.length === 1 ? '' : 's'} · {wizardTracks.filter(track => track.timedLyrics?.length).length} with timed lyrics</p>{['live','scheduled'].includes(draft.publishStatus) && !wizardTracks.length && <p role="alert">Add song audio before publishing. Go back to Audio or choose Draft.</p>}<small>{draft.genre || 'No genre'} · {draft.publishStatus}{draft.explicit ? ' · Explicit' : ''}</small></div><div className="music-v2-step-actions"><button className="button secondary" type="button" onClick={() => setWizardStep(5)}>Back</button><button className="button" type="button" disabled={busy || (['live','scheduled'].includes(draft.publishStatus) && !wizardTracks.length)} onClick={() => void finishRelease()}>{busy ? 'Saving…' : draft.publishStatus === 'live' ? 'Save & publish on EBG+' : draft.publishStatus === 'scheduled' ? 'Save & schedule on EBG+' : editingRelease ? 'Save changes' : 'Create Release'}</button></div></div>}
+          </fieldset></section>
         )}
 
         {view === 'artists' && (
@@ -444,11 +506,11 @@ export default function StudioMusicManagerV1() {
 
         {view === 'releases' && (
           <section className="music-v2-section">
-            <div className="music-v2-section-head"><div><span>RELEASES</span><h3>Singles, EPs & albums</h3></div><button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setWizardStep(1); setView('new-release') }}>＋ New Release</button></div>
+            <div className="music-v2-section-head"><div><span>RELEASES</span><h3>Singles, EPs & albums</h3></div><button className="button" type="button" onClick={() => { setEditingRelease(null); setDraft(emptyDraft()); setCoverFile(null); setWizardTracks([]); setTrackFile(null); setTrackTitle(''); setWizardStep(1); setView('new-release') }}>＋ New Release</button></div>
             <div className="music-release-grid">{music.releases.map((release) => <article key={release.id} className={music.featuredReleaseId === release.id ? 'featured' : ''}>
               <button className="music-release-open" type="button" onClick={() => editRelease(release)} aria-label={`Edit ${release.title}`}>
                 <span className="music-cover">{release.cover ? <img src={release.cover} alt="" /> : <span>♪</span>}</span>
-                <span className="music-release-copy"><span className="music-kicker">{release.type.toUpperCase()} · {artistName(release.artistId)}</span><strong>{release.title}</strong><span>{release.publishStatus} · {release.genre || 'Uncategorized'} · {release.releaseDate}</span><small>Click to edit release</small></span>
+                <span className="music-release-copy"><span className="music-kicker">{release.type.toUpperCase()} · {artistName(release.artistId)}</span><strong>{release.title}</strong><span>{release.publishStatus} · {release.genre || 'Uncategorized'} · {release.releaseDate}</span><small>{music.tracks.some(track => track.releaseId === release.id) ? 'Click to edit release' : 'Audio missing · edit release to add songs'}</small></span>
               </button>
               <div className="music-inline-actions"><button className="button secondary" type="button" disabled={busy} onClick={() => void saveMusic({ ...music, featuredReleaseId: release.id }, `${release.title} featured.`)}>Feature</button><button className="button danger" type="button" disabled={busy} onClick={() => void deleteRelease(release)}>Delete</button></div>
             </article>)}{!music.releases.length && <p className="music-empty">No releases yet.</p>}</div>

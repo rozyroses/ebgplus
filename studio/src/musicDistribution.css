@@ -7,7 +7,8 @@
 .public-release { min-height: 100dvh; box-sizing: border-box; background: #131019; color: #f8f4ff; padding: 40px max(24px, calc((100vw - 560px) / 2)); text-align: center; font-family: system-ui, sans-serif; }
 .public-release a { color: inherit; }
 .public-release-brand { display: block; font-weight: 800; letter-spacing: .2em; text-decoration: none; margin-bottom: 30px; }
-.public-release-cover { width: min(100%, 360px); aspect-ratio: 1; object-fit: cover; border-radius: 24px; box-shadow: 0 20px 70px #0006; }
+.public-release-cover { display: block; margin: 0 auto; width: min(100%, 360px); aspect-ratio: 1; object-fit: cover; border-radius: 24px; box-shadow: 0 20px 70px #0006; }
+.distribution-release-cover { display: block; width: min(100%, 160px); aspect-ratio: 1; object-fit: cover; border-radius: 16px; margin: 12px auto; }
 .public-release h1 { font-size: clamp(2rem, 6vw, 3.2rem); margin: 12px 0; }
 .public-release h2 { font-size: 1.2rem; }
 .public-release p { color: #ccc2dc; }

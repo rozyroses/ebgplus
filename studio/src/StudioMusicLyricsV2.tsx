@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { readStoredSession } from '../../src/lib/auth'
-import { loadProjectCms, saveProjectCms, uploadStudioProjectMedia } from '../../src/lib/studioData'
+import { loadProjectCms, saveProjectCms } from '../../src/lib/studioData'
 
-import { assertLyricTranscript, AudioSizeError, transcribeUploadedAudio, type Transcription } from './lyricsAudio'
+import { assertLyricTranscript } from './lyricsAudio'
+import { generateTrackLyrics } from './generateTrackLyrics'
 
 type TimedLyric = { start: number; end: number; text: string }
 type MusicArtist = { id: string; name: string }
@@ -28,7 +28,6 @@ type MusicCatalog = {
 }
 type CmsData = Record<string, unknown> & { music?: MusicCatalog }
 
-const endpoint = import.meta.env.VITE_STUDIO_LYRICS_URL || 'https://ebg-studio-lyrics.roosevelt-wooden.workers.dev'
 const isMusicTab = () => window.location.hash.replace(/^#\/?/, '') === 'music'
 const cleanTimedLyrics = (value?: TimedLyric[]) => Array.isArray(value)
   ? value.filter((line) => line && Number.isFinite(line.start) && Number.isFinite(line.end) && String(line.text || '').trim())
@@ -133,38 +132,10 @@ export default function StudioMusicLyricsV2() {
       setMessage('This track does not have an uploaded audio file yet.')
       return
     }
-    if (!endpoint) {
-      setMessage('Lyrics generation is unavailable right now. You can still add and edit lines manually.')
-      return
-    }
-    const session = readStoredSession()
-    if (!session) {
-      setMessage('Sign in to EBG Studio again before generating timed lyrics.')
-      return
-    }
-
     setBusy(true)
     setMessage('Listening to the uploaded track and timing the lyrics…')
     try {
-      const payload = await transcribeUploadedAudio({
-        audioUrl: selectedTrack.audioUrl,
-        progress: setMessage,
-        upload: (file) => uploadStudioProjectMedia(file, projectId, `lyrics/${selectedTrack.id}`),
-        transcribe: async (audioUrl) => {
-          const response = await fetch(`${endpoint.replace(/\/$/, '')}/transcribe-lyrics`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-            body: JSON.stringify({ audioUrl, trackId: selectedTrack.id }),
-          })
-          const result = await response.json().catch(() => ({})) as Transcription & { error?: string }
-          if (!response.ok) {
-            const message = result.error || `Timed lyric transcription failed (${response.status}).`
-            if (response.status === 413 || /larger than|too large|size limit|24\s*MB/i.test(message)) throw new AudioSizeError(message)
-            throw new Error(message)
-          }
-          return result
-        },
-      })
+      const payload = await generateTrackLyrics(projectId, selectedTrack, setMessage)
       const nextLines = cleanTimedLyrics(payload.timedLyrics)
       if (!nextLines.length) throw new Error('No vocal lyric lines were detected in this track.')
       setTimedLyrics(nextLines)
