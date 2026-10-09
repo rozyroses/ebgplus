@@ -502,42 +502,10 @@ function AvatarVisual({ avatar, nav = false }: { avatar: string; nav?: boolean }
   return <span className={nav ? 'nav-avatar avatar' : 'avatar'}>{avatar || '✨'}</span>
 }
 
-function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const getTheme = () => {
-    const saved = localStorage.getItem('ebg.theme.v1')
-    if (saved === 'light' || saved === 'dark') return saved
-    return 'dark' as const
-  }
-  const [theme,setTheme]=useState<'light'|'dark'>(()=>getTheme())
-
-  useEffect(()=>{
-    document.documentElement.dataset.theme=theme
-    document.documentElement.style.colorScheme=theme
-    localStorage.setItem('ebg.theme.v1',theme)
-    window.dispatchEvent(new CustomEvent('ebg-theme-change',{detail:theme}))
-  },[theme])
-
-  useEffect(()=>{
-    const sync=(event:Event)=>{
-      const next=(event as CustomEvent<'light'|'dark'>).detail
-      if(next==='light'||next==='dark') setTheme(next)
-    }
-    window.addEventListener('ebg-theme-change',sync)
-    return()=>window.removeEventListener('ebg-theme-change',sync)
-  },[])
-
-  const next=theme==='light'?'dark':'light'
-  return <button className={`theme-toggle ${compact?'compact':''}`} type="button" onClick={()=>setTheme(next)} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>
-    <span aria-hidden="true">{theme==='light'?'☾':'☀'}</span><strong>{compact?'':theme==='light'?'Dark':'Light'}</strong>
-  </button>
-}
-
 function App() {
   useEffect(()=>{
-    const saved=localStorage.getItem('ebg.theme.v1')
-    const theme=saved==='light'||saved==='dark' ? saved : 'dark'
-    document.documentElement.dataset.theme=theme
-    document.documentElement.style.colorScheme=theme
+    document.documentElement.dataset.theme='dark'
+    document.documentElement.style.colorScheme='dark'
   },[])
 
   useEffect(() => {
@@ -1129,7 +1097,7 @@ function LandingPage({ cms }: { cms: CmsData }) {
     <main className="ebg-home">
       <a className="eh-skip" href="#discover">Skip to content</a>
       <header className="eh-header">
-        <Link className="eh-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
+        <Link className="eh-logo" to="/" aria-label="EBG Plus home"><img className="ebg-brand-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /></Link>
         <nav aria-label="Main navigation"><a href="#discover">Discover</a><a href="#features">Features</a><Link to="/app/music">Music</Link><a href="#creators">For creators</a></nav>
         <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
       </header>
@@ -1156,11 +1124,11 @@ function LandingPage({ cms }: { cms: CmsData }) {
           <article className="eh-capability eh-capability-create"><span className="eh-capability-index">04 / CREATE</span><div className="eh-capability-symbol" aria-hidden="true">✦</div><h3>Your vision. On EBG+.</h3><p>Bring your next release or production to life in EBG+ Studio, with Lumi alongside you.</p><ul><li>Production, episode & media management</li><li>Music uploads, release metadata & timed lyrics</li><li>Stereo mastering & branded streaming links</li><li>Lumi creative assistance & approved publishing</li><li>Scheduling, analytics, forms & talent tools</li></ul><a href="https://studio.ebgplus.app">Enter creator studio <span aria-hidden="true">↗</span></a></article>
         </div>
         <p className="eh-feature-note">*Audio quality depends on the uploaded mix, your browser, and your device. Streaming links connect to existing releases on other services; external distribution is not yet available.</p>
-        <div className="eh-personal"><div><p className="eh-eyebrow">YOUR EBG+, YOUR WAY</p><h3>Settle into your own space.</h3></div><p>Personal profiles, catalog search, playback preferences, light and dark themes, and account settings—all in one place.</p><Link className="eh-button" to="/auth/create-account">Find your people ↗</Link></div>
+        <div className="eh-personal"><div><p className="eh-eyebrow">YOUR EBG+, YOUR WAY</p><h3>Settle into your own space.</h3></div><p>Personal profiles, catalog search, playback preferences, accessibility controls, and account settings—all in one place.</p><Link className="eh-button" to="/auth/create-account">Find your people ↗</Link></div>
       </section>
       {news.length > 0 && <section className="eh-section"><div className="eh-section-heading"><div><p className="eh-eyebrow">THE LATEST</p><h2>Stay in the conversation.</h2></div></div><div className="eh-news-grid">{news.map((item) => <article className="eh-news" key={item.id}>{item.image && <img src={item.image} alt="" loading="lazy" />}<p className="eh-eyebrow">{item.category}</p><h3>{item.headline}</h3><p>{item.summary}</p><small>{new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</small></article>)}</div></section>}
       <section id="creators" className="eh-create"><div><p className="eh-eyebrow">MAKE YOUR NEXT CHAPTER</p><h2>Got a story?<br /><em>Give it a home.</em></h2></div><div><p>A space for creators, producers, and the people who love what they make. Start your EBG+ account and find where you belong.</p><Link className="eh-button" to="/auth/create-account">Create your account ↗</Link></div></section>
-      <footer className="eh-footer"><Link className="eh-logo" to="/">EBG<span>+</span></Link><p>Original shows. Independent music.</p><nav aria-label="Footer navigation"><Link to="/about">About EBG</Link><Link to="/auth/sign-in">Sign in</Link><a href="https://studio.ebgplus.app">Creator studio ↗</a></nav><small>© {new Date().getFullYear()} EBG+</small></footer>
+      <footer className="eh-footer"><Link className="eh-logo" to="/"><img className="ebg-brand-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /></Link><p>Original shows. Independent music.</p><nav aria-label="Footer navigation"><Link to="/about">About EBG</Link><Link to="/auth/sign-in">Sign in</Link><a href="https://studio.ebgplus.app">Creator studio ↗</a></nav><small>© {new Date().getFullYear()} EBG+</small></footer>
     </main>
   )
 }
@@ -1169,7 +1137,7 @@ function AuthLayout({ title, children }: { title: string; children: ReactNode })
   return (
     <main className="auth-page ebg-entry">
       <aside className="entry-story">
-        <Link className="entry-logo" to="/" aria-label="EBG Plus home">EBG<span>+</span></Link>
+        <Link className="entry-logo" to="/" aria-label="EBG Plus home"><img className="ebg-brand-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /></Link>
         <div className="entry-orbit" aria-hidden="true"><span>+</span></div>
         <div className="entry-story-copy"><p className="eyebrow">STORIES. SOUNDS. YOUR PEOPLE.</p><h2>A little escape.<br />A lot to <em>love.</em></h2><p>Discover original shows and independent music. Find something that feels like you.</p></div>
         <p className="entry-story-foot">Original voices. All together.</p>
@@ -1668,7 +1636,7 @@ function AppLayout({
           </details>
         </nav>
         <div className="right-nav">
-          <ThemeToggle compact />
+
           <Link className="nav-icon-link" to="/app/search">Search</Link>
           <details className="nav-menu library-menu" open={openNavMenu === 'library'} onToggle={(event) => toggleMenu('library', event.currentTarget.open)}>
             <summary>Library <span aria-hidden="true">⌄</span></summary>
@@ -2507,7 +2475,7 @@ function SettingsPage({ account, profile, onUpdateAccount, onSignOut }: { accoun
   const [uploading, setUploading] = useState(false)
   const updateProfile = (patch: Partial<Profile>) => onUpdateAccount({ ...account, profiles: account.profiles.map((item) => item.id === profile.id ? { ...item, ...patch } : item) })
   const uploadPhoto = async (file?: File) => { if (!file) return; setUploading(true); setState(''); try { const avatar = await uploadProfilePhoto(file); updateProfile({ avatar }); setState('Profile photo updated.') } catch (error) { setState(error instanceof Error ? error.message : 'Profile photo could not be uploaded.') } finally { setUploading(false) } }
-  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel connected-settings"><h2>Playback & accessibility</h2><p>These preferences are saved on this device and apply to EBG+ video playback.</p><label>Default playback speed<select value={preferences.speed} onChange={event=>changePreference({speed:Number(event.target.value)})}>{[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}</select></label><label>Default video volume<input type="range" min={0} max={1} step={0.05} value={preferences.volume} onChange={event=>changePreference({volume:Number(event.target.value)})}/></label><label><input type="checkbox" checked={preferences.keyboard} onChange={event=>changePreference({keyboard:event.target.checked})}/> Video keyboard shortcuts (space/K, arrows, F, M)</label><label><input type="checkbox" checked={preferences.reduceMotion} onChange={event=>changePreference({reduceMotion:event.target.checked})}/> Reduce interface motion</label><label><input type="checkbox" checked={preferences.largeText} onChange={event=>changePreference({largeText:event.target.checked})}/> Larger interface text</label><button className="btn muted" onClick={()=>{try { saveViewerPreferences(defaultViewerPreferences);setState('Device playback preferences reset.') } catch { setState('Could not reset device preferences.') }}}>Reset device preferences</button></section><section className="panel"><h2>Appearance</h2><p>Choose your light or dark theme.</p><ThemeToggle /></section><section className="panel"><h2>Security & account tools</h2><Link className="btn muted" to="/auth/forgot-password">Reset password</Link><Link className="btn muted" to="/profiles">Manage profiles</Link><Link className="btn muted" to="/app/inbox">Open inbox</Link><Link className="btn muted" to="/app/applications">My applications</Link></section></div></div></main>)
+  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel connected-settings"><h2>Playback & accessibility</h2><p>These preferences are saved on this device and apply to EBG+ video playback.</p><label>Default playback speed<select value={preferences.speed} onChange={event=>changePreference({speed:Number(event.target.value)})}>{[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}</select></label><label>Default video volume<input type="range" min={0} max={1} step={0.05} value={preferences.volume} onChange={event=>changePreference({volume:Number(event.target.value)})}/></label><label><input type="checkbox" checked={preferences.keyboard} onChange={event=>changePreference({keyboard:event.target.checked})}/> Video keyboard shortcuts (space/K, arrows, F, M)</label><label><input type="checkbox" checked={preferences.reduceMotion} onChange={event=>changePreference({reduceMotion:event.target.checked})}/> Reduce interface motion</label><label><input type="checkbox" checked={preferences.largeText} onChange={event=>changePreference({largeText:event.target.checked})}/> Larger interface text</label><button className="btn muted" onClick={()=>{try { saveViewerPreferences(defaultViewerPreferences);setState('Device playback preferences reset.') } catch { setState('Could not reset device preferences.') }}}>Reset device preferences</button></section><section className="panel"><h2>Security & account tools</h2><Link className="btn muted" to="/auth/forgot-password">Reset password</Link><Link className="btn muted" to="/profiles">Manage profiles</Link><Link className="btn muted" to="/app/inbox">Open inbox</Link><Link className="btn muted" to="/app/applications">My applications</Link></section></div></div></main>)
 }
 
 function EbgStudioHub({
@@ -2870,7 +2838,7 @@ function EbgStudioHub({
         </nav>
 
         <div className="studio3-header-actions">
-          <ThemeToggle />
+
           <label className="studio3-project-picker">
             <span>Working on</span>
             <select value={show.id} onChange={(event)=>setShowId(event.target.value)}>

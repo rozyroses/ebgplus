@@ -6,11 +6,7 @@
  --gold:var(--brand);--gold-light:#e3d5ff;--gold-deep:var(--brand-hover);--sky:#242b38;--mint:#23322d;--blush:#342532;--lilac:#2d253b;--butter:#342f25;
  --family-glass:#17151ee6;--family-glass-strong:#17151ef5;--shadow:0 24px 60px #0004;--shadow-soft:0 8px 28px #0002;--radius:14px;color-scheme:dark;
 }
-:root[data-theme='light']{
- --brand:#7050a8;--brand-hover:#583983;--ink:#292232;--muted:#716778;--canvas:#f4f1f7;--surface:#fff;--surface-solid:#fff;--surface-2:#ece7f1;--subtle:#e8def2;--border:#30203924;
- --gold-light:#ddd0ef;--line-strong:#af96c7;--sky:#e4eaf4;--mint:#e3eee8;--blush:#f2e5ed;--lilac:#ede4f7;--butter:#f2eadb;
- --family-glass:#f9f7fbe8;--family-glass-strong:#f9f7fbf5;--shadow:0 24px 60px #25162d12;--shadow-soft:0 8px 28px #25162d08;color-scheme:light;
-}
+
 body .app-shell,body .profiles-page,body .info-page{background:var(--canvas)!important;color:var(--ink)!important}
 body .app-shell .topbar.app{background:var(--family-glass-strong)!important;backdrop-filter:blur(20px);border-bottom:1px solid var(--border)!important}
 body .app-shell :is(.nav-dropdown,.profile-dropdown,.mobile-waffle-drawer){border-radius:12px!important;box-shadow:var(--shadow)!important}
@@ -43,3 +39,5 @@ body :is(.music-dock-v3,.music-dialog-v3){background:var(--family-glass-strong)!
 body .profiles-page :is(.profile-card,.profile-add-card,.manage-tools){background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important;box-shadow:none!important}
 body .profiles-page :is(.profile-card-name,.profile-select-shell h1){color:var(--ink)!important}body .profiles-page :is(.profile-card-hint,.profile-select-subcopy,.profile-select-account){color:var(--muted)!important}
 body .app-shell .settings-section{background:transparent!important;border:0!important}
+
+body .wordmark{background-image:url('/branding/ebgplus-smoke.svg')!important;filter:none!important;mix-blend-mode:normal!important} .ebg-brand-logo{display:block;width:112px;height:32px;object-fit:contain}.entry-logo .ebg-brand-logo{width:140px;height:40px}body .ebg-splash__logo{mix-blend-mode:normal;filter:none}body .ebg-splash{background:#111116!important}
