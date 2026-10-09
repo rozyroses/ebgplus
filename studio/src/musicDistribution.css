@@ -4,6 +4,9 @@
 .distribution-status { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
 .distribution-status strong { padding: 10px 14px; border-radius: 12px; background: #8882; font-size: .85rem; }
 .music-distribution .music-check { margin: 20px 0; }
+.distribution-coming-soon { margin: 20px 0; padding: 16px 18px; border: 1px solid #c9b6ff55; border-radius: 16px; background: #c9b6ff12; }
+.distribution-coming-soon strong { color: #dfd0ff; }
+.distribution-coming-soon p { margin: 8px 0 0; }
 .public-release { min-height: 100dvh; box-sizing: border-box; background: #131019; color: #f8f4ff; padding: 40px max(24px, calc((100vw - 560px) / 2)); text-align: center; font-family: system-ui, sans-serif; }
 .public-release a { color: inherit; }
 .public-release-brand { display: block; font-weight: 800; letter-spacing: .2em; text-decoration: none; margin-bottom: 30px; }
