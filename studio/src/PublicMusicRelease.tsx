@@ -5,6 +5,8 @@ import type { Platform } from './musicDistribution'
 
 type Release = { id: string; artistId: string; title: string; cover?: string; releaseDate?: string; publishStatus: string; streamingLinks?: Partial<Record<Platform, string>> }
 type Catalog = { releases: Release[]; artists: Array<{id: string; name: string}>; tracks: Array<{id: string; releaseId: string; title: string; audioUrl: string; trackNumber: number}> }
+const platformLinkLabel = (name: string, href: string) =>
+  /^\/(?:[a-z]{2}\/)?artists?\//i.test(new URL(href).pathname) ? `Artist on ${name}` : `Listen on ${name}`
 export default function PublicMusicRelease({ id }: { id: string }) {
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [error, setError] = useState('')
@@ -24,5 +26,5 @@ export default function PublicMusicRelease({ id }: { id: string }) {
   for (const platform of platforms) { try { Object.assign(links, cleanPlatformLinks({ [platform.id]: release.streamingLinks?.[platform.id] })) } catch { /* Hide invalid catalog links. */ } }
   return <main className="public-release"><a className="public-release-brand" href="https://ebgplus.app">EBG+</a>{release.cover && <img className="public-release-cover" src={release.cover} alt={`${release.title} cover`} />}<p>{artist}</p><h1>{release.title}</h1><p>{live ? 'Listen on EBG+.' : `Coming ${release.releaseDate || 'soon'}`}</p>
     {live && <section aria-label="Listen on EBG+"><h2>Stream on EBG+</h2>{tracks.map(track => <article key={track.id}><strong>{track.trackNumber}. {track.title}</strong><audio controls preload="none" src={track.audioUrl} aria-label={track.title} /></article>)}{!tracks.length && <p>Audio is coming soon.</p>}</section>}
-    <div className="public-release-platforms"><a href="https://ebgplus.app/app/music">{live ? 'Open EBG+ Music' : 'Explore EBG+ Music'} ↗</a>{platforms.filter(platform => links[platform.id]).map(platform => <a key={platform.id} href={links[platform.id]} target="_blank" rel="noopener noreferrer">Listen on {platform.name} ↗</a>)}</div><small>External distribution through Studio is coming soon.</small></main>
+    <div className="public-release-platforms"><a href="https://ebgplus.app/app/music">{live ? 'Open EBG+ Music' : 'Explore EBG+ Music'} ↗</a>{platforms.filter(platform => links[platform.id]).map(platform => <a key={platform.id} href={links[platform.id]} target="_blank" rel="noopener noreferrer">{platformLinkLabel(platform.name, links[platform.id]!)} ↗</a>)}</div><small>External distribution through Studio is coming soon.</small></main>
 }
