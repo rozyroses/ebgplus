@@ -41,3 +41,4 @@ html:has(dialog[open]),body:has(dialog[open]),body:has(.cast-v2-modal-backdrop),
 :root[data-studio-theme='dark']{--studio-bg:#111116;--studio-surface:#1b1922;--studio-surface-2:#25222e;--studio-text:#f5f3f9;--studio-muted:#b0aabb;--studio-line:#ffffff20;--studio-accent:#c9b6ff} .studio-smoke-logo{width:88px;height:28px;object-fit:contain}.studio-v3-brand{gap:12px}.studio-login{background:#111116!important}
 
 :root[data-studio-theme="dark"]{--studio-surface-solid:#1b1922;--studio-accent-2:#deceff}.studio-auth-page{background:#111116!important;color:#f5f3f9}.studio-auth-card{background:#1b1922!important;border-color:#ffffff20!important}
+:root[data-studio-theme="dark"] .button:not(.secondary):not(.danger){color:#24192e!important}
