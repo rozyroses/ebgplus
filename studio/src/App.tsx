@@ -189,19 +189,6 @@ const STUDIO_WORKSPACES: Array<{ id: StudioWorkspaceId; label: string; icon: str
   { id: 'tools', label: 'Tools', icon: '⌘', copy: 'Newsroom, team access, and Lumi.', tools: ['team', 'settings', 'lumi'] },
 ]
 
-const readStudioTheme = (): 'light' | 'dark' => {
-  const saved = localStorage.getItem('ebg.studio.theme.v1')
-  if (saved === 'light' || saved === 'dark') return saved
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function StudioThemeToggle({ theme, onChange }: { theme: 'light' | 'dark'; onChange: (next: 'light' | 'dark') => void }) {
-  const next = theme === 'light' ? 'dark' : 'light'
-  return <button className="studio-theme-toggle" type="button" onClick={() => onChange(next)} aria-label={`Switch to ${next} mode`}>
-    <span aria-hidden="true">{theme === 'light' ? '☾' : '☀'}</span><strong>{theme === 'light' ? 'Dark' : 'Light'}</strong>
-  </button>
-}
-
 function App() {
   const [authState, setAuthState] = useState<AuthState | null>(null)
   const [booting, setBooting] = useState(true)
@@ -214,7 +201,7 @@ function App() {
   }, [])
 
   if (booting) {
-    return <main className="studio-boot"><span className="studio-mark">EBG</span><p>Opening Studio…</p></main>
+    return <main className="studio-boot"><img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /><p>Opening Studio…</p></main>
   }
 
   if (!authState) {
@@ -228,7 +215,7 @@ function App() {
     return (
       <main className="studio-auth-page">
         <section className="auth-card denied">
-          <span className="studio-mark">EBG</span>
+          <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" />
           <p className="eyebrow">CREATOR ACCESS</p>
           <h1>This account doesn’t have Studio access.</h1>
           <p>{authState.account.email}</p>
@@ -270,7 +257,7 @@ function StudioSignIn({
   return (
     <main className="studio-auth-page">
       <section className="auth-card">
-        <span className="studio-mark">EBG</span>
+        <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" />
         <p className="eyebrow">CREATOR · PRODUCER · STAFF</p>
         <h1>Studio</h1>
         <p>Manage the EBG+ slate, releases, talent, audience tools, and production media.</p>
@@ -289,7 +276,7 @@ function StudioSignIn({
 function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onSignedOut: () => void }) {
   const [tab, setTabState] = useState<StudioTab>(parseTab)
   const [activeTool, setActiveTool] = useState<StudioTool>(() => (window.location.hash.replace(/^#\/?/, '') || 'overview') as StudioTool)
-  const [theme, setTheme] = useState<'light' | 'dark'>(readStudioTheme)
+  const theme = 'dark'
   const [cms, setCms] = useState<CmsData>(emptyCms)
   const [projects, setProjects] = useState<Array<StudioProject & { cms: CmsData }>>([])
   const [projectId, setProjectId] = useState('')
@@ -328,7 +315,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   useEffect(() => {
     document.documentElement.dataset.studioTheme = theme
     document.documentElement.style.colorScheme = theme
-    localStorage.setItem('ebg.studio.theme.v1', theme)
+    document.documentElement.dataset.theme = 'dark'
   }, [theme])
 
   useEffect(() => {
@@ -670,14 +657,14 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   }
 
   if (busy && !cms.shows.length) {
-    return <main className="studio-boot"><span className="studio-mark">EBG</span><p>Loading production data…</p></main>
+    return <main className="studio-boot"><img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /><p>Loading production data…</p></main>
   }
 
   if (!busy && !projectId) {
     return (
       <main className="studio-project-onboarding">
         <section className="studio-project-onboarding-card">
-          <span className="studio-mark">EBG</span>
+          <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" />
           <p className="eyebrow">YOUR PRIVATE STUDIO</p>
           <h1>Create your first Studio project.</h1>
           <p>Projects can be shows, music, or mixed worlds — each with its own private uploads, catalog, chats, and publishing workspace.</p>
@@ -715,7 +702,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
       <div className="studio-main">
         <header className="studio-v3-topbar">
           <button className="studio-v3-brand" type="button" onClick={() => goToTool('overview')}>
-            <span>EBG+</span><strong>Studio</strong><em>3</em>
+            <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /><strong>Studio</strong>
           </button>
 
           <nav className="studio-v3-workspaces" aria-label="Studio workspaces">
@@ -737,7 +724,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
               </form>
             </details>
 
-            <StudioThemeToggle theme={theme} onChange={setTheme} />
+
             <a className="studio-v3-view" href="https://ebgplus.app" target="_blank" rel="noreferrer">View EBG+ ↗</a>
           </div>
         </header>
@@ -759,7 +746,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
         <main className="workspace">
           <StudioTools />
           {tab === 'notifications' && <Suspense fallback={<p>Opening newsroom…</p>}><StudioNewsroom projectId={projectId} /></Suspense>}
-          {tab === 'settings' && <section className="panel connected-studio-settings"><h2>Studio settings</h2><p>Manage this workspace and your signed-in account.</p><label>Theme<select value={theme} onChange={event=>setTheme(event.target.value as 'light'|'dark')}><option value="dark">Dark</option><option value="light">Light</option></select></label><label>Active production<select value={projectId} onChange={event=>setProjectId(event.target.value)}>{projects.map(project=><option key={project.id} value={project.id}>{project.title}</option>)}</select></label><p>Switching production updates project uploads, music, Lumi, and publishing. Series, casting, forms, inbox, and analytics use the shared EBG+ network.</p><div><strong>{authState.account.email}</strong><p>Role: {authState.account.role}</p></div><a className="button secondary" href="https://ebgplus.app/app/settings" target="_blank" rel="noreferrer">Profile & playback settings ↗</a><a className="button secondary" href="https://ebgplus.app/auth/forgot-password" target="_blank" rel="noreferrer">Reset password ↗</a><button className="button secondary" onClick={()=>window.location.reload()}>Reload Studio data</button><button className="button secondary" onClick={()=>void signOutNow()}>Sign out of Studio</button></section>}
+          {tab === 'settings' && <section className="panel connected-studio-settings"><h2>Studio settings</h2><p>Manage this workspace and your signed-in account.</p><label>Active production<select value={projectId} onChange={event=>setProjectId(event.target.value)}>{projects.map(project=><option key={project.id} value={project.id}>{project.title}</option>)}</select></label><p>Switching production updates project uploads, music, Lumi, and publishing. Series, casting, forms, inbox, and analytics use the shared EBG+ network.</p><div><strong>{authState.account.email}</strong><p>Role: {authState.account.role}</p></div><a className="button secondary" href="https://ebgplus.app/app/settings" target="_blank" rel="noreferrer">Profile & playback settings ↗</a><a className="button secondary" href="https://ebgplus.app/auth/forgot-password" target="_blank" rel="noreferrer">Reset password ↗</a><button className="button secondary" onClick={()=>window.location.reload()}>Reload Studio data</button><button className="button secondary" onClick={()=>void signOutNow()}>Sign out of Studio</button></section>}
           {tab === 'inbox'  && <Suspense fallback={<p>Opening inbox…</p>}><StudioInbox /></Suspense>}
           {tab === 'analytics' && <Suspense fallback={<p>Opening analytics…</p>}><StudioAnalytics /></Suspense>}
           {tab === 'forms' && <Suspense fallback={<p>Opening forms…</p>}><FormsNetworkWorkspace /></Suspense>}
