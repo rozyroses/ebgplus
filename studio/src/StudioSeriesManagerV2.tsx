@@ -89,15 +89,26 @@ export default function StudioSeriesManagerV2() {
     if (active) void refresh()
   }, [active])
 
+  useEffect(() => {
+    if (!active) return
+    const onSaved = () => void refresh()
+    window.addEventListener('ebg-studio-catalog-saved', onSaved)
+    return () => window.removeEventListener('ebg-studio-catalog-saved', onSaved)
+  }, [active])
+
   const selected = useMemo(() => cms?.shows.find((show) => show.id === showId) ?? cms?.shows[0] ?? null, [cms, showId])
 
   const save = async (next: CmsData, note = 'Saved.') => {
-    setCms(next)
     try {
       await saveCmsData(next)
+      const saved = await loadCmsData<CmsData>()
+      if (!saved) throw new Error('The Studio slate could not be reloaded after saving.')
+      setCms(saved)
       setMessage(note)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Changes could not be saved.')
+      await refresh()
+      throw error
     }
   }
 
@@ -166,8 +177,12 @@ export default function StudioSeriesManagerV2() {
         cast: [],
       }
       await save({ ...cms, shows: [...cms.shows, nextShow] }, `${title} created.`)
+      const saved = await loadCmsData<CmsData>()
+      if (!saved?.shows.some((show) => show.id === id)) throw new Error('The title did not appear in the saved slate. Please try again.')
       setShowId(id)
       formElement.reset()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The title could not be created.')
     } finally {
       setBusy(false)
     }
