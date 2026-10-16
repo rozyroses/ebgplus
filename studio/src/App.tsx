@@ -8,6 +8,7 @@ import {
   loadMyStudioProjects,
   loadProjectCms,
   loadCmsData,
+  saveCmsData,
   saveProjectCms,
   updateCastingApplicationStatus,
   uploadStudioProjectMedia,
@@ -415,21 +416,53 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
     const form = new FormData(formElement)
     const title = String(form.get('title') ?? '').trim()
     if (!title) return
+    const projectKind = String(form.get('projectKind') ?? 'show') as StudioProject['project_kind']
     setCreatingProject(true)
     setMessage('')
+    let createdProject: StudioProject | null = null
     try {
       const project = await createStudioProject<CmsData>({
         title,
-        projectKind: String(form.get('projectKind') ?? 'show') as StudioProject['project_kind'],
+        projectKind,
         cms: emptyCms,
       })
+      createdProject = project
       setProjects((items) => [project, ...items])
+      if (projectKind === 'show') {
+        const show: Show = {
+          id: `${slugify(title) || 'show'}-${project.id.slice(0, 8)}`,
+          title,
+          category: 'EBG+ Original',
+          description: '',
+          genre: '',
+          year: new Date().getFullYear(),
+          maturity: 'TV-14',
+          status: 'Coming Soon',
+          artwork: '',
+          logo: title,
+          homeVisible: true,
+          cast: [],
+        }
+        const projectCms = { ...emptyCms, shows: [show] }
+        await saveProjectCms(project.id, projectCms)
+        setProjects((items) => items.map((item) => item.id === project.id ? { ...item, cms: projectCms } : item))
+        const catalog = await loadCmsData<CmsData>()
+        if (!catalog) throw new Error('Production created, but the show catalog is unavailable. Open Series to add the title to the slate.')
+        await saveCmsData({ ...catalog, shows: [...catalog.shows, show] })
+        const saved = await loadCmsData<CmsData>()
+        if (!saved?.shows.some((item) => item.id === show.id)) throw new Error('Production created, but the title did not save to the show catalog. Open Series to retry.')
+        setCms(projectCms)
+        setShowId(show.id)
+        setTab('series')
+      } else {
+        setCms(emptyCms)
+        setShowId('')
+      }
       setProjectId(project.id)
-      setCms(emptyCms)
-      setShowId('')
       formElement.reset()
-      setMessage(`${project.title} created.`)
+      setMessage(projectKind === 'show' ? `${project.title} created and added to Series as Coming Soon.` : `${project.title} created.`)
     } catch (err) {
+      if (createdProject) setProjectId(createdProject.id)
       setMessage(err instanceof Error ? err.message : 'Project could not be created.')
     } finally {
       setCreatingProject(false)
