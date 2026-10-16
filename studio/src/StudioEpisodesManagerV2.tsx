@@ -35,6 +35,7 @@ type CmsData = {
 const isEpisodesTab = () => window.location.hash.replace(/^#\/?/, '') === 'episodes'
 const nowIso = () => new Date().toISOString()
 const statusLabel = (status?: PublishStatus) => status ?? 'scheduled'
+const sizeInMb = (bytes: number) => Math.ceil(bytes / (1024 * 1024))
 
 export default function StudioEpisodesManagerV2() {
   const [active, setActive] = useState(isEpisodesTab)
@@ -82,12 +83,16 @@ export default function StudioEpisodesManagerV2() {
   }, [selectedEpisodes])
 
   const save = async (next: CmsData, note = 'Saved.') => {
-    setCms(next)
     try {
       await saveCmsData(next)
+      const saved = await loadCmsData<CmsData>()
+      if (!saved) throw new Error('The episode catalog could not be reloaded after saving.')
+      setCms(saved)
       setMessage(note)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Changes could not be saved.')
+      await refresh()
+      throw error
     }
   }
 
@@ -125,7 +130,16 @@ export default function StudioEpisodesManagerV2() {
     try {
       const isMovie = (selectedShow.contentType ?? 'series') === 'movie'
       const thumbnailFile = form.get('thumbnail')
-      const videoUrl = await uploadStudioMedia(video, `episodes/${selectedShow.id}`)
+      let videoUrl: string
+      try {
+        videoUrl = await uploadStudioMedia(video, `episodes/${selectedShow.id}`)
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : 'Video upload failed.'
+        if (/maximum allowed size|file size limit|payload too large/i.test(detail)) {
+          throw new Error(`This ${sizeInMb(video.size)} MB video exceeds the current Supabase Storage upload limit. Increase the Global file size limit in Supabase Storage Settings, or use a smaller MP4, then try again. Your episode was not published.`)
+        }
+        throw error
+      }
       const thumbnail = thumbnailFile instanceof File && thumbnailFile.size
         ? await uploadStudioMedia(thumbnailFile, `episodes/${selectedShow.id}/thumbnails`)
         : selectedShow.artwork
@@ -150,6 +164,8 @@ export default function StudioEpisodesManagerV2() {
       }
       const withoutOldMovieAsset = isMovie ? cms.episodes.filter((episode) => episode.showId !== selectedShow.id) : cms.episodes
       await save({ ...cms, episodes: [...withoutOldMovieAsset, release] }, isMovie ? `${selectedShow.title} movie release saved.` : `${release.title} saved.`)
+      const saved = await loadCmsData<CmsData>()
+      if (!saved?.episodes.some((episode) => episode.id === release.id)) throw new Error('The episode did not appear in the saved catalog. Please try again.')
       formElement.reset()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Release could not be uploaded.')
