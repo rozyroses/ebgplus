@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test:live-tv": "node --experimental-strip-types --test scripts/test-live-tv.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
@@ -13,6 +14,7 @@
     "check:deploy": "node scripts/check-deploy-env.mjs"
   },
   "dependencies": {
+    "hls.js": "1.7.3",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

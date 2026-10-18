@@ -57,6 +57,38 @@ stabilizes the main viewer repository and does not merge those separate apps or
 change their live domains. It also does not import the separately hosted website
 redesign into this GitHub application.
 
+## Live TV
+
+Viewers can open `/app/live-tv` from the desktop sidebar or mobile tabs. The
+channel guide shows current and upcoming programs in the viewer's local timezone.
+The player joins scheduled videos at their wall-clock position, advances between
+programs, and periodically corrects playback drift. Schedule gaps show off air.
+
+Founders and administrators manage the network lineup at `/app/studio/live-tv`
+(also linked from the viewer). Create a channel, select published episodes or
+music videos, and enter each program's start time and actual runtime. Overlapping
+slots are rejected. Enable channel visibility and save to publish the lineup.
+Draft, archived, deleted, and unreleased videos are excluded from playback.
+
+For a live broadcast, use a streaming service/encoder to produce a public HTTPS
+HLS playback URL. Preview that viewer URL in the broadcast desk, mark the feed
+on air, and save. Live coverage preempts the channel's schedule. Stopping it or
+reaching an optional end time returns to the current scheduled program. Browser
+codec support, HTTPS, CORS, and a working feed are required. Ingest, transcoding,
+stream-key provisioning, and broadcasting directly from the browser are not
+provided by this viewer application. Never put a stream key or API credential in
+the playback-URL field.
+
+Settings use `cms_settings.value.liveTv` and the existing global-write RLS policy;
+no database migration is required. Saves read the latest catalog and use an
+`updated_at` comparison to reject concurrent edits, preserving unrelated content.
+Viewers receive catalog updates within the existing 30-second refresh interval.
+No sample channels or test broadcasts are published automatically.
+
+Run `npm run test:live-tv` for schedule boundaries, live preemption/fallback,
+publication filtering, overlap validation, timezone handling, and JSONB equality.
+The deployment workflow runs these checks before publishing.
+
 ## Update the visual identity
 
 The current cool-white / ink / electric-blue viewer theme is in

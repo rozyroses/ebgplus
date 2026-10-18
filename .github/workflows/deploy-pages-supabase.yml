@@ -32,6 +32,8 @@ jobs:
         run: npm run check:deploy
       - name: Build committed source
         run: npm run build
+      - name: Verify Live TV scheduling
+        run: npm run test:live-tv
       - name: Verify build leaves source unchanged
         run: git diff --exit-code
       - name: Upload Pages artifact
