@@ -1,3 +1,5 @@
+import { liveTvFingerprint, normalizeLiveTvConfig, type LiveTvConfig } from '../../../src/lib/liveTv.ts'
+
 // Browser publishing credentials are returned only to authenticated network admins.
 // Public catalog data contains the WHEP viewer URL, never the WHIP publisher URL.
 const base = Deno.env.get('SUPABASE_URL') || ''
@@ -55,6 +57,26 @@ async function updateChannel(channelId: string, modify: (channel: Channel) => Ch
   throw new RequestError(409, 'The channel changed while saving. Please try again.')
 }
 
+async function saveSettings(value: unknown, expectedFingerprint: unknown) {
+  let config: LiveTvConfig
+  try { config = normalizeLiveTvConfig(value) }
+  catch (error) { throw new RequestError(400, error instanceof Error ? error.message : 'Choose valid channel settings.') }
+  if (typeof expectedFingerprint !== 'string') throw new RequestError(400, 'Reload the channel lineup before saving.')
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const row = await readCms()
+    if (liveTvFingerprint((row.value.liveTv ?? { channels: [] }) as LiveTvConfig) !== expectedFingerprint) throw new RequestError(409, 'Live TV was changed in another session. Reload the page before saving to avoid overwriting it.')
+    // Only merge this lineup into the latest catalog. The timestamp condition
+    // preserves concurrent edits to other catalog sections without browser grants.
+    const rows = await database(`cms_settings?key=eq.cms&updated_at=eq.${encodeURIComponent(row.updated_at)}`, {
+      method: 'PATCH', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ value: { ...row.value, liveTv: config }, updated_at: new Date().toISOString() }),
+    })
+    const stored = rows?.[0]?.value.liveTv
+    if (stored && liveTvFingerprint(stored) === liveTvFingerprint(config)) return stored
+  }
+  throw new RequestError(409, 'The catalog changed while saving. Please try again.')
+}
+
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('Origin') || ''
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Origin', ...(allowedOrigins.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}), 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }
@@ -70,10 +92,11 @@ Deno.serve(async (req: Request) => {
     const user = await verified.json()
     if (typeof user.id !== 'string') throw new RequestError(401, 'Your session could not be verified.')
     const [account] = await database(`accounts?id=eq.${encodeURIComponent(user.id)}&select=role&limit=1`)
-    if (!account || !['founder', 'administrator'].includes(account.role)) throw new RequestError(403, 'An administrator account is required to broadcast.')
+    if (!account || !['founder', 'administrator'].includes(account.role)) throw new RequestError(403, 'An administrator account is required to manage Live TV.')
     const body = await req.json().catch(() => null)
     const action = body?.action
     if (action === 'status') return reply(200, { configured: Boolean(accountId && streamToken) })
+    if (action === 'save-settings') return reply(200, { liveTv: await saveSettings(body.config, body.expectedFingerprint) })
     if (!['create', 'activate', 'heartbeat', 'stop'].includes(action)) throw new RequestError(400, 'Unknown broadcast action.')
     if (!accountId || !streamToken) throw new RequestError(503, 'An administrator needs to connect the broadcast service first. Private preview is available.')
     const channelId = typeof body.channelId === 'string' ? body.channelId : ''
