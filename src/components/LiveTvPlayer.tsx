@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import Hls from 'hls.js'
 
 // A separate player keeps on-demand resume/speed controls out of linear TV.
-export default function LiveTvPlayer({ src, title, start, end, poster }: {
-  src: string; title: string; start?: number; end?: number; poster?: string
+export default function LiveTvPlayer({ src, title, start, end, poster, playlist = false }: {
+  src: string; title: string; start?: number; end?: number; poster?: string; playlist?: boolean
 }) {
   const video = useRef<HTMLVideoElement>(null)
   const hls = useRef<Hls | null>(null)
@@ -64,11 +64,11 @@ export default function LiveTvPlayer({ src, title, start, end, poster }: {
         const media = video.current
         if (media && start !== undefined && (end === undefined || Date.now() < end) && Number.isFinite(media.duration)) media.currentTime = Math.min(Math.max(0, (Date.now() - start) / 1000), Math.max(0, media.duration - 0.1))
       }} onPlaying={() => { setLoading(false); setNotice('') }} onWaiting={() => setLoading(true)} onCanPlay={() => setLoading(false)}
-      onEnded={() => setNotice('This program has ended. The next program starts at its scheduled time.')}
+      onEnded={() => setNotice(playlist ? 'Joining the next video in the playlist…' : 'This program has ended. The next program starts at its scheduled time.')}
       onError={() => { setLoading(false); setError('This feed couldn’t load. Check your connection or try again shortly.') }} />
     {loading && !error && <p className="tv-player-status" role="status">Connecting to channel…</p>}
     {error && <div className="tv-player-status" role="alert"><p>{error}</p><button type="button" onClick={() => setAttempt(value => value + 1)}>Retry playback</button></div>}
-    <div className="tv-player-footer"><span>● {start === undefined ? 'LIVE BROADCAST' : 'SCHEDULED TV'}</span><button type="button" onClick={goLive}>Jump to live</button></div>
+    <div className="tv-player-footer"><span>● {start === undefined ? 'LIVE BROADCAST' : playlist ? 'LOOPING PLAYLIST' : 'SCHEDULED TV'}</span><button type="button" onClick={goLive}>Jump to live</button></div>
     {notice && <p role="status">{notice}</p>}
   </div>
 }

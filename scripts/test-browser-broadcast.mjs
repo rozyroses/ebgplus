@@ -155,3 +155,24 @@ test('creates the first lineup when the catalog has no Live TV settings yet', as
     assert.deepEqual(f.row().value.shows, [{ id: 'keep-this' }])
   } finally { f.cleanup() }
 })
+
+test('persists looping playlists without provider setup and rejects stale playlist reorders', async () => {
+  const f = await fixture({ configured: false })
+  try {
+    const config = structuredClone(f.row().value.liveTv)
+    const expectedFingerprint = liveTvFingerprint(config)
+    config.channels[0].playbackMode = 'playlist'
+    config.channels[0].playlist = { startsAt: new Date().toISOString(), items: [
+      { id: 'entry-1', sourceId: 'video-1', sourceKind: 'episode', durationSeconds: 23.125 },
+      { id: 'entry-2', sourceId: 'video-2', sourceKind: 'music-video', durationSeconds: 180 },
+    ] }
+    const result = await f.call('save-settings', { config, expectedFingerprint })
+    assert.equal(result.status, 200)
+    assert.deepEqual((await result.json()).liveTv, config)
+    assert.deepEqual(f.row().value.liveTv, config)
+    config.channels[0].playlist.items.reverse()
+    assert.equal((await f.call('save-settings', { config, expectedFingerprint })).status, 409)
+    assert.equal(f.row().value.liveTv.channels[0].playlist.items[0].id, 'entry-1')
+    assert.ok(!f.requests.some(r => r.url.includes('api.cloudflare.com')))
+  } finally { f.cleanup() }
+})
