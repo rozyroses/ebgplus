@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test:live-tv": "node --experimental-strip-types --test scripts/test-live-tv.mjs",
+    "test:broadcast": "node --experimental-strip-types --test scripts/test-browser-broadcast.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",

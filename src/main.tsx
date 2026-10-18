@@ -17,6 +17,7 @@ import './styles/music-player.css'
 import './styles/heroCarousel.css'
 import './styles/entry-refresh.css'
 import './styles/platform-smoke.css'
+import './styles/platform-mobile.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
