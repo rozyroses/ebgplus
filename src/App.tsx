@@ -1,6 +1,7 @@
 import { defaultViewerPreferences, saveViewerPreferences, useViewerPreferences } from './lib/viewerPreferences'
 import EbgVideoPlayer from './components/VideoPlayer'
-import { useEffect, useMemo, useState } from 'react'
+import type { LiveTvConfig } from './lib/liveTv'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import {
   BrowserRouter,
@@ -191,6 +192,9 @@ import { loadCmsData, saveCmsData, updateCastingApplicationStatus, uploadStudioM
 
 type Role = 'viewer' | 'editor' | 'producer' | 'administrator' | 'founder'
 
+const LiveTvPage = lazy(() => import('./components/LiveTvPage'))
+const LiveTvStudio = lazy(() => import('./components/LiveTvStudio'))
+
 type Episode = {
   id: string
   showId: string
@@ -274,6 +278,7 @@ type NewsPost = {
 }
 
 type CmsData = {
+  liveTv?: LiveTvConfig
   slogan: string
   heroShowId: string
   shows: Show[]
@@ -576,9 +581,10 @@ function Shell() {
     void refreshCatalog()
     const refresh = () => { void refreshCatalog() }
     window.addEventListener('focus', refresh)
+    window.addEventListener('ebg:catalog-updated', refresh)
     document.addEventListener('visibilitychange', refresh)
     const timer = window.setInterval(refresh, 30000)
-    return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh) }
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('ebg:catalog-updated', refresh); document.removeEventListener('visibilitychange', refresh) }
   }, [])
 
   useEffect(() => {
@@ -1608,7 +1614,7 @@ function AppLayout({
         <Link className="wordmark" to="/app/home" aria-label="EBG+ home">EBG+</Link>
         <p className="sidebar-caption">YOUR ENTERTAINMENT. YOUR WORLD.</p>
         <nav aria-label="Browse">
-          {[["Discover", "/app/home", "⌂"], ["Originals", "/app/originals", "✦"], ["Shows", "/app/shows", "▤"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"]].map(([label, to, icon]) => <NavLink key={to} to={to}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
+          {[["Discover", "/app/home", "⌂"], ["Live TV", "/app/live-tv", "◉"], ["Originals", "/app/originals", "✦"], ["Shows", "/app/shows", "▤"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"]].map(([label, to, icon]) => <NavLink key={to} to={to}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
         </nav>
         <p className="sidebar-caption">YOUR SPACE</p>
         <nav aria-label="Your library">
@@ -1621,6 +1627,7 @@ function AppLayout({
         <nav className="primary-nav" aria-label="Primary navigation">
           {[
             ['Home', '/app/home'],
+            ['Live TV', '/app/live-tv'],
             ['Shows', '/app/shows'],
             ['Movies', '/app/movies'],
             ['Music', '/app/music'],
@@ -1653,6 +1660,7 @@ function AppLayout({
             <div className="nav-dropdown nav-dropdown-right profile-dropdown" onClick={() => setOpenNavMenu(null)}>
               <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}{account.studioVerified && account.studioBadgeTone && <SignupBadge tone={account.studioBadgeTone} compact />}</strong><small>{account.email}</small></div></div>
               <Link to="/app/settings">Settings</Link>
+              {['founder', 'administrator'].includes(account.role) && <Link to="/app/studio/live-tv">Manage Live TV</Link>}
               <Link to="/profiles">Switch Profile</Link>
               {['creator','producer','founder'].includes(account.accountType)
                 ? <a href="https://studio.ebgplus.app">Open Studio</a>
@@ -1678,6 +1686,7 @@ function AppLayout({
           }
         />
         <Route path="shows" element={<ShowsPage cms={cms} />} />
+        <Route path="live-tv" element={<Suspense fallback={<main className="page" role="status">Loading Live TV…</main>}><LiveTvPage cms={cms} canManage={['founder', 'administrator'].includes(account.role)} /></Suspense>} />
         <Route path="movies" element={<CategoryPage title="Movies / Specials" copy="Premium cinematic specials and events." />} />
         <Route path="music" element={<MusicPage cms={cms} />} />
         <Route path="music/artist/:artistId" element={<MusicArtistPage cms={cms} />} />
@@ -3107,6 +3116,7 @@ function StudioPage({
 }) {
   const { studioSection } = useParams()
   useEffect(() => {
+    if (studioSection === 'live-tv') return
     const destination = studioSection === 'audience' ? 'casting' : studioSection === 'content' ? 'series' : studioSection || 'overview'
     window.location.replace('https://studio.ebgplus.app/#' + destination)
   }, [studioSection])
@@ -3121,6 +3131,11 @@ function StudioPage({
   }
 
   if (!studioSection) return <Navigate to="/app/studio/overview" replace />
+
+  if (studioSection === 'live-tv') {
+    if (!['founder', 'administrator'].includes(account.role)) return <main className="page"><h1>Channel management requires an administrator.</h1><Link to="/app/live-tv">Back to Live TV</Link></main>
+    return <Suspense fallback={<main className="page" role="status">Loading broadcast desk…</main>}><LiveTvStudio cms={cms} /></Suspense>
+  }
 
   return (
     <main className={`page studio-route studio-route-${studioSection}`}>
@@ -3507,12 +3522,12 @@ function MobileNav() {
         </button>
         {waffleOpen && <><button className="mobile-waffle-backdrop" type="button" aria-label="Close navigation" onClick={closeWaffle} /><nav className="mobile-waffle-drawer" aria-label="Mobile menu">
           <div className="mobile-waffle-head"><span>Explore EBG+</span><button type="button" onClick={closeWaffle} aria-label="Close menu">×</button></div>
-          <div className="mobile-waffle-section"><span className="mobile-waffle-label">Watch</span><Link to="/app/home" onClick={closeWaffle}>Home</Link><Link to="/app/shows" onClick={closeWaffle}>Shows</Link><Link to="/app/originals" onClick={closeWaffle}>EBG Originals</Link><Link to="/app/movies" onClick={closeWaffle}>Movies & Specials</Link><Link to="/app/music" onClick={closeWaffle}>Music</Link><Link to="/app/news" onClick={closeWaffle}>News</Link><Link to="/app/search" onClick={closeWaffle}>Search</Link></div>
+          <div className="mobile-waffle-section"><span className="mobile-waffle-label">Watch</span><Link to="/app/home" onClick={closeWaffle}>Home</Link><Link to="/app/live-tv" onClick={closeWaffle}>Live TV</Link><Link to="/app/shows" onClick={closeWaffle}>Shows</Link><Link to="/app/originals" onClick={closeWaffle}>EBG Originals</Link><Link to="/app/movies" onClick={closeWaffle}>Movies & Specials</Link><Link to="/app/music" onClick={closeWaffle}>Music</Link><Link to="/app/news" onClick={closeWaffle}>News</Link><Link to="/app/search" onClick={closeWaffle}>Search</Link></div>
           <div className="mobile-waffle-section"><span className="mobile-waffle-label">Library</span><Link to="/app/my-list" onClick={closeWaffle}>My List</Link><Link to="/app/applications" onClick={closeWaffle}>My Applications</Link><Link to="/app/inbox" onClick={closeWaffle}>Messages</Link><Link to="/app/notifications" onClick={closeWaffle}>Notifications</Link><a href="https://forms.ebgplus.app" onClick={closeWaffle}>Casting</a></div>
           <div className="mobile-waffle-section mobile-waffle-section-last"><span className="mobile-waffle-label">Account</span><Link to="/app/settings" onClick={closeWaffle}>Profile & Settings</Link></div>
         </nav></>}
       </div>
-      <nav className="mobile-nav mobile-nav-v2" aria-label="Mobile quick navigation">{[["Home", "/app/home", "⌂"], ["Originals", "/app/originals", "✦"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"], ["Profile", "/app/settings", "◎"]].map(([label, to, icon]) => <Link key={to} to={to} aria-current={location.pathname.startsWith(to) ? 'page' : undefined} onClick={closeWaffle}><span aria-hidden="true">{icon}</span>{label}</Link>)}</nav>
+      <nav className="mobile-nav mobile-nav-v2" aria-label="Mobile quick navigation">{[["Home", "/app/home", "⌂"], ["Live TV", "/app/live-tv", "◉"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"], ["Profile", "/app/settings", "◎"]].map(([label, to, icon]) => <Link key={to} to={to} aria-current={location.pathname.startsWith(to) ? 'page' : undefined} onClick={closeWaffle}><span aria-hidden="true">{icon}</span>{label}</Link>)}</nav>
     </>
   )
 }
