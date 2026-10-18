@@ -66,6 +66,30 @@ export function channelNow(channel: TvChannel, sources: TvSource[], now = Date.n
   return { kind: 'offline' as const }
 }
 
+// A channel can be saved before a feed is connected. Only a connected feed
+// can become an on-air takeover; schedules and channel details are independent.
+export function normalizeLiveTvConfig(value: unknown): LiveTvConfig {
+  if (!value || typeof value !== 'object' || !('channels' in value) || !Array.isArray(value.channels) || value.channels.length > 100) throw new Error('Choose a valid channel lineup (up to 100 channels).')
+  const channels: TvChannel[] = value.channels.map(channel => {
+    if (!channel || typeof channel !== 'object' || typeof channel.id !== 'string' || typeof channel.name !== 'string' || typeof channel.description !== 'string' || typeof channel.enabled !== 'boolean' || !Array.isArray(channel.programs) || channel.programs.length > 10000) throw new Error('Each channel needs valid details and a program schedule.')
+    const broadcast = channel.broadcast
+    if (!broadcast || typeof broadcast.title !== 'string' || typeof broadcast.url !== 'string' || typeof broadcast.onAir !== 'boolean' || (broadcast.endsAt !== undefined && typeof broadcast.endsAt !== 'string') || (broadcast.protocol !== undefined && !['hls', 'webrtc'].includes(broadcast.protocol)) || (broadcast.providerInputId !== undefined && typeof broadcast.providerInputId !== 'string')) throw new Error('Choose valid broadcast settings.')
+    if (channel.id.length > 150 || channel.name.length > 100 || channel.description.length > 500 || broadcast.title.length > 150 || broadcast.url.length > 4096) throw new Error('Channel details are too long.')
+    const url = broadcast.url.trim()
+    return {
+      id: channel.id, name: channel.name.trim(), description: channel.description, enabled: channel.enabled,
+      programs: channel.programs.map((program: TvProgram) => {
+        if (!program || typeof program.id !== 'string' || typeof program.sourceId !== 'string' || typeof program.startsAt !== 'string' || typeof program.durationSeconds !== 'number') throw new Error('Each program needs valid schedule details.')
+        return { id: program.id, sourceId: program.sourceId, sourceKind: program.sourceKind, startsAt: program.startsAt, durationSeconds: program.durationSeconds }
+      }),
+      broadcast: { title: broadcast.title, url, onAir: Boolean(url && broadcast.onAir), ...(broadcast.endsAt ? { endsAt: broadcast.endsAt } : {}), ...(broadcast.protocol ? { protocol: broadcast.protocol } : {}), ...(url && broadcast.providerInputId ? { providerInputId: broadcast.providerInputId } : {}) },
+    }
+  })
+  const config = { channels }
+  validateLiveTv(config)
+  return config
+}
+
 export function validateLiveTv(config: LiveTvConfig) {
   const channelIds = new Set<string>()
   for (const channel of config.channels) {

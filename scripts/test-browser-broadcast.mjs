@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { liveTvFingerprint } from '../src/lib/liveTv.ts'
 
 let sequence = 0
 const inputId = 'a'.repeat(32)
@@ -11,13 +12,13 @@ async function fixture({ configured = true, role = 'founder', valid = true, owne
   const fixtureId = sequence
   sequence += 1
   await import(`../supabase/functions/browser-broadcast/index.ts?test=${fixtureId}`)
-  let row = { key: 'cms', updated_at: '2026-10-18T23:00:00+00:00', value: { shows: [{ id: 'keep-this' }], liveTv: { channels: [{ id: 'channel', enabled: true, programs: [], broadcast: { title: '', url: '', onAir: false } }] } } }
+  let row = { key: 'cms', updated_at: '2026-10-18T23:00:00+00:00', value: { shows: [{ id: 'keep-this' }], liveTv: { channels: [{ id: 'channel', name: 'EBG+ Main', description: '', enabled: true, programs: [], broadcast: { title: '', url: '', onAir: false } }] } } }
   const requests = []
   let firstConflict = conflict
   const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
   const originalFetch = globalThis.fetch
   globalThis.fetch = async (url, init = {}) => {
-    requests.push({ url: String(url), method: init.method || 'GET', body: init.body })
+    requests.push({ url: String(url), method: init.method || 'GET', body: init.body, headers: init.headers })
     if (String(url).includes('/auth/v1/user')) return response(valid ? { id: 'user' } : { error: 'invalid' }, valid ? 200 : 401)
     if (String(url).includes('/rest/v1/accounts')) return response([{ role }])
     if (String(url).includes('/rest/v1/cms_settings')) {
@@ -83,4 +84,74 @@ test('stopping ends only its own takeover and deletes the provider input', async
 test('invalid actions, channel IDs, and input IDs cannot reach provider APIs', async () => {
   const f = await fixture()
   try { for (const [action, values] of [['invalid', {}], ['create', {}], ['activate', { channelId: 'channel', inputId: '../bad' }]]) assert.equal((await f.call(action, values)).status, 400); assert.ok(!f.requests.some(r => r.url.includes('api.cloudflare.com'))) } finally { f.cleanup() }
+})
+
+
+test('saves channel settings without provider setup or a feed using server database access', async () => {
+  const f = await fixture({ configured: false, conflict: true })
+  try {
+    const config = structuredClone(f.row().value.liveTv)
+    const expectedFingerprint = liveTvFingerprint(config)
+    config.channels[0].name = 'EBG+ Originals'
+    config.channels[0].broadcast = { title: 'Future broadcast', url: '  ', onAir: true }
+    const result = await f.call('save-settings', { config, expectedFingerprint })
+    assert.equal(result.status, 200)
+    const saved = (await result.json()).liveTv
+    assert.equal(saved.channels[0].name, 'EBG+ Originals')
+    assert.equal(saved.channels[0].broadcast.url, '')
+    assert.equal(saved.channels[0].broadcast.onAir, false)
+    assert.deepEqual(saved, f.row().value.liveTv)
+    assert.deepEqual(f.row().value.shows, [{ id: 'keep-this' }])
+    assert.equal(f.row().value.otherEdit, 'preserved')
+    const writes = f.requests.filter(r => r.method === 'PATCH')
+    assert.equal(writes.length, 2)
+    assert.ok(writes.every(r => r.headers.Authorization === 'Bearer server-only' && r.headers.apikey === 'server-only'))
+    assert.ok(!f.requests.some(r => r.url.includes('api.cloudflare.com')))
+  } finally { f.cleanup() }
+})
+test('stale channel settings cannot overwrite a different session', async () => {
+  const f = await fixture({ configured: false })
+  try {
+    const config = structuredClone(f.row().value.liveTv)
+    const expectedFingerprint = liveTvFingerprint(config)
+    f.row().value.liveTv.channels[0].name = 'Changed elsewhere'
+    config.channels[0].name = 'Stale edit'
+    assert.equal((await f.call('save-settings', { config, expectedFingerprint })).status, 409)
+    assert.equal(f.row().value.liveTv.channels[0].name, 'Changed elsewhere')
+    assert.ok(!f.requests.some(r => r.method === 'PATCH'))
+  } finally { f.cleanup() }
+})
+test('settings validation rejects malformed lineups and overlapping schedules before writing', async () => {
+  const f = await fixture({ configured: false })
+  try {
+    const config = structuredClone(f.row().value.liveTv)
+    const expectedFingerprint = liveTvFingerprint(config)
+    const program = { id: 'p1', sourceId: 'video', sourceKind: 'episode', startsAt: '2027-01-01T12:00:00Z', durationSeconds: 60 }
+    config.channels[0].programs = [program, { ...program, id: 'p2' }]
+    for (const value of [null, {}, { channels: [null] }, config]) assert.equal((await f.call('save-settings', { config: value, expectedFingerprint })).status, 400)
+    assert.ok(!f.requests.some(r => r.method === 'PATCH'))
+  } finally { f.cleanup() }
+})
+test('anonymous and non-admin accounts cannot save channel settings', async () => {
+  for (const role of ['viewer', 'producer']) {
+    const f = await fixture({ role, configured: false })
+    try {
+      const config = f.row().value.liveTv
+      assert.equal((await f.call('save-settings', { config, expectedFingerprint: liveTvFingerprint(config) })).status, 403)
+      assert.ok(!f.requests.some(r => r.method === 'PATCH'))
+      assert.equal((await f.call('save-settings', {}, false)).status, 401)
+    } finally { f.cleanup() }
+  }
+})
+
+test('creates the first lineup when the catalog has no Live TV settings yet', async () => {
+  const f = await fixture({ configured: false })
+  try {
+    const config = structuredClone(f.row().value.liveTv)
+    delete f.row().value.liveTv
+    const result = await f.call('save-settings', { config, expectedFingerprint: liveTvFingerprint({ channels: [] }) })
+    assert.equal(result.status, 200)
+    assert.deepEqual((await result.json()).liveTv, config)
+    assert.deepEqual(f.row().value.shows, [{ id: 'keep-this' }])
+  } finally { f.cleanup() }
 })
