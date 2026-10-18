@@ -34,6 +34,8 @@ jobs:
         run: npm run build
       - name: Verify Live TV scheduling
         run: npm run test:live-tv
+      - name: Verify browser broadcast authorization
+        run: npm run test:broadcast
       - name: Verify build leaves source unchanged
         run: git diff --exit-code
       - name: Upload Pages artifact

@@ -12,7 +12,7 @@ export type TvChannel = {
   description: string
   enabled: boolean
   programs: TvProgram[]
-  broadcast: { title: string; url: string; onAir: boolean; endsAt?: string }
+  broadcast: { title: string; url: string; onAir: boolean; endsAt?: string; protocol?: 'hls' | 'webrtc'; providerInputId?: string }
 }
 
 export type LiveTvConfig = { channels: TvChannel[] }
@@ -59,7 +59,7 @@ export function channelNow(channel: TvChannel, sources: TvSource[], now = Date.n
   if (!channel.enabled) return { kind: 'offline' as const }
   const broadcast = channel.broadcast
   if (broadcast.onAir && isPlaybackUrl(broadcast.url) && (!broadcast.endsAt || Date.parse(broadcast.endsAt) > now)) {
-    return { kind: 'broadcast' as const, title: broadcast.title || channel.name, src: broadcast.url }
+    return { kind: 'broadcast' as const, title: broadcast.title || channel.name, src: broadcast.url, protocol: broadcast.protocol ?? 'hls' }
   }
   const listing = channelListings(channel, sources).find(item => item.start <= now && item.end > now)
   if (listing) return { kind: 'scheduled' as const, ...listing, title: listing.source.title, src: listing.source.videoUrl, offset: (now - listing.start) / 1000 }

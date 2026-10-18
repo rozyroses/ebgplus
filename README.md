@@ -70,14 +70,42 @@ music videos, and enter each program's start time and actual runtime. Overlappin
 slots are rejected. Enable channel visibility and save to publish the lineup.
 Draft, archived, deleted, and unreleased videos are excluded from playback.
 
-For a live broadcast, use a streaming service/encoder to produce a public HTTPS
-HLS playback URL. Preview that viewer URL in the broadcast desk, mark the feed
-on air, and save. Live coverage preempts the channel's schedule. Stopping it or
-reaching an optional end time returns to the current scheduled program. Browser
-codec support, HTTPS, CORS, and a working feed are required. Ingest, transcoding,
-stream-key provisioning, and broadcasting directly from the browser are not
-provided by this viewer application. Never put a stream key or API credential in
-the playback-URL field.
+For a live broadcast, founders and administrators can open `/app/studio/broadcast`,
+choose an enabled channel, preview their camera/microphone or supported screen
+share, enter a title, and choose Go live. The browser uses WebRTC WHIP to publish
+and the viewer uses WHEP to watch. The app provisions the connection automatically;
+no OBS installation or manually pasted broadcast URL is needed. Private preview
+works before the provider is configured; public broadcasting stays disabled.
+
+One-time provider setup:
+
+1. Enable Cloudflare Stream on the intended Cloudflare account and review its
+   usage billing. Create an account-scoped token with Stream edit permission.
+2. In the existing Supabase project's Edge Function secrets, set
+   `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_STREAM_API_TOKEN`. Never prefix them with
+   `VITE_` or add them to public catalog JSON. The runtime supplies the Supabase
+   URL and service-role key server-side.
+3. Deploy `supabase/functions/browser-broadcast/index.ts` as `browser-broadcast`
+   with JWT verification enabled. The function also checks the authenticated user
+   and their database role. Only founders/administrators can create, activate,
+   refresh, or end their own provider inputs.
+4. Open the broadcast desk. Once setup is detected, preview and Go live. The
+   channel is activated only after the publisher connection is confirmed.
+
+WHIP publisher credentials are returned only to the authenticated broadcaster and
+are not saved in the public catalog. A 90-second lease, refreshed while the
+publisher is connected, returns a channel to its schedule after a lost tab or
+connection. Explicit stop closes the WebRTC session and deletes the provider
+input. WebRTC recording/replay is not offered by this integration. Camera and
+microphone permissions require HTTPS or localhost; shared screen audio and screen
+capture depend on the browser. A provider-account broadcast still needs a real
+integration check after secrets are configured.
+
+Existing external HLS feeds remain available in the channel manager. Use only a
+viewer playback URL in that field, never an RTMP server address, stream key, or
+API credential. Live coverage preempts the channel schedule; stopping it or
+reaching its end time returns to the current program. Prerecorded episodes and
+music videos can be scheduled without any live-broadcast provider.
 
 Settings use `cms_settings.value.liveTv` and the existing global-write RLS policy;
 no database migration is required. Saves read the latest catalog and use an
@@ -87,14 +115,23 @@ No sample channels or test broadcasts are published automatically.
 
 Run `npm run test:live-tv` for schedule boundaries, live preemption/fallback,
 publication filtering, overlap validation, timezone handling, and JSONB equality.
-The deployment workflow runs these checks before publishing.
+Run `npm run test:broadcast` for server authorization, private publisher credentials,
+activation, heartbeat leases, stop cleanup, and concurrent catalog updates. The
+deployment workflow runs both suites before publishing.
 
 ## Update the visual identity
 
-The current cool-white / ink / electric-blue viewer theme is in
-`src/styles/viewer-theme.css`, imported last by `src/main.tsx`. Adjust its opening
-CSS tokens for palette, corner radius and sidebar width. The existing approved
-ink-blue logo is `public/branding/ebgplus-ink-blue.png`. The viewer has desktop
-sidebar navigation and active mobile tabs; authentication and CMS services stay
-in their existing modules. Keep imagery and media-player foregrounds readable
-when changing the theme.
+The public entrance is `src/components/ModernLanding.tsx` with
+`src/styles/modern-entrance.css`. The shared vector logo is
+`public/branding/ebgplus.svg`, rendered by `BrandLogo`; favicon, touch icon, old
+logo URLs, splash, and social card carry the same identity. Preserve show artwork
+and show-specific logos independently of the EBG+ platform mark.
+
+The new mobile navigation is `MobileNavigation`, mounted at document.body to keep
+fixed controls outside transformed layout ancestors. `platform-mobile.css`,
+imported last, controls the shared mobile spacing, navigation, authentication,
+channel management, and catalog layouts. Historical mobile classes are no longer
+rendered by the new menu. Movies and specials are browsed at `/app/movies` from
+catalog titles whose category contains movie, film, special, or documentary.
+Licensed titles require actual distribution rights and delivery assets; the app
+does not fetch or redistribute another streaming service's catalog automatically.

@@ -1,5 +1,10 @@
 import { defaultViewerPreferences, saveViewerPreferences, useViewerPreferences } from './lib/viewerPreferences'
 import EbgVideoPlayer from './components/VideoPlayer'
+import BrandLogo from './components/BrandLogo'
+import ModernLanding from './components/ModernLanding'
+import MobileNavigation from './components/MobileNavigation'
+import MoviesPage from './components/MoviesPage'
+import ScrollToTop from './components/ScrollToTop'
 import type { LiveTvConfig } from './lib/liveTv'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
@@ -194,6 +199,7 @@ type Role = 'viewer' | 'editor' | 'producer' | 'administrator' | 'founder'
 
 const LiveTvPage = lazy(() => import('./components/LiveTvPage'))
 const LiveTvStudio = lazy(() => import('./components/LiveTvStudio'))
+const BrowserBroadcastStudio = lazy(() => import('./components/BrowserBroadcastStudio'))
 
 type Episode = {
   id: string
@@ -522,6 +528,7 @@ function App() {
 
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <ScrollToTop />
       <Shell />
     </BrowserRouter>
   )
@@ -702,7 +709,7 @@ function Shell() {
   if (authLoading) {
     return (
       <main className="auth-page">
-        <span className="wordmark">EBG+</span>
+        <span className="wordmark"><BrandLogo /></span>
         <p>Opening EBG+…</p>
       </main>
     )
@@ -844,7 +851,7 @@ function EbgFormsV2Chrome({ children, dashboard = false }: { children: ReactNode
   return (
     <main className="forms2-shell">
       <header className="forms2-topbar">
-        <Link className="forms2-brand" to="/">EBG+ <span>FORMS</span></Link>
+        <Link className="forms2-brand" to="/"><BrandLogo /><span>FORMS</span></Link>
         <div className="forms2-actions">
           {dashboard ? <Link className="btn muted" to="/">Public Forms</Link> : <Link className="btn muted" to="/dashboard">Dashboard</Link>}
           <a className="btn" href="https://ebgplus.app">EBG+</a>
@@ -1026,7 +1033,7 @@ function ComingSoonPage() {
       <section className="coming-soon-card ebg-launch-card">
         <div className="ebg-launch-topbar">
           <Link to="/" aria-label="EBG+ home">
-            <img className="ebg-launch-logo" src="/ebgplus-logo.png" alt="EBG+" />
+            <BrandLogo className="ebg-launch-logo" />
           </Link>
           <span className="ebg-launch-status">Opening soon</span>
         </div>
@@ -1084,7 +1091,7 @@ function UnsubscribePage() {
   return (
     <main className="coming-soon-page">
       <section className="coming-soon-card unsubscribe-card">
-        <Link className="wordmark" to="/">EBG+</Link>
+        <Link className="wordmark" to="/"><BrandLogo /></Link>
         <p className="coming-soon-kicker">Email preferences</p>
         <h1>Got you.</h1>
         <p className="coming-soon-copy">{message}</p>
@@ -1095,55 +1102,14 @@ function UnsubscribePage() {
 }
 
 function LandingPage({ cms }: { cms: CmsData }) {
-  const shows = cms.shows.filter((show) => show.homeVisible !== false).sort((a, b) => Number(b.status === 'Now Streaming') - Number(a.status === 'Now Streaming'))
-  const [selectedId, setSelectedId] = useState('')
-  const featured = shows.find((show) => show.id === selectedId) || shows[0]
-  const news = (cms.news ?? []).filter((item) => item.status === 'published' && Date.parse(item.publishedAt) <= Date.now()).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
-  return (
-    <main className="ebg-home">
-      <a className="eh-skip" href="#discover">Skip to content</a>
-      <header className="eh-header">
-        <Link className="eh-logo" to="/" aria-label="EBG Plus home"><img className="ebg-brand-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /></Link>
-        <nav aria-label="Main navigation"><a href="#discover">Discover</a><a href="#features">Features</a><Link to="/app/music">Music</Link><a href="#creators">For creators</a></nav>
-        <div className="eh-account"><Link to="/auth/sign-in">Sign in</Link><Link className="eh-button" to="/auth/create-account">Join EBG+</Link></div>
-      </header>
-      <section className="eh-cinema" aria-labelledby="eh-title">
-        {featured && (featured.banner || featured.artwork) && <img className="eh-cinema-image" src={featured.banner || featured.artwork} alt="" fetchPriority="high" />}
-        {featured && !featured.banner && !featured.artwork && <div className="eh-cinema-fallback" aria-hidden="true"><span>EBG+</span><i /></div>}
-        <div className="eh-cinema-overlay" />
-        <div className="eh-cinema-copy"><p className="eh-eyebrow">INDEPENDENT VOICES. UNFORGETTABLE STORIES.</p><h1 id="eh-title">Your next<br />obsession<br /><em>lives here.</em></h1><p className="eh-cinema-lead">Original shows. Music on repeat. A whole world of creators worth discovering.</p><div className="eh-cinema-actions"><Link className="eh-button" to="/auth/create-account">Get started <span aria-hidden="true">↗</span></Link><Link className="eh-text-link" to="/app/shows">Explore EBG+ <span aria-hidden="true">→</span></Link></div></div>
-        {featured && <div className="eh-cinema-title"><p className="eh-eyebrow">IN THE SPOTLIGHT · {featured.status}</p><h2>{featured.title}</h2><p>{featured.genre}</p><Link to={`/app/shows/${featured.id}`}>Discover the series <span aria-hidden="true">↗</span></Link></div>}
-        {shows.length > 1 && <div className="eh-cinema-dots" aria-label="Choose featured title">{shows.slice(0,4).map((show,index)=><button type="button" key={show.id} aria-label={`Feature ${show.title}`} aria-pressed={featured?.id===show.id} onClick={()=>setSelectedId(show.id)}><span className="eh-dot-track"/><span className="eh-dot-number">{String(index+1).padStart(2,'0')}</span></button>)}</div>}
-      </section>
-      <div className="eh-brand-strip"><span>A HOME FOR ORIGINALS</span><span>Stories that stay with you.</span><span>Sounds that move you.</span><a href="https://studio.ebgplus.app">Made by independent creators ↗</a></div>
-      <section id="discover" className="eh-section">
-        <div className="eh-section-heading"><div><p className="eh-eyebrow">YOUR NEXT PLAY</p><h2>A little drama. A lot to love.</h2></div><Link className="eh-text-link" to="/app/shows">Explore all shows ↗</Link></div>
-        <div className="eh-show-grid">{shows.slice(0, 8).map((show) => <Link className="eh-show" key={show.id} to={`/app/shows/${show.id}`}><div className="eh-show-art">{show.artwork || show.banner ? <img src={show.artwork || show.banner} alt="" loading="lazy" /> : <div className="eh-poster-fallback" aria-hidden="true"><small>EBG+ ORIGINAL</small><strong>{show.title}</strong></div>}<span>{show.status}</span><b aria-hidden="true">↗</b></div><p>{show.genre}</p><h3>{show.title}</h3></Link>)}</div>
-        {!shows.length && <p className="eh-empty">Our next chapter is on its way. Join EBG+ to discover what comes next.</p>}
-      </section>
-      <section id="features" className="eh-section eh-features" aria-labelledby="features-title">
-        <div className="eh-section-heading"><div><p className="eh-eyebrow">MORE THAN YOUR NEXT PLAY</p><h2 id="features-title">One home.<br /><em>So many ways in.</em></h2></div><p>Watch, listen, connect, and create.<br />Make EBG+ your own.</p></div>
-        <div className="eh-feature-grid">
-          <article className="eh-capability eh-capability-watch"><span className="eh-capability-index">01 / WATCH</span><div className="eh-capability-symbol" aria-hidden="true">▷</div><h3>Stay for the story.</h3><p>Discover original series, explore episodes, and meet the cast behind your favorites.</p><ul><li>Shows, originals & cast profiles</li><li>Continue watching & saved progress</li><li>My List for your next watch</li><li>Fullscreen, playback speed & supported picture-in-picture</li></ul><Link to="/app/shows">Explore shows <span aria-hidden="true">↗</span></Link></article>
-          <article className="eh-capability eh-capability-listen"><span className="eh-capability-index">02 / LISTEN</span><div className="eh-capability-symbol" aria-hidden="true">♫</div><h3>Find your repeat.</h3><p>Independent artists, albums, singles, and music videos. Keep the music playing as you explore.</p><ul><li>Artist pages & release collections</li><li>Play queues, shuffle, repeat & favorites</li><li>Synced lyrics on supported tracks</li><li>Lossless & spatial audio where available*</li></ul><Link to="/app/music">Discover music <span aria-hidden="true">↗</span></Link></article>
-          <article className="eh-capability eh-capability-connect"><span className="eh-capability-index">03 / CONNECT</span><div className="eh-capability-symbol" aria-hidden="true">◎</div><h3>Be part of it.</h3><p>Follow the latest from EBG+, find an opportunity, and keep the conversation going.</p><ul><li>News, announcements & notifications</li><li>Audience polls on participating shows</li><li>Casting calls & application forms</li><li>Application tracking & applicant inbox</li></ul><a href="https://forms.ebgplus.app">Find opportunities <span aria-hidden="true">↗</span></a></article>
-          <article className="eh-capability eh-capability-create"><span className="eh-capability-index">04 / CREATE</span><div className="eh-capability-symbol" aria-hidden="true">✦</div><h3>Your vision. On EBG+.</h3><p>Bring your next release or production to life in EBG+ Studio, with Lumi alongside you.</p><ul><li>Production, episode & media management</li><li>Music uploads, release metadata & timed lyrics</li><li>Stereo mastering & branded streaming links</li><li>Lumi creative assistance & approved publishing</li><li>Scheduling, analytics, forms & talent tools</li></ul><a href="https://studio.ebgplus.app">Enter creator studio <span aria-hidden="true">↗</span></a></article>
-        </div>
-        <p className="eh-feature-note">*Audio quality depends on the uploaded mix, your browser, and your device. Streaming links connect to existing releases on other services; external distribution is not yet available.</p>
-        <div className="eh-personal"><div><p className="eh-eyebrow">YOUR EBG+, YOUR WAY</p><h3>Settle into your own space.</h3></div><p>Personal profiles, catalog search, playback preferences, accessibility controls, and account settings—all in one place.</p><Link className="eh-button" to="/auth/create-account">Find your people ↗</Link></div>
-      </section>
-      {news.length > 0 && <section className="eh-section"><div className="eh-section-heading"><div><p className="eh-eyebrow">THE LATEST</p><h2>Stay in the conversation.</h2></div></div><div className="eh-news-grid">{news.map((item) => <article className="eh-news" key={item.id}>{item.image && <img src={item.image} alt="" loading="lazy" />}<p className="eh-eyebrow">{item.category}</p><h3>{item.headline}</h3><p>{item.summary}</p><small>{new Date(item.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</small></article>)}</div></section>}
-      <section id="creators" className="eh-create"><div><p className="eh-eyebrow">MAKE YOUR NEXT CHAPTER</p><h2>Got a story?<br /><em>Give it a home.</em></h2></div><div><p>A space for creators, producers, and the people who love what they make. Start your EBG+ account and find where you belong.</p><Link className="eh-button" to="/auth/create-account">Create your account ↗</Link></div></section>
-      <footer className="eh-footer"><Link className="eh-logo" to="/"><img className="ebg-brand-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /></Link><p>Original shows. Independent music.</p><nav aria-label="Footer navigation"><Link to="/about">About EBG</Link><Link to="/auth/sign-in">Sign in</Link><a href="https://studio.ebgplus.app">Creator studio ↗</a></nav><small>© {new Date().getFullYear()} EBG+</small></footer>
-    </main>
-  )
+  return <ModernLanding cms={cms} />
 }
 
 function AuthLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
     <main className="auth-page ebg-entry">
       <aside className="entry-story">
-        <Link className="entry-logo" to="/" aria-label="EBG Plus home"><img className="ebg-brand-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /></Link>
+        <Link className="entry-logo" to="/" aria-label="EBG Plus home"><BrandLogo /></Link>
         <div className="entry-orbit" aria-hidden="true"><span>+</span></div>
         <div className="entry-story-copy"><p className="eyebrow">STORIES. SOUNDS. YOUR PEOPLE.</p><h2>A little escape.<br />A lot to <em>love.</em></h2><p>Discover original shows and independent music. Find something that feels like you.</p></div>
         <p className="entry-story-foot">Original voices. All together.</p>
@@ -1433,7 +1399,7 @@ function ProfileSelectPage({
   return (
     <main className="profiles-page profile-select-v2">
       <header className="profile-select-header">
-        <Link className="wordmark" to="/" aria-label="EBG+ home">EBG+</Link>
+        <Link className="wordmark" to="/" aria-label="EBG+ home"><BrandLogo /></Link>
         <div className="profile-select-account">
           <span>Signed in as</span>
           <strong>{account.email}</strong>
@@ -1611,7 +1577,7 @@ function AppLayout({
     <div className="app-shell">
       <a className="app-skip-link" href="#app-content">Skip to content</a>
       <aside className="viewer-sidebar" aria-label="EBG+ sidebar">
-        <Link className="wordmark" to="/app/home" aria-label="EBG+ home">EBG+</Link>
+        <Link className="wordmark" to="/app/home" aria-label="EBG+ home"><BrandLogo /></Link>
         <p className="sidebar-caption">YOUR ENTERTAINMENT. YOUR WORLD.</p>
         <nav aria-label="Browse">
           {[["Discover", "/app/home", "⌂"], ["Live TV", "/app/live-tv", "◉"], ["Originals", "/app/originals", "✦"], ["Shows", "/app/shows", "▤"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"]].map(([label, to, icon]) => <NavLink key={to} to={to}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
@@ -1623,7 +1589,7 @@ function AppLayout({
         <Link className="sidebar-profile" to="/profiles"><AvatarVisual avatar={profile.avatar} nav /><span>{profile.name}<small>Switch profile</small></span></Link>
       </aside>
       <header className="topbar app">
-        <Link className="wordmark" to="/app/home" aria-label="EBG+ Home">EBG+</Link>
+        <Link className="wordmark" to="/app/home" aria-label="EBG+ Home"><BrandLogo /></Link>
         <nav className="primary-nav" aria-label="Primary navigation">
           {[
             ['Home', '/app/home'],
@@ -1687,7 +1653,7 @@ function AppLayout({
         />
         <Route path="shows" element={<ShowsPage cms={cms} />} />
         <Route path="live-tv" element={<Suspense fallback={<main className="page" role="status">Loading Live TV…</main>}><LiveTvPage cms={cms} canManage={['founder', 'administrator'].includes(account.role)} /></Suspense>} />
-        <Route path="movies" element={<CategoryPage title="Movies / Specials" copy="Premium cinematic specials and events." />} />
+        <Route path="movies" element={<MoviesPage cms={cms} />} />
         <Route path="music" element={<MusicPage cms={cms} />} />
         <Route path="music/artist/:artistId" element={<MusicArtistPage cms={cms} />} />
         <Route path="music/release/:releaseId" element={<MusicReleasePage cms={cms} />} />
@@ -1737,7 +1703,7 @@ function AppLayout({
       </Routes>
       </div>
       <EbgMusicDock />
-      <MobileNav />
+      <MobileNavigation canManage={['founder', 'administrator'].includes(account.role)} onSignOut={onSignOut} />
       <Footer compact />
     </div>
   )
@@ -2834,7 +2800,7 @@ function EbgStudioHub({
     <section className={`studio3 studio3-${tab}`}>
       <header className="studio3-header">
         <div className="studio3-brand-wrap">
-          <Link className="studio3-brand" to="/app/studio/overview"><strong>EBG+</strong><span>Studio 3</span></Link>
+          <Link className="studio3-brand" to="/app/studio/overview"><BrandLogo /><span>Studio</span></Link>
           <span className="studio3-live-dot">Live CMS</span>
         </div>
 
@@ -3116,7 +3082,7 @@ function StudioPage({
 }) {
   const { studioSection } = useParams()
   useEffect(() => {
-    if (studioSection === 'live-tv') return
+    if (studioSection === 'live-tv' || studioSection === 'broadcast') return
     const destination = studioSection === 'audience' ? 'casting' : studioSection === 'content' ? 'series' : studioSection || 'overview'
     window.location.replace('https://studio.ebgplus.app/#' + destination)
   }, [studioSection])
@@ -3132,9 +3098,9 @@ function StudioPage({
 
   if (!studioSection) return <Navigate to="/app/studio/overview" replace />
 
-  if (studioSection === 'live-tv') {
+  if (studioSection === 'live-tv' || studioSection === 'broadcast') {
     if (!['founder', 'administrator'].includes(account.role)) return <main className="page"><h1>Channel management requires an administrator.</h1><Link to="/app/live-tv">Back to Live TV</Link></main>
-    return <Suspense fallback={<main className="page" role="status">Loading broadcast desk…</main>}><LiveTvStudio cms={cms} /></Suspense>
+    return <Suspense fallback={<main className="page" role="status">Loading broadcast desk…</main>}>{studioSection === 'broadcast' ? <BrowserBroadcastStudio cms={cms} /> : <LiveTvStudio cms={cms} />}</Suspense>
   }
 
   return (
@@ -3364,15 +3330,6 @@ function NewsPage({ cms }: { cms: CmsData }) {
   )
 }
 
-function CategoryPage({ title, copy }: { title: string; copy: string }) {
-  return (
-    <main className="page">
-      <h1>{title}</h1>
-      <p>{copy}</p>
-      <p className="panel">Coming Soon</p>
-    </main>
-  )
-}
 
 function PartnershipsPage() {
   return (
@@ -3388,7 +3345,7 @@ function PublicInfoShell({ eyebrow, title, intro, children }: { eyebrow: string;
   return (
     <>
       <header className="topbar">
-        <Link className="wordmark" to="/">EBG+</Link>
+        <Link className="wordmark" to="/"><BrandLogo /></Link>
         <nav><Link to="/">Home</Link><Link to="/auth/sign-in">Sign In</Link></nav>
       </header>
       <main className="info-page">
@@ -3496,41 +3453,6 @@ function NotFoundPage() {
   )
 }
 
-function MobileNav() {
-  const location = useLocation()
-  const [waffleOpen, setWaffleOpen] = useState(false)
-  const closeWaffle = () => setWaffleOpen(false)
-
-  useEffect(() => { setWaffleOpen(false) }, [location.pathname])
-  useEffect(() => {
-    if (!waffleOpen) return
-    const dismiss = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setWaffleOpen(false)
-        document.querySelector<HTMLButtonElement>('.mobile-waffle-button')?.focus()
-      }
-    }
-    document.addEventListener('keydown', dismiss)
-    return () => document.removeEventListener('keydown', dismiss)
-  }, [waffleOpen])
-
-  return (
-    <>
-      <div className="mobile-waffle-nav">
-        <button className={'mobile-waffle-button ' + (waffleOpen ? 'active' : '')} type="button" aria-label={waffleOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={waffleOpen} onClick={() => setWaffleOpen((open) => !open)}>
-          <span className="waffle-grid" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></span>
-        </button>
-        {waffleOpen && <><button className="mobile-waffle-backdrop" type="button" aria-label="Close navigation" onClick={closeWaffle} /><nav className="mobile-waffle-drawer" aria-label="Mobile menu">
-          <div className="mobile-waffle-head"><span>Explore EBG+</span><button type="button" onClick={closeWaffle} aria-label="Close menu">×</button></div>
-          <div className="mobile-waffle-section"><span className="mobile-waffle-label">Watch</span><Link to="/app/home" onClick={closeWaffle}>Home</Link><Link to="/app/live-tv" onClick={closeWaffle}>Live TV</Link><Link to="/app/shows" onClick={closeWaffle}>Shows</Link><Link to="/app/originals" onClick={closeWaffle}>EBG Originals</Link><Link to="/app/movies" onClick={closeWaffle}>Movies & Specials</Link><Link to="/app/music" onClick={closeWaffle}>Music</Link><Link to="/app/news" onClick={closeWaffle}>News</Link><Link to="/app/search" onClick={closeWaffle}>Search</Link></div>
-          <div className="mobile-waffle-section"><span className="mobile-waffle-label">Library</span><Link to="/app/my-list" onClick={closeWaffle}>My List</Link><Link to="/app/applications" onClick={closeWaffle}>My Applications</Link><Link to="/app/inbox" onClick={closeWaffle}>Messages</Link><Link to="/app/notifications" onClick={closeWaffle}>Notifications</Link><a href="https://forms.ebgplus.app" onClick={closeWaffle}>Casting</a></div>
-          <div className="mobile-waffle-section mobile-waffle-section-last"><span className="mobile-waffle-label">Account</span><Link to="/app/settings" onClick={closeWaffle}>Profile & Settings</Link></div>
-        </nav></>}
-      </div>
-      <nav className="mobile-nav mobile-nav-v2" aria-label="Mobile quick navigation">{[["Home", "/app/home", "⌂"], ["Live TV", "/app/live-tv", "◉"], ["Music", "/app/music", "♫"], ["Search", "/app/search", "⌕"], ["Profile", "/app/settings", "◎"]].map(([label, to, icon]) => <Link key={to} to={to} aria-current={location.pathname.startsWith(to) ? 'page' : undefined} onClick={closeWaffle}><span aria-hidden="true">{icon}</span>{label}</Link>)}</nav>
-    </>
-  )
-}
 
 function Footer({ compact = false }: { compact?: boolean }) {
   return (
