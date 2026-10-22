@@ -519,8 +519,8 @@ function AvatarVisual({ avatar, nav = false }: { avatar: string; nav?: boolean }
 
 function App() {
   useEffect(()=>{
-    document.documentElement.dataset.theme='dark'
-    document.documentElement.style.colorScheme='dark'
+    document.documentElement.dataset.theme='light'
+    document.documentElement.style.colorScheme='light'
   },[])
 
   useEffect(() => {

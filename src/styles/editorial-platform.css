@@ -1,5 +1,5 @@
 /* The editorial identity continues after the public front page. */
-:root,:root[data-theme='dark']{
+:root,:root[data-theme='light'],:root[data-theme='dark']{
   --brand:#e84a28;--brand-hover:#bd301d;--ink:#211e22;--muted:#625f61;
   --canvas:#eee9e1;--surface:#fbf7f0;--surface-solid:#fbf7f0;--surface-2:#e9e2d9;
   --subtle:#f7e0d2;--border:#29222433;--bg:var(--canvas);--panel:var(--surface);
