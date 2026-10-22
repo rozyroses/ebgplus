@@ -20,7 +20,7 @@ export default function ModernLanding({ cms }: { cms: { shows: Title[]; heroShow
       <div className="entrance-editorial-heading"><p className="entrance-eyebrow"><span /> YOUR NEXT OBSESSION STARTS HERE</p><h1 id="entrance-headline">STORIES<br /><span>HIT</span> DIFFERENT.</h1></div>
       <div className="entrance-editorial-art">
         {featured ? <Link to={`/app/shows/${featured.id}`} aria-label={`Explore ${featured.title}`}>
-          {featured.banner || featured.artwork ? <img src={featured.banner || featured.artwork} alt="" fetchPriority="high" /> : <span className="entrance-editorial-art-fallback">EBG+ ORIGINAL</span>}
+          {featured.banner || featured.artwork ? <img src={featured.banner || featured.artwork} alt="" fetchPriority="high" /> : <span className="entrance-editorial-art-fallback"><small>THE FEATURED STORY</small><strong>{featured.title}</strong><i aria-hidden="true">✦</i></span>}
           <span className="entrance-editorial-art-caption">NOW IN THE SPOTLIGHT <b aria-hidden="true">↗</b></span>
         </Link> : <Link to="/app/shows"><span className="entrance-editorial-art-fallback">EBG+ ORIGINALS</span><span className="entrance-editorial-art-caption">EXPLORE THE STORIES ↗</span></Link>}
       </div>
