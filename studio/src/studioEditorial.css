@@ -1,0 +1,55 @@
+/* The Studio workspace shares the paper, ink, and oversized editorial type of EBG+. */
+:root,:root[data-studio-theme='light'],:root[data-studio-theme='dark']{
+  --studio-bg:#eee9e1;--studio-surface:#fbf7f0;--studio-surface-solid:#fbf7f0;
+  --studio-surface-2:#e9e2d9;--studio-text:#211e22;--studio-muted:#625f61;
+  --studio-line:#29222433;--studio-accent:#b63822;--studio-accent-2:#e84a28;
+  --studio-shadow:none;--gold:#b63822;--gold-soft:#e84a28;--ink:#211e22;
+  --panel:#fbf7f0;--panel-2:#e9e2d9;--line:#29222433;--muted:#625f61;
+  color-scheme:light;background:#eee9e1!important;color:#211e22!important;
+}
+html,body{background:#eee9e1!important;color:var(--studio-text)!important}
+body{background-image:none!important}
+.studio-editorial-logo{display:block;width:148px;height:60px;object-fit:contain;flex:0 0 auto}
+.studio-v3-brand{align-items:center!important;gap:8px!important}
+.studio-v3-brand .studio-editorial-logo{width:132px;height:53px}
+.studio-v3-brand strong{font-family:Georgia,'Times New Roman',serif;font-weight:400!important;font-size:1.1rem!important;color:var(--studio-text)!important;letter-spacing:-.05em}
+.studio-boot,.studio-auth-page{background:#eee9e1!important;color:var(--studio-text)!important}
+.studio-boot p{color:var(--studio-muted)!important}
+.studio-auth-page .auth-card{background:#fbf7f0!important;color:var(--studio-text)!important;border:1px solid var(--studio-line)!important;border-radius:2px!important;box-shadow:15px 15px 0 #dfd4c8!important}
+.studio-auth-page .auth-card h1{font-family:Georgia,'Times New Roman',serif;font-weight:400!important;letter-spacing:-.065em;font-size:clamp(58px,8vw,100px)!important;color:#e84a28!important}
+.studio-auth-page .auth-card p,.studio-auth-page .auth-card label{color:var(--studio-text)!important}
+.studio-auth-page .auth-card .eyebrow{color:#ad331f!important}
+.studio-v3-shell,.studio-main,.workspace{background:#eee9e1!important;color:var(--studio-text)!important}
+.studio-v3-topbar{background:#f6f1e9f7!important;border-bottom:1px solid var(--studio-line)!important;box-shadow:none!important}
+.studio-v3-workspaces{background:#e9e2d9!important;border-radius:2px!important}
+.studio-v3-workspaces button{border-radius:2px!important;color:var(--studio-text)!important}
+.studio-v3-workspaces button.active,.studio-v3-tools button.active{background:#211e22!important;color:#fff!important;box-shadow:none!important}
+.studio-v3-tools button,.studio-v3-feature-shortcuts button,.studio-v3-production select{border-radius:2px!important}
+.studio-v3-context{padding-top:34px!important;border-bottom:1px solid var(--studio-line)}
+.studio-v3-context p,.eyebrow,.panel-heading span{font-size:11px!important;letter-spacing:.15em!important;color:#ac321e!important;font-weight:850!important}
+.studio-v3-context h1,.workspace :is(h1,h2),.panel h2,.hero-panel h2,.studio-auth-page h1{font-family:Georgia,'Times New Roman',serif!important;font-weight:400!important;letter-spacing:-.06em!important;line-height:1.04!important}
+.studio-v3-context h1{font-size:clamp(46px,5vw,84px)!important;color:#e84a28!important}
+.workspace :is(h1,h2),.panel h2{color:var(--studio-text)!important}
+.studio-v3-context>div>span,.studio-v3-account strong{color:var(--studio-muted)!important}
+.workspace :is(.panel,.stat-card,.hero-panel,.launch-grid button,.studio-v3-feature-row>button,.studio-v3-workspace-cards .launch-grid button,.music-studio-stats article,.episodes-v2-stat){
+  background:#fbf7f0!important;color:var(--studio-text)!important;border:1px solid var(--studio-line)!important;border-radius:2px!important;box-shadow:none!important;
+}
+.workspace :is(.panel,.stat-card,.hero-panel,.launch-grid button,.studio-v3-feature-row>button):nth-child(3n+1){border-top:3px solid #e84a28!important}
+.workspace :is(.panel,.stat-card,.hero-panel,.launch-grid button,.studio-v3-feature-row>button):nth-child(3n+2){border-top:3px solid #347fb7!important}
+.workspace :is(.panel,.stat-card,.hero-panel,.launch-grid button,.studio-v3-feature-row>button):nth-child(3n+3){border-top:3px solid #a439b5!important}
+.workspace .hero-panel{background:linear-gradient(110deg,#f5f0e9 60%,#eac5b7)!important;padding:clamp(26px,4vw,54px)!important}
+.workspace .hero-panel h2{font-size:clamp(42px,5vw,82px)!important;color:#e84a28!important;max-width:920px}
+.workspace .hero-stat{background:#211e22!important;border:0!important;border-radius:2px!important;box-shadow:none!important}
+.workspace .hero-stat strong,.workspace .hero-stat span{color:#fff!important}
+.workspace .stat-card strong{font-family:Georgia,serif;font-weight:400;color:var(--studio-text)!important}
+.workspace :is(.launch-grid button,.studio-v3-feature-row>button):hover{border-color:#e84a28!important;box-shadow:7px 7px 0 #e4b8a9!important;transform:translate(-2px,-2px)}
+.workspace .studio-v3-feature-row>button>span{background:#e9e2d9!important;color:#b63822!important;border-radius:2px!important}
+.workspace :is(.message,.studio-inbox-row,.studio-inbox-chat,.studio-inbox-toolbar,.lumi-auto-body){background:#fbf7f0!important;color:var(--studio-text)!important;border-color:var(--studio-line)!important;border-radius:2px!important}
+.workspace :is(.panel p,.panel small,.stat-card span,.stat-card small,.muted-copy){color:var(--studio-muted)!important}
+.button:not(.secondary):not(.danger){background:#211e22!important;border-color:#211e22!important;color:#fff!important;border-radius:2px!important}
+.button:not(.secondary):not(.danger):hover{background:#e84a28!important;border-color:#e84a28!important;color:#fff!important}
+.button.secondary{background:transparent!important;color:var(--studio-text)!important;border:1px solid var(--studio-text)!important;border-radius:2px!important}
+input:not([type=checkbox]):not([type=radio]),select,textarea{background:#fffbf6!important;color:var(--studio-text)!important;border:1px solid #29222465!important;border-radius:2px!important}
+:is(a,button,input,select,textarea):focus-visible{outline:3px solid #c83d24!important;outline-offset:3px!important}
+@media(max-width:850px){.studio-v3-topbar{padding:10px 14px!important}.studio-v3-context{padding:22px 14px!important}.workspace .hero-panel{padding:28px!important}.workspace .hero-stat{width:125px;height:125px}}
+@media(prefers-reduced-motion:reduce){.workspace :is(.launch-grid button,.studio-v3-feature-row>button):hover{transform:none}}

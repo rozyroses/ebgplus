@@ -49,3 +49,5 @@ import './studioFormsNetwork.css'
 import './studioInbox.css'
 
 import './studioWorkflow.css'
+
+import './studioEditorial.css'
