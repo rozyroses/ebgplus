@@ -98,3 +98,78 @@
 }
 @media(max-width:390px){.entrance-editorial{min-height:730px}.entrance-editorial-side{top:43%;width:34%}.entrance-editorial-ticket{width:50%}}
 @media(prefers-reduced-motion:reduce){.entrance-editorial-art img,.entrance-editorial-ticket{transition:none}.entrance-editorial-ticket:hover{transform:none}}
+
+
+/* Full homepage playground redesign — logo-first, vibrant and responsive. */
+body .entrance{background:linear-gradient(145deg,#fff4fc,#effaff 52%,#fff1ec)!important}
+body .entrance .entrance-header{border-radius:0 0 20px 20px;box-shadow:0 7px 24px #6822a614}
+body .entrance .entrance-editorial{
+  border-radius:30px;min-height:720px;isolation:isolate;overflow:hidden;
+  background:radial-gradient(circle at 12% 12%,#ff82bb9c,transparent 34%),
+             radial-gradient(circle at 92% 85%,#70d9f5a8,transparent 39%),
+             linear-gradient(125deg,#fff0fb,#ffeac5 55%,#dbe4ff)!important;
+  box-shadow:0 24px 65px #9436bc24;
+}
+body .entrance .entrance-editorial::after{
+  content:'✦';position:absolute;z-index:0;right:3%;top:12%;
+  font-size:clamp(130px,18vw,330px);line-height:1;color:#fb3f9833;
+  transform:rotate(16deg);pointer-events:none;
+}
+body .entrance .entrance-editorial h1{
+  max-width:1000px;font-family:var(--ebg-display-font,'Trebuchet MS',sans-serif)!important;
+  font-size:clamp(64px,9.2vw,148px)!important;line-height:.91!important;
+  color:#6e2cbe!important;letter-spacing:-.07em!important;
+  text-shadow:5px 5px 0 #ff84be9e!important;white-space:normal!important;
+}
+body .entrance .entrance-editorial h1 span{color:#f42b8d!important}
+body .entrance .entrance-editorial-art{
+  border:9px solid #fff!important;border-radius:27px!important;
+  box-shadow:0 22px 50px #67219748!important;
+  transform:rotate(5deg)!important;overflow:hidden;
+}
+body .entrance .entrance-editorial-art>a{clip-path:none!important;border-radius:18px}
+body .entrance .entrance-editorial-ticket{transform:rotate(-3deg);border-radius:20px!important}
+body .entrance .entrance-editorial-bottom>p{color:#4a176e!important;text-shadow:2px 2px #fff5}
+body .entrance .entrance-editorial-side{border-radius:17px;background:#ffffffd9!important}
+body .entrance-hype-strip{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+  gap:clamp(16px,4vw,55px);margin:24px auto 70px;padding:16px 20px;
+  max-width:1510px;background:linear-gradient(100deg,#ff693b,#f82b92 39%,#8439df 73%,#06b7d8);
+  color:white;border-radius:100px;font-family:var(--ebg-display-font,'Trebuchet MS',sans-serif);
+  font-size:clamp(11px,1.2vw,15px);font-weight:900;letter-spacing:.045em;
+  box-shadow:0 12px 30px #e82b8845;
+}
+body .entrance-quick-intro{
+  max-width:1510px;margin:0 auto 24px;display:flex;align-items:end;justify-content:space-between;
+  gap:25px;padding:10px clamp(10px,2vw,35px);
+}
+body .entrance-quick-intro h2{
+  font:900 clamp(34px,5vw,65px)/1.03 var(--ebg-display-font,'Trebuchet MS',sans-serif);
+  max-width:710px;letter-spacing:-.065em;color:#532092;margin:9px 0 0;
+}
+body .entrance-quick-intro>p{max-width:340px;color:#614572;font-weight:650;line-height:1.6}
+body .entrance .entrance-worlds{margin-top:12px;gap:19px}
+body .entrance .entrance-worlds>a{min-height:220px;padding:28px!important;transition:transform .2s,box-shadow .2s}
+body .entrance .entrance-worlds>a:nth-child(1){background:#fff0de!important}
+body .entrance .entrance-worlds>a:nth-child(2){background:#ffe5f3!important}
+body .entrance .entrance-worlds>a:nth-child(3){background:#dcf8ff!important}
+body .entrance .entrance-worlds>a:hover{transform:translateY(-6px) rotate(-1deg)}
+body .entrance .entrance-section{margin-top:85px}
+body .entrance .entrance-poster{border-radius:18px!important;overflow:hidden}
+body .entrance .entrance-live{border-radius:30px!important;background:linear-gradient(110deg,#efcaff,#ffd3e9 55%,#baf3fa)!important}
+body .entrance .entrance-creators{background:linear-gradient(115deg,#ffe6b6,#ffd4ef 52%,#dddaff)!important;border-radius:28px;margin-top:75px;padding:50px clamp(24px,5vw,75px)}
+body .entrance .entrance-footer{margin-top:55px}
+@media(max-width:760px){
+ body .entrance .entrance-editorial{border-radius:19px;min-height:740px}
+ body .entrance .entrance-editorial h1{font-size:clamp(48px,11vw,88px)!important}
+ body .entrance .entrance-editorial-art{border-width:5px!important;transform:rotate(4deg)!important}
+ body .entrance-hype-strip{border-radius:20px;gap:12px 20px;margin:17px 0 45px;padding:17px 12px}
+ body .entrance-quick-intro{display:block;padding:0 10px}
+ body .entrance-quick-intro>p{max-width:530px}
+ body .entrance .entrance-worlds>a{min-height:170px}
+ body .entrance .entrance-creators{padding:28px 22px;border-radius:19px}
+}
+@media(prefers-reduced-motion:reduce){
+ body .entrance .entrance-worlds>a{transition:none}
+ body .entrance .entrance-worlds>a:hover{transform:none}
+}
