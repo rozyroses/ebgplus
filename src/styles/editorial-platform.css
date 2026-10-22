@@ -59,3 +59,30 @@ body .ebg-splash__line{background:#d9cec3!important}
 body .ebg-splash__line::after{background:linear-gradient(90deg,#e84a28,#ff2889,#9b28ef,#18cbef,#b6ef37)}
 @media(max-width:760px){body .app-shell .page>h1,body .app-shell .home-welcome h1{font-size:clamp(38px,10vw,62px)!important}body .viewer-menu-panel{background:#fbf7f0!important}}
 @media(prefers-reduced-motion:reduce){body .app-shell :is(.home-shortcut,.shows-browse-card,.music-v2-release-card,.original-card-v2,.movie-library-card,.content-card):hover{transform:none}}
+
+
+/* Sign-in and registration: replace inherited black fields with readable paper inputs. */
+body :is(.auth-page, .auth-layout, .auth-shell) :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background: #faf6ef !important;
+  color: #211e22 !important;
+  border: 1px solid #bdb0a8 !important;
+  border-radius: 12px;
+  color-scheme: light;
+  caret-color: #211e22;
+}
+body :is(.auth-page, .auth-layout, .auth-shell) :is(input, textarea)::placeholder {
+  color: #716a68 !important;
+  opacity: 1;
+}
+body :is(.auth-page, .auth-layout, .auth-shell) :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible {
+  border-color: #e85a38 !important;
+  outline: 3px solid #e85a38 !important;
+  outline-offset: 2px;
+}
+body :is(.auth-page, .auth-layout, .auth-shell) input:-webkit-autofill,
+body :is(.auth-page, .auth-layout, .auth-shell) input:-webkit-autofill:hover,
+body :is(.auth-page, .auth-layout, .auth-shell) input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #211e22 !important;
+  -webkit-box-shadow: 0 0 0 1000px #faf6ef inset !important;
+  box-shadow: 0 0 0 1000px #faf6ef inset !important;
+}
