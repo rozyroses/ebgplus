@@ -118,3 +118,72 @@ body .auth-page.ebg-entry .entry-form-side .error {
 body .auth-page.ebg-entry .entry-story :is(.entry-logo, .entry-story-copy, .entry-story-foot, .eyebrow) {
   color: #fff !important;
 }
+
+
+/* Logo-led brand system: bright, rounded entertainment UI across EBG+. */
+:root,:root[data-theme='light'],:root[data-theme='dark']{
+  --ebg-display-font:'Arial Rounded MT Bold','Trebuchet MS',Verdana,sans-serif;
+  --ebg-body-font:'Trebuchet MS',Verdana,Arial,sans-serif;
+  --brand:#ec4927;--brand-hover:#bf2d19;
+  --subtle:#ffe2d3;--surface-2:#f3e8df;
+  --radius:18px;
+}
+body,body button,body input,body textarea,body select{
+  font-family:var(--ebg-body-font);
+}
+body :is(.entrance,.app-shell,.profiles-page,.info-page,.studio-route,.forms2-shell,.auth-page){
+  font-family:var(--ebg-body-font);
+}
+body :is(.entrance,.app-shell,.profiles-page,.info-page,.studio-route,.forms2-shell,.auth-page)
+:is(h1,h2,h3,.home-welcome h1,.entrance-worlds h2,.entrance-title h3,.entrance-editorial h1,.studio3-title){
+  font-family:var(--ebg-display-font)!important;
+  font-weight:800!important;
+  letter-spacing:-.055em!important;
+}
+body .entrance .entrance-editorial h1{
+  font-size:clamp(70px,10vw,164px);
+  line-height:.9;
+}
+body :is(.app-shell,.studio-route,.forms2-shell,.auth-page)
+:is(.panel,.content-card,.episode-card,.profile-card,.auth-card,.studio3-panel,.studio3-composer,.forms2-panel){
+  border-radius:18px!important;
+}
+body .entrance :is(.entrance-worlds>a,.entrance-poster,.entrance-live,.entrance-featured-art,.entrance-editorial-ticket),
+body .app-shell :is(.home-shortcut,.shows-browse-card,.music-v2-release-card,.original-card-v2,.movie-library-card),
+body .studio-route :is(.studio3-nav,.studio3-header),
+body .forms2-shell :is(.forms2-topbar,.forms2-public-card){
+  border-radius:18px!important;
+}
+body :is(.entrance,.app-shell,.studio-route,.forms2-shell,.auth-page)
+:is(button,.btn,.entrance-button,.entrance-menu-toggle){
+  font-family:var(--ebg-display-font);
+  font-weight:800;
+  border-radius:12px!important;
+}
+body .entrance .entrance-button,
+body :is(.app-shell,.studio-route,.forms2-shell) .btn:not(.muted){
+  background:#ec4927!important;
+  border-color:#ec4927!important;
+  color:#fff!important;
+}
+body .entrance .entrance-button:hover,
+body :is(.app-shell,.studio-route,.forms2-shell) .btn:not(.muted):hover{
+  background:#c92f1f!important;
+  border-color:#c92f1f!important;
+  color:#fff!important;
+}
+body :is(.app-shell,.studio-route,.forms2-shell,.auth-page)
+:is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  border-radius:12px!important;
+}
+body .auth-page.ebg-entry .entry-form-side,
+body .auth-page.ebg-entry .entry-form-side .auth-card{
+  color:#211e22!important;
+}
+body .auth-page.ebg-entry .entry-form-side :is(h1,h2,h3,label,.entry-intro,.entry-help){
+  color:#211e22!important;
+}
+@media(max-width:640px){
+  body .entrance .entrance-editorial h1{font-size:clamp(56px,13vw,88px)}
+  body :is(.app-shell,.studio-route,.forms2-shell) :is(h1,h2){overflow-wrap:break-word}
+}
