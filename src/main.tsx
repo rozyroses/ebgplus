@@ -20,6 +20,7 @@ import './styles/platform-smoke.css'
 import './styles/platform-mobile.css'
 import './styles/playful-brand.css'
 import './styles/editorial-entrance.css'
+import './styles/editorial-platform.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
