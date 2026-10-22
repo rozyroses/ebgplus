@@ -8,7 +8,7 @@ import AccountIdentitySettings from './components/AccountIdentitySettings'
 import { CreatorCredit, CreditsProvider, loadPublicCredits, type CreditMap } from './components/CreatorCredit'
 import ScrollToTop from './components/ScrollToTop'
 import type { LiveTvConfig } from './lib/liveTv'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import {
   BrowserRouter,
@@ -573,6 +573,28 @@ function Shell() {
   const [account, setAccount] = useState<Account | null>(null)
   const [profileId, setProfileId] = useState<string | null>(() => localStorage.getItem('ebg.activeProfile.v1'))
   const [authLoading, setAuthLoading] = useState(true)
+  // Serialize catalog writes so slower saves cannot overwrite a newer publish.
+  const catalogSaveQueue = useRef<Promise<void>>(Promise.resolve())
+  const catalogWritesPending = useRef(0)
+  const catalogRevision = useRef(0)
+  const persistCatalog = (nextCms: CmsData) => {
+    catalogRevision.current += 1
+    catalogWritesPending.current += 1
+    setCms(nextCms)
+    catalogSaveQueue.current = catalogSaveQueue.current
+      .catch(() => undefined)
+      .then(async () => {
+        try {
+          await saveCmsData(nextCms)
+          window.dispatchEvent(new Event('ebg:catalog-updated'))
+        } catch (error) {
+          console.error('Could not save EBG+ Studio CMS.', error)
+          window.alert('Your Studio changes were not published. Please check your connection and try again.')
+        } finally {
+          catalogWritesPending.current -= 1
+        }
+      })
+  }
 
   useEffect(() => {
     if (profileId) localStorage.setItem('ebg.activeProfile.v1', profileId)
@@ -586,9 +608,10 @@ function Shell() {
     const refreshCatalog = async () => {
       if (loading || document.visibilityState === 'hidden') return
       loading = true
+      const revisionAtStart = catalogRevision.current
       try {
         const remoteCms = await loadCmsData<CmsData>()
-        if (active && remoteCms) setCms(remoteCms)
+        if (active && remoteCms && catalogWritesPending.current === 0 && catalogRevision.current === revisionAtStart) setCms(remoteCms)
       } catch (error) { console.error('Could not refresh EBG+ catalog.', error) }
       finally { loading = false }
     }
@@ -806,10 +829,7 @@ function Shell() {
               profile={profile!}
               cms={cms}
               castingApps={castingApps}
-              onUpdateCms={(nextCms) => {
-                setCms(nextCms)
-                void saveCmsData(nextCms).catch((error) => console.error('Could not save EBG+ Studio CMS.', error))
-              }}
+              onUpdateCms={persistCatalog}
               onUpdateCastingStatus={async (applicationId, status) => {
                 await updateCastingApplicationStatus(applicationId, status)
                 setCastingApps((previous) => previous.map((app) => app.id === applicationId ? { ...app, status } : app))
