@@ -4,6 +4,7 @@ import BrandLogo from './components/BrandLogo'
 import ModernLanding from './components/ModernLanding'
 import MobileNavigation from './components/MobileNavigation'
 import MoviesPage from './components/MoviesPage'
+import AccountIdentitySettings from './components/AccountIdentitySettings'
 import { CreatorCredit, CreditsProvider, loadPublicCredits, type CreditMap } from './components/CreatorCredit'
 import ScrollToTop from './components/ScrollToTop'
 import type { LiveTvConfig } from './lib/liveTv'
@@ -310,6 +311,8 @@ type Profile = {
 type Account = {
   id: string
   email: string
+  username: string
+  displayName: string
   passwordHash: string
   role: Role
   accountType: 'viewer' | 'creator' | 'producer' | 'founder'
@@ -539,6 +542,8 @@ function authAccountToUi(state: AuthState, previous?: Account | null): Account {
   return {
     id: state.account.id,
     email: state.account.email,
+    username: state.account.username,
+    displayName: state.account.display_name,
     passwordHash: '',
     role: state.account.role,
     accountType: state.account.account_type ?? (state.account.role === 'founder' ? 'founder' : state.account.role === 'producer' ? 'producer' : 'viewer'),
@@ -1201,11 +1206,12 @@ function SignupBadge({ tone, compact = false }: { tone: 'blue' | 'violet' | 'gol
 function CreateAccountPage({
   onCreate,
 }: {
-  onCreate: (email: string, password: string, options: { accountType: PublicSignupAccountType; displayName: string; companyName?: string }) => Promise<AuthState | null>
+  onCreate: (email: string, password: string, options: { accountType: PublicSignupAccountType; username: string; displayName: string; companyName?: string }) => Promise<AuthState | null>
 }) {
   const nav = useNavigate()
   const [accountType, setAccountType] = useState<PublicSignupAccountType>('viewer')
   const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -1225,12 +1231,13 @@ function CreateAccountPage({
     setError('')
     setMessage('')
     if (!displayName.trim()) return setError(accountType === 'viewer' ? 'Choose your profile name.' : 'Choose the name you want shown on your creator profile.')
+    if (!/^[a-z][a-z0-9_]{2,23}$/.test(username.trim().toLowerCase())) return setError('Choose a username with 3–24 letters, numbers, or underscores. Start with a letter.')
     if (accountType === 'producer' && !companyName.trim()) return setError('Add your production company or producer name.')
     if (password.length < 8) return setError('Password must be at least 8 characters.')
     if (password !== confirmPassword) return setError('Passwords do not match.')
     setLoading(true)
     try {
-      const state = await onCreate(email, password, { accountType, displayName, companyName: companyName.trim() || undefined })
+      const state = await onCreate(email, password, { accountType, username, displayName, companyName: companyName.trim() || undefined })
       if (!state) {
         setMessage('Check your email to confirm your EBG+ account, then come back and sign in.')
         return
@@ -1263,8 +1270,13 @@ function CreateAccountPage({
 
       <form onSubmit={onSubmit}>
         <label>
-          {accountType === 'viewer' ? 'Profile name' : accountType === 'producer' ? 'Producer name' : 'Creator name'}
+          Display name
           <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} required maxLength={80} placeholder={accountType === 'viewer' ? 'What should we call you?' : 'Your public creative name'} />
+        </label>
+        <label>
+          Username
+          <input value={username} onChange={(event) => setUsername(event.target.value.toLowerCase().replace(/^@/, ''))} required minLength={3} maxLength={24} autoCapitalize="none" autoComplete="username" spellCheck={false} placeholder="yourname" />
+          <small>Your unique @username on EBG+.</small>
         </label>
         {accountType !== 'viewer' && (
           <label>
@@ -1637,7 +1649,7 @@ function AppLayout({
           <details className="nav-menu profile-menu" open={openNavMenu === 'profile'} onToggle={(event) => toggleMenu('profile', event.currentTarget.open)}>
             <summary className="profile-menu-trigger" aria-label="Profile menu"><AvatarVisual avatar={profile.avatar} nav /><span aria-hidden="true">⌄</span></summary>
             <div className="nav-dropdown nav-dropdown-right profile-dropdown" onClick={() => setOpenNavMenu(null)}>
-              <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}{account.studioVerified && account.studioBadgeTone && <SignupBadge tone={account.studioBadgeTone} compact />}</strong><small>{account.email}</small></div></div>
+              <div className="profile-dropdown-heading"><AvatarVisual avatar={profile.avatar} /><div><strong>{profile.name}{account.studioVerified && account.studioBadgeTone && <SignupBadge tone={account.studioBadgeTone} compact />}</strong><small>@{account.username}</small></div></div>
               <Link to="/app/settings">Settings</Link>
               {['founder', 'administrator'].includes(account.role) && <Link to="/app/studio/live-tv">Manage Live TV</Link>}
               <Link to="/profiles">Switch Profile</Link>
@@ -2469,7 +2481,7 @@ function SettingsPage({ account, profile, onUpdateAccount, onSignOut }: { accoun
   const [uploading, setUploading] = useState(false)
   const updateProfile = (patch: Partial<Profile>) => onUpdateAccount({ ...account, profiles: account.profiles.map((item) => item.id === profile.id ? { ...item, ...patch } : item) })
   const uploadPhoto = async (file?: File) => { if (!file) return; setUploading(true); setState(''); try { const avatar = await uploadProfilePhoto(file); updateProfile({ avatar }); setState('Profile photo updated.') } catch (error) { setState(error instanceof Error ? error.message : 'Profile photo could not be uploaded.') } finally { setUploading(false) } }
-  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel connected-settings"><h2>Playback & accessibility</h2><p>These preferences are saved on this device and apply to EBG+ video playback.</p><label>Default playback speed<select value={preferences.speed} onChange={event=>changePreference({speed:Number(event.target.value)})}>{[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}</select></label><label>Default video volume<input type="range" min={0} max={1} step={0.05} value={preferences.volume} onChange={event=>changePreference({volume:Number(event.target.value)})}/></label><label><input type="checkbox" checked={preferences.keyboard} onChange={event=>changePreference({keyboard:event.target.checked})}/> Video keyboard shortcuts (space/K, arrows, F, M)</label><label><input type="checkbox" checked={preferences.reduceMotion} onChange={event=>changePreference({reduceMotion:event.target.checked})}/> Reduce interface motion</label><label><input type="checkbox" checked={preferences.largeText} onChange={event=>changePreference({largeText:event.target.checked})}/> Larger interface text</label><button className="btn muted" onClick={()=>{try { saveViewerPreferences(defaultViewerPreferences);setState('Device playback preferences reset.') } catch { setState('Could not reset device preferences.') }}}>Reset device preferences</button></section><section className="panel"><h2>Security & account tools</h2><Link className="btn muted" to="/auth/forgot-password">Reset password</Link><Link className="btn muted" to="/profiles">Manage profiles</Link><Link className="btn muted" to="/app/inbox">Open inbox</Link><Link className="btn muted" to="/app/applications">My applications</Link></section></div></div></main>)
+  return (<main className="page"><p className="eyebrow">Your EBG+ experience</p><h1>Settings</h1><div className="settings-shell"><section className="panel settings-profile-card"><AvatarVisual avatar={profile.avatar} /><h2>{profile.name}</h2><p>@{account.username}</p><p>{account.email}</p><label>Choose profile photo<input type="file" accept="image/*" disabled={uploading} onChange={(event) => void uploadPhoto(event.target.files?.[0])} /></label>{state && <p>{state}</p>}</section><div className="settings-section"><AccountIdentitySettings username={account.username} displayName={account.displayName} onSaved={value => onUpdateAccount({ ...account, username: value.username, displayName: value.display_name })} /><section className="panel"><h2>Profile</h2><label>Profile name<input defaultValue={profile.name} maxLength={40} onBlur={(event) => { const name = event.target.value.trim(); if (name && name !== profile.name) updateProfile({ name }) }} /></label><div className="setting-row"><div><strong>Autoplay next episode</strong><p>Automatically continue to the next available episode.</p></div><input type="checkbox" checked={profile.autoplayNext} onChange={(event) => updateProfile({ autoplayNext: event.target.checked })} /></div></section><section className="panel"><h2>Account</h2><div className="setting-row"><span>Email</span><strong>{account.email}</strong></div><div className="setting-row"><span>Account type</span><strong>{account.accountType}</strong></div><button className="btn muted" onClick={onSignOut}>Sign Out</button></section><section className="panel connected-settings"><h2>Playback & accessibility</h2><p>These preferences are saved on this device and apply to EBG+ video playback.</p><label>Default playback speed<select value={preferences.speed} onChange={event=>changePreference({speed:Number(event.target.value)})}>{[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}</select></label><label>Default video volume<input type="range" min={0} max={1} step={0.05} value={preferences.volume} onChange={event=>changePreference({volume:Number(event.target.value)})}/></label><label><input type="checkbox" checked={preferences.keyboard} onChange={event=>changePreference({keyboard:event.target.checked})}/> Video keyboard shortcuts (space/K, arrows, F, M)</label><label><input type="checkbox" checked={preferences.reduceMotion} onChange={event=>changePreference({reduceMotion:event.target.checked})}/> Reduce interface motion</label><label><input type="checkbox" checked={preferences.largeText} onChange={event=>changePreference({largeText:event.target.checked})}/> Larger interface text</label><button className="btn muted" onClick={()=>{try { saveViewerPreferences(defaultViewerPreferences);setState('Device playback preferences reset.') } catch { setState('Could not reset device preferences.') }}}>Reset device preferences</button></section><section className="panel"><h2>Security & account tools</h2><Link className="btn muted" to="/auth/forgot-password">Reset password</Link><Link className="btn muted" to="/profiles">Manage profiles</Link><Link className="btn muted" to="/app/inbox">Open inbox</Link><Link className="btn muted" to="/app/applications">My applications</Link></section></div></div></main>)
 }
 
 function EbgStudioHub({
