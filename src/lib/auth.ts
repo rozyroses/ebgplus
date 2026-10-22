@@ -7,6 +7,8 @@ export type PublicSignupAccountType = 'viewer' | 'creator' | 'producer'
 export type AuthAccount = {
   id: string
   email: string
+  username: string
+  display_name: string
   role: EbgRole
   account_type?: EbgAccountType
   verified_badge?: 'artist' | 'founder' | null
@@ -40,6 +42,7 @@ export type AuthState = {
 
 export type SignUpOptions = {
   accountType: PublicSignupAccountType
+  username: string
   displayName: string
   companyName?: string
 }
@@ -109,17 +112,35 @@ export const signIn = async (email: string, password: string): Promise<AuthState
 export const signUp = async (email: string, password: string, options: SignUpOptions): Promise<AuthState | null> => {
   if (!authConfigured) throw new Error('EBG+ authentication is not configured yet.')
   const displayName = options.displayName.trim()
+  const username = options.username.trim().toLowerCase().replace(/^@/, '')
   if (!displayName) throw new Error('Choose a display name.')
+  if (!/^[a-z][a-z0-9_]{2,23}$/.test(username)) throw new Error('Username must be 3–24 letters, numbers, or underscores and start with a letter.')
+  if (!(await usernameAvailable(username))) throw new Error('That username is taken.')
   if (options.accountType === 'producer' && !options.companyName?.trim()) throw new Error('Add your production company or producer name.')
   const result = await auth.signUp(email.trim(), password, {
     account_type: options.accountType,
     display_name: displayName,
+    username,
     company_name: options.companyName?.trim() || null,
   })
   const session = 'access_token' in result ? result : result.session
   if (!session) return null
   storeSession(session)
   return loadAuthState(session)
+}
+
+export const usernameAvailable = async (username: string) =>
+  db.rpc<boolean>('username_available', { p_username: username.trim().toLowerCase().replace(/^@/, '') })
+
+export const updatePublicIdentity = async (username: string, displayName: string) => {
+  const session = requireSession()
+  const rows = await db.rpc<Array<Pick<AuthAccount, 'username' | 'display_name'>>>(
+    'set_public_identity',
+    { p_username: username, p_display_name: displayName },
+    session.access_token,
+  )
+  if (!rows[0]) throw new Error('Your name could not be saved.')
+  return rows[0]
 }
 
 const requireSession = () => {
