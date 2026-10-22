@@ -187,3 +187,103 @@ body .auth-page.ebg-entry .entry-form-side :is(h1,h2,h3,label,.entry-intro,.entr
   body .entrance .entrance-editorial h1{font-size:clamp(56px,13vw,88px)}
   body :is(.app-shell,.studio-route,.forms2-shell) :is(h1,h2){overflow-wrap:break-word}
 }
+
+
+/* EBG+ playful identity v2: consistent storefront, player, live TV and creator studio. */
+:root,:root[data-theme='light'],:root[data-theme='dark']{
+  --ebg-orange:#f05231;--ebg-pink:#ff328d;--ebg-purple:#9538e8;
+  --ebg-cyan:#12b9d8;--ebg-lime:#b9df42;
+  --ebg-gradient:linear-gradient(105deg,var(--ebg-orange),var(--ebg-pink) 35%,var(--ebg-purple) 70%,var(--ebg-cyan));
+  --ebg-outline:#3a253c22;
+}
+body :is(.entrance,.app-shell,.studio-route,.forms2-shell,.auth-page) :is(.eyebrow,.entrance-eyebrow,.studio3-eyebrow){
+  color:#ad2c54!important;
+  font-family:var(--ebg-display-font)!important;
+  font-weight:850!important;
+  letter-spacing:.11em!important;
+}
+body :is(.entrance,.app-shell,.studio-route) :is(.entrance-section-head,.home-section-head,.music-v2-section-head,.studio3-page-intro){
+  border-color:var(--ebg-outline)!important;
+}
+body .entrance .entrance-editorial{
+  border-radius:0 0 26px 26px;
+  background:radial-gradient(circle at 93% 12%,#ffbaca85,transparent 32%),radial-gradient(circle at 5% 80%,#b5eafe99,transparent 33%),#fdf3e9;
+}
+body .entrance .entrance-editorial h1{
+  font-family:var(--ebg-display-font)!important;
+  color:#ec4927!important;
+  text-shadow:3px 3px 0 #ff328d30;
+}
+body .entrance .entrance-editorial-ticket{
+  background:var(--ebg-gradient)!important;
+  color:white!important;
+  border:0!important;
+  box-shadow:0 10px 32px #f052313d;
+}
+body .entrance :is(.entrance-worlds>a,.entrance-live,.entrance-title,.entrance-creators){
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+body .entrance .entrance-worlds>a:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 0 #ff328d24!important;
+}
+body .app-shell :is(.home-welcome,.editorial-page-hero,.music-v2-hero){
+  background:radial-gradient(circle at 98% 0%,#ffd0e280,transparent 38%),radial-gradient(circle at 0% 85%,#c9f2fa80,transparent 40%),#fbf7f0!important;
+  border:1px solid var(--ebg-outline)!important;
+  border-radius:22px!important;
+  padding:clamp(20px,3vw,42px)!important;
+}
+body .app-shell :is(.home-shortcut,.shows-browse-card,.original-card-v2,.movie-library-card,.music-v2-release-card,.content-card,.episode-card){
+  background:#fffaf5!important;
+  border:1px solid var(--ebg-outline)!important;
+  box-shadow:0 8px 24px #3a253c0c!important;
+}
+body .app-shell :is(.home-shortcut,.shows-browse-card,.original-card-v2,.movie-library-card,.music-v2-release-card,.content-card,.episode-card):hover{
+  border-color:#f05231bb!important;
+  box-shadow:0 14px 30px #f0523120!important;
+}
+body .app-shell :is(.home-section-head h2,.music-v2-section-head h2,.shows-catalog-section-head h2)::after{
+  content:'';display:block;width:58px;height:5px;margin-top:12px;border-radius:99px;
+  background:var(--ebg-gradient);
+}
+body .app-shell :is(.topbar.app,.viewer-sidebar,.viewer-tabbar){
+  border-color:var(--ebg-outline)!important;
+}
+body .app-shell :is(.topbar.app .primary-nav>a.active,.viewer-sidebar nav a.active,.viewer-tabbar a[aria-current=page]){
+  background:#ffe1e2!important;
+  color:#a72753!important;
+  box-shadow:inset 4px 0 #ff328d!important;
+  border-radius:12px!important;
+}
+body .studio-route :is(.studio3-panel,.studio3-composer,.studio3-header,.studio3-nav),
+body .studio-route :is(.studio2-route-page,.studio2-panel,.studio-card,.studio-route-page){
+  background:#fffaf6!important;
+  border-color:var(--ebg-outline)!important;
+  border-radius:20px!important;
+}
+body .studio-route :is(.studio3-header,.studio3-panel,.studio3-composer){
+  box-shadow:0 8px 22px #3a253c0b!important;
+}
+body .studio-route :is(.studio3-page-intro h2,.studio2-page-intro h2,h1,h2,h3){
+  font-family:var(--ebg-display-font)!important;
+  letter-spacing:-.045em!important;
+}
+body .studio-route :is(button.btn,button[type=submit]):not(.muted){
+  border-radius:12px!important;
+}
+body .forms2-shell :is(.forms2-panel,.forms2-public-card){
+  background:#fffaf6!important;
+  box-shadow:0 8px 24px #3a253c0b!important;
+}
+body :is(.app-shell,.studio-route,.forms2-shell,.auth-page) :is(input,select,textarea):focus-visible{
+  outline:3px solid #e84a28!important;
+  outline-offset:2px!important;
+}
+@media(max-width:760px){
+  body .app-shell :is(.home-welcome,.editorial-page-hero,.music-v2-hero){padding:20px!important}
+  body .entrance .entrance-editorial{border-radius:0 0 18px 18px}
+  body .studio-route :is(.studio3-panel,.studio3-composer){border-radius:15px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body .entrance :is(.entrance-worlds>a,.entrance-live,.entrance-title,.entrance-creators){transition:none}
+}
