@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#17141e"/><path fill="#f5f3f9" d="M13 15h25v8H22v6h14v7H22v6h16v8H13z"/><path fill="#c9b6ff" d="M45 22h6v7h7v6h-7v7h-6v-7h-7v-6h7z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="e" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ffcf12"/><stop offset=".5" stop-color="#ff622c"/><stop offset="1" stop-color="#fa008d"/></linearGradient>
+    <linearGradient id="p" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#d8ff00"/><stop offset=".45" stop-color="#1de966"/><stop offset="1" stop-color="#078fff"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="#0b0d18"/>
+  <path d="M7 35c0-13 8-22 20-22 11 0 19 7 19 17 0 3-1 5-4 6l-24 3c2 5 6 7 11 7 4 0 8-2 11-5l5 8c-5 5-11 8-18 8C15 57 7 48 7 35Zm11-5 18-2c-1-4-4-6-9-6-4 0-7 3-9 8Z" fill="url(#e)"/>
+  <path d="M50 9v17M42 17.5h16" fill="none" stroke="url(#p)" stroke-width="7" stroke-linecap="round"/>
+</svg>

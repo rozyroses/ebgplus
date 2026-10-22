@@ -202,7 +202,7 @@ function App() {
   }, [])
 
   if (booting) {
-    return <main className="studio-boot"><img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /><p>Opening Studio…</p></main>
+    return <main className="studio-boot"><img className="studio-editorial-logo" src="/branding/playful-ebgplus.png" alt="EBG+" /><p>Opening Studio…</p></main>
   }
 
   if (!authState) {
@@ -216,7 +216,7 @@ function App() {
     return (
       <main className="studio-auth-page">
         <section className="auth-card denied">
-          <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" />
+          <img className="studio-editorial-logo" src="/branding/playful-ebgplus.png" alt="EBG+" />
           <p className="eyebrow">CREATOR ACCESS</p>
           <h1>This account doesn’t have Studio access.</h1>
           <p>{authState.account.email}</p>
@@ -258,7 +258,7 @@ function StudioSignIn({
   return (
     <main className="studio-auth-page">
       <section className="auth-card">
-        <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" />
+        <img className="studio-editorial-logo" src="/branding/playful-ebgplus.png" alt="EBG+" />
         <p className="eyebrow">CREATOR · PRODUCER · STAFF</p>
         <h1>Studio</h1>
         <p>Manage the EBG+ slate, releases, talent, audience tools, and production media.</p>
@@ -277,7 +277,7 @@ function StudioSignIn({
 function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onSignedOut: () => void }) {
   const [tab, setTabState] = useState<StudioTab>(parseTab)
   const [activeTool, setActiveTool] = useState<StudioTool>(() => (window.location.hash.replace(/^#\/?/, '') || 'overview') as StudioTool)
-  const theme = 'dark'
+  const theme = 'light'
   const [cms, setCms] = useState<CmsData>(emptyCms)
   const [projects, setProjects] = useState<Array<StudioProject & { cms: CmsData }>>([])
   const [projectId, setProjectId] = useState('')
@@ -316,7 +316,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   useEffect(() => {
     document.documentElement.dataset.studioTheme = theme
     document.documentElement.style.colorScheme = theme
-    document.documentElement.dataset.theme = 'dark'
+    document.documentElement.dataset.theme = 'light'
   }, [theme])
 
   useEffect(() => {
@@ -690,14 +690,14 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   }
 
   if (busy && !cms.shows.length) {
-    return <main className="studio-boot"><img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /><p>Loading production data…</p></main>
+    return <main className="studio-boot"><img className="studio-editorial-logo" src="/branding/playful-ebgplus.png" alt="EBG+" /><p>Loading production data…</p></main>
   }
 
   if (!busy && !projectId) {
     return (
       <main className="studio-project-onboarding">
         <section className="studio-project-onboarding-card">
-          <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" />
+          <img className="studio-editorial-logo" src="/branding/playful-ebgplus.png" alt="EBG+" />
           <p className="eyebrow">YOUR PRIVATE STUDIO</p>
           <h1>Create your first Studio project.</h1>
           <p>Projects can be shows, music, or mixed worlds — each with its own private uploads, catalog, chats, and publishing workspace.</p>
@@ -735,7 +735,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
       <div className="studio-main">
         <header className="studio-v3-topbar">
           <button className="studio-v3-brand" type="button" onClick={() => goToTool('overview')}>
-            <img className="studio-smoke-logo" src="/branding/ebgplus-smoke.svg" alt="EBG+" /><strong>Studio</strong>
+            <img className="studio-editorial-logo" src="/branding/playful-ebgplus.png" alt="EBG+" /><strong>Studio</strong>
           </button>
 
           <nav className="studio-v3-workspaces" aria-label="Studio workspaces">
