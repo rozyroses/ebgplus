@@ -4,6 +4,7 @@ import BrandLogo from './components/BrandLogo'
 import ModernLanding from './components/ModernLanding'
 import MobileNavigation from './components/MobileNavigation'
 import MoviesPage from './components/MoviesPage'
+import { CreatorCredit, CreditsProvider, loadPublicCredits, type CreditMap } from './components/CreatorCredit'
 import ScrollToTop from './components/ScrollToTop'
 import type { LiveTvConfig } from './lib/liveTv'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
@@ -562,6 +563,7 @@ function authAccountToUi(state: AuthState, previous?: Account | null): Account {
 
 function Shell() {
   const [cms, setCms] = useState<CmsData>(() => loadJson(STORAGE.cms, seedCms))
+  const [credits, setCredits] = useState<CreditMap>({})
   const [castingApps, setCastingApps] = useState<CastingApplication[]>([])
   const [account, setAccount] = useState<Account | null>(null)
   const [profileId, setProfileId] = useState<string | null>(() => localStorage.getItem('ebg.activeProfile.v1'))
@@ -592,6 +594,17 @@ function Shell() {
     document.addEventListener('visibilitychange', refresh)
     const timer = window.setInterval(refresh, 30000)
     return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('ebg:catalog-updated', refresh); document.removeEventListener('visibilitychange', refresh) }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    const refreshCredits = () => {
+      void loadPublicCredits().then(next => { if (active) setCredits(next) }).catch(error => console.error('Could not load public creator credits.', error))
+    }
+    refreshCredits()
+    window.addEventListener('focus', refreshCredits)
+    const timer = window.setInterval(refreshCredits, 30000)
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refreshCredits) }
   }, [])
 
   useEffect(() => {
@@ -783,7 +796,7 @@ function Shell() {
         path="/app/*"
         element={
           <ProtectedRoute account={account} profile={profile} requireProfile>
-            <AppLayout
+            <CreditsProvider credits={credits}><AppLayout
               account={account!}
               profile={profile!}
               cms={cms}
@@ -814,7 +827,7 @@ function Shell() {
                 }
                 setCastingApps((prev) => [saved, ...prev])
               }}
-            />
+            /></CreditsProvider>
           </ProtectedRoute>
         }
       />
@@ -1853,6 +1866,7 @@ function HomePage({
                   <div className="continue-card-body">
                     <p className="eyebrow">{show?.title || 'EBG+'}</p>
                     <h3>{episode.title}</h3>
+                    <span className="creator-credit-line"><CreatorCredit kind="show" id={episode.showId} /></span>
                     <p>S{episode.season} · E{episode.number}</p>
                     <progress value={progress} max={3600} />
                     <Link to={`/app/watch/${episode.id}`}>Resume →</Link>
@@ -1889,7 +1903,7 @@ function HomePage({
           <div className="home-coming-grid">
             {comingSoonShows.map((show) => (
               <Link key={show.id} className="home-coming-card" to={`/app/shows/${show.id}`} style={{ backgroundImage: `url(${show.banner || show.artwork})` }}>
-                <div><span className="pulse-badge">Coming Soon</span><h3>{show.title}</h3><p>{show.genre}</p></div>
+                <div><span className="pulse-badge">Coming Soon</span><h3>{show.title}</h3><span className="creator-credit-line"><CreatorCredit kind="show" id={show.id} /></span><p>{show.genre}</p></div>
               </Link>
             ))}
           </div>
@@ -1936,6 +1950,7 @@ function ContentCard({ show, inList, onToggle }: { show: Show; inList: boolean; 
       </Link>
       <div>
         <h3>{show.title}</h3>
+        <span className="creator-credit-line"><CreatorCredit kind="show" id={show.id} /></span>
         <p>
           {show.genre} · {show.maturity}
         </p>
@@ -1974,6 +1989,7 @@ function ShowsPage({ cms }: { cms: CmsData }) {
           <div className="shows-catalog-feature-overlay">
             <span className="shows-catalog-pill">Featured on EBG+</span>
             {featured.logoImage ? <img className="shows-catalog-logo" src={featured.logoImage} alt={featured.title + ' logo'} /> : <h2>{featured.logo || featured.title}</h2>}
+            <span className="creator-credit-line"><CreatorCredit kind="show" id={featured.id} /></span>
             <p className="shows-catalog-meta">{featured.year} · {featured.maturity} · {featured.genre}</p>
             <p className="shows-catalog-description">{featured.description}</p>
             <div className="actions"><Link className="btn" to={'/app/shows/' + featured.id}>View Title</Link></div>
@@ -1987,7 +2003,7 @@ function ShowsPage({ cms }: { cms: CmsData }) {
           <div className="shows-catalog-wide-grid">
             {comingSoon.map((show) => (
               <Link key={show.id} className="shows-catalog-wide-card" to={'/app/shows/' + show.id} style={{ backgroundImage: 'url(' + (show.banner || show.artwork) + ')' }}>
-                <div><span className="shows-catalog-pill">Coming Soon</span><h3>{show.title}</h3><p>{show.genre}</p></div>
+                <div><span className="shows-catalog-pill">Coming Soon</span><h3>{show.title}</h3><span className="creator-credit-line"><CreatorCredit kind="show" id={show.id} /></span><p>{show.genre}</p></div>
               </Link>
             ))}
           </div>
@@ -2006,6 +2022,7 @@ function ShowsPage({ cms }: { cms: CmsData }) {
                 </Link>
                 <div className="shows-browse-copy">
                   <h3>{show.title}</h3>
+                  <span className="creator-credit-line"><CreatorCredit kind="show" id={show.id} /></span>
                   <p>{show.genre} · {show.maturity}</p>
                   <Link className="shows-browse-link" to={'/app/shows/' + show.id}>View Title →</Link>
                 </div>
@@ -2059,6 +2076,7 @@ function ShowPage({
         <div className="heartspell-hero-content">
           <p className="heartspell-kicker">{show.category || 'EBG+'}</p>
           {show.logoImage ? <img className="show-logo-image" src={show.logoImage} alt={`${show.title} logo`} /> : <h1 className="heartspell-title">{show.logo || show.title}</h1>}
+          <span className="creator-credit-line"><CreatorCredit kind="show" id={show.id} /></span>
           <div className="heartspell-meta"><span>{show.year}</span><span>{show.maturity}</span><span>{show.status}</span><span>{show.genre}</span></div>
           <p className="heartspell-description">{show.description}</p>
           <div className="actions">
@@ -2086,6 +2104,7 @@ function ShowPage({
                 <div className="heartspell-episode-body">
                   <p className="heartspell-kicker">S{episode.season} · E{episode.number} · {episode.runtime}</p>
                   <h3>{episode.title}</h3>
+                  <span className="creator-credit-line"><CreatorCredit kind="show" id={episode.showId} /></span>
                   <p>{episode.synopsis}</p>
                   {released ? <Link to={`/app/watch/${episode.id}`}>{(playback[episode.id] ?? 0) > 0 ? 'Resume episode →' : 'Watch episode →'}</Link> : <span>Premieres {new Date(episode.releaseDate).toLocaleDateString()}</span>}
                 </div>
@@ -3200,6 +3219,7 @@ function MusicPage({ cms }: { cms: CmsData }) {
           <div className="music-v2-hero-copy">
             <p className="eyebrow">FEATURED {String(featured.type || 'release').toUpperCase()}</p>
             <h1><Link to={'/app/music/release/' + featured.id}>{featured.title}</Link></h1>
+            <span className="creator-credit-line"><CreatorCredit kind="release" id={featured.id} /></span>
             <p className="music-v2-artist"><Link to={'/app/music/artist/' + featured.artistId}>{artistName(featured.artistId)}</Link></p>
             <p>{featured.genre || 'Music'}{featured.releaseDate ? ' · ' + new Date(featured.releaseDate).getFullYear() : ''}{featured.explicit ? ' · Explicit' : ''}</p>
             {featuredTracks[0] && hasPlayableAudio(featuredTracks[0]) && <EbgAudioPlayer track={catalogTrack(featuredTracks[0], artistName(featured.artistId), featured.cover)} queue={featuredTracks.map((item: any) => catalogTrack(item, artistName(featured.artistId), featured.cover))} src={featuredTracks[0].audioUrl || ''} title={featuredTracks[0].title || featured.title} artist={artistName(featured.artistId)} artwork={featured.cover || undefined} lyrics={featuredTracks[0].lyrics || ''} timedLyrics={featuredTracks[0].timedLyrics || []} />}
@@ -3213,6 +3233,7 @@ function MusicPage({ cms }: { cms: CmsData }) {
           <Link className="music-v2-release-card" key={release.id} to={'/app/music/release/' + release.id}>
             <div>{release.cover ? <img src={release.cover} alt="" /> : <span>♫</span>}</div>
             <h3>{release.title}</h3>
+            <span className="creator-credit-line"><CreatorCredit kind="release" id={release.id} /></span>
             <p>{artistName(release.artistId)}</p>
             <small>{String(release.type || 'release').toUpperCase()} · {release.genre || 'Music'}{release.explicit ? ' · E' : ''}</small>
           </Link>
@@ -3223,7 +3244,7 @@ function MusicPage({ cms }: { cms: CmsData }) {
         <div className="music-v2-section-head"><div><p className="eyebrow">LISTEN NOW</p><h2>Songs</h2></div><MusicCollectionActions tracks={visibleTracks.map((item: any) => catalogTrack(item, artistName(item.artistId), releases.find((r: any) => r.id === item.releaseId)?.cover))} /></div>
         <div className="music-v2-track-list">{visibleTracks.map((track: any) => (
           <article key={track.id}>
-            <div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small><Link to={'/app/music/artist/' + track.artistId}>{artistName(track.artistId)}</Link></small></div></div>
+            <div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small><Link to={'/app/music/artist/' + track.artistId}>{artistName(track.artistId)}</Link></small>{track.releaseId && <CreatorCredit kind="release" id={track.releaseId} />}</div></div>
             {hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artistName(track.artistId), releases.find((r: any) => r.id === track.releaseId)?.cover)} queue={visibleTracks.map((item: any) => catalogTrack(item, artistName(item.artistId), releases.find((r: any) => r.id === item.releaseId)?.cover))} src={track.audioUrl || ''} title={track.title} artist={artistName(track.artistId)} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}
           </article>
         ))}</div>
@@ -3273,7 +3294,7 @@ function MusicArtistPage({ cms }: { cms: CmsData }) {
       <section className="music-v2-section">
         <div className="music-v2-section-head"><div><p className="eyebrow">DISCOGRAPHY</p><h2>Albums & Singles</h2></div><span>{releases.length}</span></div>
         {releases.length ? <div className="music-v2-release-grid">{releases.map((release: any) => (
-          <Link className="music-v2-release-card" key={release.id} to={'/app/music/release/' + release.id}><div>{release.cover ? <img src={release.cover} alt="" /> : <span>♫</span>}</div><h3>{release.title}</h3><p>{String(release.type || 'release').toUpperCase()}</p><small>{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}</small></Link>
+          <Link className="music-v2-release-card" key={release.id} to={'/app/music/release/' + release.id}><div>{release.cover ? <img src={release.cover} alt="" /> : <span>♫</span>}</div><h3>{release.title}</h3><span className="creator-credit-line"><CreatorCredit kind="release" id={release.id} /></span><p>{String(release.type || 'release').toUpperCase()}</p><small>{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}</small></Link>
         ))}</div> : <div className="music-v2-empty"><h3>No live releases yet.</h3></div>}
       </section>
 
@@ -3300,7 +3321,7 @@ function MusicReleasePage({ cms }: { cms: CmsData }) {
       <Link className="music-detail-back" to="/app/music">← Music</Link>
       <section className="music-release-hero">
         <div className="music-release-art">{release.cover ? <img src={release.cover} alt={release.title + ' cover'} /> : <span>♫</span>}</div>
-        <div className="music-release-info"><p className="eyebrow">{String(release.type || 'release').toUpperCase()}</p><h1>{release.title}</h1>{artist && <h2><Link to={'/app/music/artist/' + artist.id}>{artist.name}</Link></h2>}<p className="music-detail-muted">{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}{release.explicit ? ' · Explicit' : ''}</p><p>{tracks.length} {tracks.length === 1 ? 'song' : 'songs'}</p><MusicCollectionActions tracks={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} /></div>
+        <div className="music-release-info"><p className="eyebrow">{String(release.type || 'release').toUpperCase()}</p><h1>{release.title}</h1><span className="creator-credit-line"><CreatorCredit kind="release" id={release.id} /></span>{artist && <h2><Link to={'/app/music/artist/' + artist.id}>{artist.name}</Link></h2>}<p className="music-detail-muted">{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}{release.explicit ? ' · Explicit' : ''}</p><p>{tracks.length} {tracks.length === 1 ? 'song' : 'songs'}</p><MusicCollectionActions tracks={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} /></div>
       </section>
 
       <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">TRACKLIST</p><h2>{release.title}</h2></div></div>{tracks.length ? <div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || (artist?.name ?? 'EBG+')}</small></div></div>{hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artist?.name || 'EBG+', release.cover)} queue={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} src={track.audioUrl || ''} title={track.title} artist={artist?.name || 'EBG+'} artwork={release.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div> : <div className="music-v2-empty"><h3>No tracks attached to this release yet.</h3></div>}</section>
@@ -3313,7 +3334,7 @@ function OriginalsPage({ cms }: { cms: CmsData }) {
   return (
     <main className="page originals-page-v2">
       <section className="editorial-page-hero"><p className="eyebrow">EBG+ ORIGINALS</p><h1>Original stories. Only on EBG+.</h1><p>Reality, scripted concepts, music films, specials, experiments, and creator-led projects made for EBG+.</p></section>
-      {originals.length ? <div className="originals-grid-v2">{originals.map((show) => <Link key={show.id} to={'/app/shows/' + show.id} className="original-card-v2"><div className="original-art" style={{ backgroundImage: 'url(' + show.artwork + ')' }}><span>{show.status}</span></div><div><p className="eyebrow">{show.category}</p><h2>{show.title}</h2><p>{show.description}</p><small>{show.genre} · {show.year} · {show.maturity}</small></div></Link>)}</div> : <section className="panel"><h2>More originals are being prepared.</h2><p>Projects marked as EBG+ Originals in Studio will appear here automatically.</p></section>}
+      {originals.length ? <div className="originals-grid-v2">{originals.map((show) => <Link key={show.id} to={'/app/shows/' + show.id} className="original-card-v2"><div className="original-art" style={{ backgroundImage: 'url(' + show.artwork + ')' }}><span>{show.status}</span></div><div><p className="eyebrow">{show.category}</p><h2>{show.title}</h2><span className="creator-credit-line"><CreatorCredit kind="show" id={show.id} /></span><p>{show.description}</p><small>{show.genre} · {show.year} · {show.maturity}</small></div></Link>)}</div> : <section className="panel"><h2>More originals are being prepared.</h2><p>Projects marked as EBG+ Originals in Studio will appear here automatically.</p></section>}
     </main>
   )
 }
