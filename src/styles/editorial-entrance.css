@@ -1,5 +1,5 @@
 /* The public front page uses a poster-like feature spread. The rest of EBG+ stays dark. */
-.entrance{--paper:#f6f1e9;--poster-ink:#171728;--poster-orange:#f04a24;padding:0 clamp(14px,3vw,54px)}
+.entrance{--paper:#f6f1e9;--poster-ink:#171728;--poster-orange:#f04a24;--e-bg:#eee9e1;--e-panel:#fbf7f0;--e-text:#211e22;--e-muted:#625f61;--e-border:#29222433;--e-lilac:#b63822;padding:0 clamp(14px,3vw,54px);background:#eee9e1;color:#211e22;color-scheme:light}
 .entrance-header{max-width:1510px;min-height:92px;padding:0 clamp(20px,3vw,48px);background:var(--paper);color:var(--poster-ink);border-color:#17172827}
 .entrance-header nav a:hover,.entrance-header .entrance-signin:hover{color:#bb341e}
 .entrance-header .entrance-button{background:var(--poster-ink)!important;border-radius:2px;color:#fff!important}
@@ -47,6 +47,27 @@
 .entrance-editorial-discover{border-bottom:1px solid var(--poster-ink);color:var(--poster-ink)!important;padding-bottom:8px;white-space:nowrap;font-size:12px;font-weight:800;text-decoration:none}
 .entrance-editorial-discover:hover{color:var(--poster-orange)!important;border-color:var(--poster-orange)}
 .entrance-worlds{margin-top:40px}
+.entrance-worlds>a{background:#fbf7f0!important;color:#211e22!important;border:1px solid #29222433!important;border-radius:2px!important;box-shadow:none!important}
+.entrance-worlds>a:hover{border-color:#df4b29!important;box-shadow:7px 7px 0 #e4b8a9!important}
+.entrance-world-number{color:#a42e1d!important;font-weight:850}
+.entrance-worlds h2,.entrance-section-head h2,.entrance-live h2,.entrance-creators h2{font-family:Georgia,'Times New Roman',serif!important;font-weight:400!important;letter-spacing:-.065em!important;color:#211e22}
+.entrance-worlds h2{font-size:clamp(30px,3vw,48px)!important}
+.entrance-worlds p,.entrance-title>p,.entrance-footer :is(p,small,nav){color:#625f61!important}
+.entrance-section{border-top:1px solid #29222433;margin-top:60px;padding-top:65px}
+.entrance-section-head h2{font-size:clamp(38px,4.5vw,68px)!important;line-height:1.02!important;max-width:680px}
+.entrance-section-head>a,.entrance-creators .entrance-secondary{color:#a32e1d!important;border-color:#a32e1d!important;font-weight:800}
+.entrance-section-head>a:hover,.entrance-creators .entrance-secondary:hover{color:#211e22!important}
+.entrance-poster{border-radius:2px!important;border:1px solid #29222433}
+.entrance-title h3{font-family:Georgia,'Times New Roman',serif;font-size:clamp(19px,2vw,28px);font-weight:400;letter-spacing:-.04em;color:#211e22}
+.entrance-live{background:#e5d1c6!important;border:1px solid #29222433!important;border-radius:2px!important;color:#211e22!important}
+.entrance-live h2{font-size:clamp(43px,5vw,76px)!important;line-height:1!important}
+.entrance-live p:not(.entrance-eyebrow),.entrance-creators p:not(.entrance-eyebrow),.entrance-live small{color:#514748!important}
+.entrance-live .entrance-button{background:#211e22!important;color:#fff!important;border-radius:2px!important}
+.entrance-live .entrance-button:hover{background:#e84a28!important;color:#fff!important}
+.entrance-creators{border-top:1px solid #29222433;padding-top:70px}
+.entrance-creators h2{font-size:clamp(43px,5vw,76px)!important;line-height:1!important}
+.entrance-footer{border-color:#29222433;color:#211e22!important}
+.entrance-footer nav a:hover{color:#b63822!important}
 @media(max-width:1050px){
   .entrance-editorial{min-height:690px}
   .entrance-editorial h1{font-size:clamp(78px,11.5vw,125px)}
