@@ -86,3 +86,35 @@ body :is(.auth-page, .auth-layout, .auth-shell) input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px #faf6ef inset !important;
   box-shadow: 0 0 0 1000px #faf6ef inset !important;
 }
+
+
+/* Authentication contrast: the editorial form side is cream, not the old dark theme. */
+body .auth-page.ebg-entry .entry-form-side {
+  background: #fbf7f0 !important;
+  color: #211e22 !important;
+  color-scheme: light;
+}
+body .auth-page.ebg-entry .entry-form-side .auth-card {
+  color: #211e22 !important;
+}
+body .auth-page.ebg-entry .entry-form-side :is(.entry-back, .entry-intro, .entry-help, .auth-card > .eyebrow, .auth-card label, .auth-card h1, .auth-card h2, .auth-card p) {
+  color: #211e22 !important;
+}
+body .auth-page.ebg-entry .entry-form-side :is(.entry-intro, .entry-help) {
+  color: #5b5351 !important;
+}
+body .auth-page.ebg-entry .entry-form-side :is(.split-links a, .entry-help a, .entry-back) {
+  color: #a72d1c !important;
+  text-decoration-color: currentColor;
+}
+body .auth-page.ebg-entry .entry-form-side :is(.split-links a, .entry-help a, .entry-back):hover {
+  color: #762018 !important;
+  text-decoration: underline;
+}
+body .auth-page.ebg-entry .entry-form-side .error {
+  color: #8e172a !important;
+  background: #fde6e6 !important;
+}
+body .auth-page.ebg-entry .entry-story :is(.entry-logo, .entry-story-copy, .entry-story-foot, .eyebrow) {
+  color: #fff !important;
+}
