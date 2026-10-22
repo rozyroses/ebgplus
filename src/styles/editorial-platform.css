@@ -287,3 +287,125 @@ body :is(.app-shell,.studio-route,.forms2-shell,.auth-page) :is(input,select,tex
 @media(prefers-reduced-motion:reduce){
   body .entrance :is(.entrance-worlds>a,.entrance-live,.entrance-title,.entrance-creators){transition:none}
 }
+
+
+/* EBG+ FULL COLOR POP: the logo, not the old editorial palette, leads. */
+:root,:root[data-theme='light'],:root[data-theme='dark']{
+  --canvas:#fff4fc;--surface:#fffefe;--surface-solid:#fffefe;
+  --surface-2:#f8e8ff;--subtle:#ffe2f2;--border:#7f39ba38;
+  --ink:#281438;--text:#281438;--muted:#654e72;--bg:#fff4fc;
+  --panel:#fffefe;--panel-2:#f8e8ff;
+  --brand:#e92f80;--brand-hover:#c82072;
+  --ebg-orange:#ff693b;--ebg-pink:#f82b92;--ebg-purple:#8439df;
+  --ebg-cyan:#06b7d8;--ebg-lime:#a6cf37;
+  --ebg-gradient:linear-gradient(115deg,#ff693b 0%,#f82b92 36%,#8439df 72%,#06b7d8 100%);
+  --ebg-outline:#8439df38;
+  color-scheme:light;
+}
+html,body{background:#fff4fc!important;color:#281438!important}
+body :is(.entrance,.app-shell,.profiles-page,.info-page,.studio-route,.forms2-shell,.auth-page){
+  color:#281438;
+}
+body :is(.app-shell,.profiles-page,.info-page,.studio-route,.forms2-shell){
+  background:radial-gradient(circle at 10% 4%,#ffe0ee 0,transparent 27rem),
+             radial-gradient(circle at 91% 18%,#d5e9ff 0,transparent 29rem),
+             radial-gradient(circle at 65% 92%,#e9d6ff 0,transparent 26rem),#fff4fc!important;
+}
+body .entrance{
+  --paper:#fff6fd;--poster-ink:#281438;--poster-orange:#f82b92;
+  --e-bg:#fff4fc;--e-panel:#fff;--e-text:#281438;--e-muted:#654e72;--e-border:#8439df38;
+  background:linear-gradient(140deg,#fff1f8,#e9f8ff 58%,#fff0e6)!important;
+}
+body .entrance :is(.entrance-header,.entrance-editorial){
+  background:radial-gradient(circle at 12% 18%,#ffdee9,transparent 42%),
+             radial-gradient(circle at 93% 74%,#cfefff,transparent 40%),#fff4fb!important;
+}
+body .entrance .entrance-editorial h1{
+  color:#f82b92!important;
+  text-shadow:4px 5px 0 #ffae3890!important;
+}
+body .entrance :is(.entrance-worlds>a,.entrance-live,.entrance-creators,.entrance-title,.entrance-empty){
+  background:linear-gradient(145deg,#ffffff,#fff0f8 65%,#edebff)!important;
+  border:2px solid #8439df33!important;
+  border-radius:24px!important;
+  color:#281438!important;
+}
+body .entrance .entrance-worlds>a:nth-child(1){border-top:8px solid #ff693b!important}
+body .entrance .entrance-worlds>a:nth-child(2){border-top:8px solid #f82b92!important}
+body .entrance .entrance-worlds>a:nth-child(3){border-top:8px solid #06b7d8!important}
+body .entrance .entrance-live{background:linear-gradient(115deg,#fee2f0,#dfd2ff 55%,#c8f4fa)!important}
+body .entrance :is(.entrance-button,.entrance-editorial-ticket){
+  background:var(--ebg-gradient)!important;color:#fff!important;
+  border:0!important;border-radius:16px!important;
+  box-shadow:0 10px 28px #c8207240!important;
+}
+body .entrance .entrance-section-head h2,
+body .entrance .entrance-creators h2,
+body .entrance .entrance-worlds h2{color:#3a1757!important}
+body .app-shell :is(.topbar.app,.viewer-sidebar,.viewer-tabbar,.viewer-menu-panel){
+  background:#fff7fdeb!important;color:#281438!important;border-color:#8439df38!important;
+}
+body .app-shell :is(.home-welcome,.editorial-page-hero,.music-v2-hero){
+  background:linear-gradient(115deg,#ffdfef 0%,#eddcff 45%,#d5f5fa 100%)!important;
+  border:2px solid #8439df33!important;
+}
+body .app-shell :is(.home-shortcut,.shows-browse-card,.original-card-v2,.movie-library-card,.music-v2-release-card,.content-card,.episode-card,.panel){
+  background:linear-gradient(145deg,#fff,#fff4fc)!important;
+  border:1px solid #8439df38!important;
+  box-shadow:0 9px 24px #8439df12!important;
+}
+body .app-shell :is(.home-shortcut,.shows-browse-card,.original-card-v2,.movie-library-card,.music-v2-release-card):nth-child(3n+1){border-top:5px solid #ff693b!important}
+body .app-shell :is(.home-shortcut,.shows-browse-card,.original-card-v2,.movie-library-card,.music-v2-release-card):nth-child(3n+2){border-top:5px solid #f82b92!important}
+body .app-shell :is(.home-shortcut,.shows-browse-card,.original-card-v2,.movie-library-card,.music-v2-release-card):nth-child(3n){border-top:5px solid #06b7d8!important}
+body .app-shell :is(.topbar.app .primary-nav>a.active,.viewer-sidebar nav a.active,.viewer-tabbar a[aria-current=page]){
+  background:#f9d8f1!important;color:#7025b1!important;box-shadow:inset 4px 0 #f82b92!important;
+}
+body .studio-route :is(.studio3-header,.studio3-panel,.studio3-composer,.studio3-nav,.studio2-route-page,.studio2-panel,.studio-card,.studio-route-page){
+  background:linear-gradient(145deg,#fff,#fff1fc)!important;
+  border:1px solid #8439df38!important;
+  box-shadow:0 8px 26px #8439df14!important;
+}
+body .studio-route :is(.studio3-header,.studio3-page-intro,.studio2-page-intro){
+  background:linear-gradient(115deg,#ffe0f0,#e7dcff 60%,#dcfaff)!important;
+  border-radius:20px!important;
+}
+body .studio-route :is(.studio3-nav a.active,.studio3-nav button.active,[aria-current=page]){
+  background:#ebdcff!important;color:#6824aa!important;
+}
+body .forms2-shell :is(.forms2-panel,.forms2-public-card,.forms2-topbar){
+  background:linear-gradient(145deg,#fff,#fbedff)!important;
+  border-color:#8439df38!important;
+}
+body :is(.app-shell,.studio-route,.forms2-shell) :is(.btn:not(.muted),button[type=submit]):not(:disabled){
+  background:var(--ebg-gradient)!important;
+  border-color:transparent!important;color:#fff!important;
+  box-shadow:0 6px 18px #f82b9236!important;
+}
+body :is(.app-shell,.studio-route,.forms2-shell) :is(.btn:not(.muted),button[type=submit]):not(:disabled):hover{
+  filter:saturate(1.15) brightness(.96);
+}
+body .auth-page.ebg-entry{background:#fff4fc!important}
+body .auth-page.ebg-entry .entry-story{
+  background:radial-gradient(circle at 85% 16%,#ff98bd70,transparent 35%),
+             linear-gradient(135deg,#8439df,#d52b99 58%,#fa683c)!important;
+}
+body .auth-page.ebg-entry .entry-form-side{background:#fff8fd!important;color:#281438!important}
+body .auth-page.ebg-entry .entry-form-side .auth-card{color:#281438!important}
+body .auth-page.ebg-entry .entry-form-side :is(h1,h2,h3,p,label,.entry-intro,.entry-help){color:#281438!important}
+body .auth-page.ebg-entry .entry-form-side :is(.split-links a,.entry-help a,.entry-back){color:#7929b8!important}
+body .auth-page.ebg-entry .entry-form-side :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  background:#fff!important;color:#281438!important;border:2px solid #c5a4dd!important;
+}
+body .auth-page.ebg-entry .entry-form-side button.btn{
+  background:var(--ebg-gradient)!important;color:#fff!important;border:0!important;
+}
+body :is(.app-shell,.studio-route,.forms2-shell,.auth-page) :is(input,select,textarea):focus-visible{
+  outline:3px solid #8439df!important;outline-offset:2px!important;
+}
+@media(max-width:760px){
+  body .entrance :is(.entrance-live,.entrance-worlds>a){border-radius:17px!important}
+  body .app-shell :is(.home-welcome,.editorial-page-hero,.music-v2-hero){border-radius:18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body .entrance .entrance-worlds>a:hover{transform:none!important}
+}
