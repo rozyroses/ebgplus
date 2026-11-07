@@ -277,7 +277,7 @@ function StudioSignIn({
 function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onSignedOut: () => void }) {
   const [tab, setTabState] = useState<StudioTab>(parseTab)
   const [activeTool, setActiveTool] = useState<StudioTool>(() => (window.location.hash.replace(/^#\/?/, '') || 'overview') as StudioTool)
-  const theme = 'light'
+  const theme = 'dark'
   const [cms, setCms] = useState<CmsData>(emptyCms)
   const [projects, setProjects] = useState<Array<StudioProject & { cms: CmsData }>>([])
   const [projectId, setProjectId] = useState('')
@@ -316,7 +316,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
   useEffect(() => {
     document.documentElement.dataset.studioTheme = theme
     document.documentElement.style.colorScheme = theme
-    document.documentElement.dataset.theme = 'light'
+    document.documentElement.dataset.theme = 'dark'
   }, [theme])
 
   useEffect(() => {
@@ -726,7 +726,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
   return (
     <div className="studio-shell studio-v3-shell">
-      <aside className="sidebar studio-compat-nav" aria-hidden="true">
+      <aside className="sidebar studio-compat-nav" aria-hidden="true" hidden inert>
         <nav>
           {TABS.map((item) => <button key={item.id} type="button" onClick={() => setTab(item.id)}>{item.label}</button>)}
         </nav>
@@ -740,7 +740,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
 
           <nav className="studio-v3-workspaces" aria-label="Studio workspaces">
             {STUDIO_WORKSPACES.map((workspace) => (
-              <button key={workspace.id} type="button" className={activeWorkspace.id === workspace.id ? 'active' : ''} onClick={() => goToTool(workspace.tools[0])}>
+              <button key={workspace.id} type="button" className={activeWorkspace.id === workspace.id ? 'active' : ''} aria-current={activeWorkspace.id === workspace.id ? 'page' : undefined} onClick={() => goToTool(workspace.tools[0])}>
                 <span>{workspace.icon}</span><strong>{workspace.label}</strong>
               </button>
             ))}
@@ -768,9 +768,9 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
             <h1>{TOOL_LABELS[activeTool] ?? activeWorkspace.label}</h1>
             <span>{activeWorkspace.copy}</span>
           </div>
-          <nav className="studio-v3-tools" aria-label={activeWorkspace.label + " tools"}>
-            {activeWorkspace.tools.map((tool) => <button key={tool} type="button" className={activeTool === tool ? 'active' : ''} onClick={() => goToTool(tool)}>{TOOL_LABELS[tool]}</button>)}
-          </nav>
+          {activeWorkspace.tools.length > 1 && <nav className="studio-v3-tools" aria-label={activeWorkspace.label + " tools"}>
+            {activeWorkspace.tools.map((tool) => <button key={tool} type="button" className={activeTool === tool ? 'active' : ''} aria-current={activeTool === tool ? 'page' : undefined} onClick={() => goToTool(tool)}>{TOOL_LABELS[tool]}</button>)}
+          </nav>}
           <div className="studio-v3-account"><span>{authState.account.role}</span><strong>{authState.account.email}</strong><button type="button" onClick={() => void signOutNow()}>Sign out</button></div>
         </section>
 
@@ -786,7 +786,7 @@ function StudioWorkspace({ authState, onSignedOut }: { authState: AuthState; onS
           {tab === 'publishing' && <Suspense fallback={<p>Opening publishing center…</p>}><StudioPublishingCenter key={projectId} projectId={projectId} /></Suspense>}
           {tab === 'overview' && (
             <>
-              <section className="hero-panel"><div><p className="eyebrow">STUDIO HQ</p><h2>Everything EBG+.<br />One control room.</h2><p>Chat with Lumi, upload music, publish episodes, and send news or notifications from one Studio.</p><div className="hero-actions"><button className="button" onClick={() => setTab('lumi')}>Open Lumi</button><button className="button secondary" onClick={() => setTab('music')}>Upload music</button><button className="button secondary" onClick={() => setTab('episodes')}>Post episode</button></div></div><div className="hero-stat"><strong>{projects.length}</strong><span>Studio project{projects.length === 1 ? '' : 's'}</span></div></section>
+              <section className="hero-panel studio-cinematic-hero"><div><p className="eyebrow">YOUR CREATIVE CONTROL ROOM</p><h2>Your next release<br />starts here.</h2><p>Make your next move. Bring a track to life, share a new episode, or build something with Lumi.</p><div className="hero-actions"><button className="button" onClick={() => setTab('music')}>＋ Upload music</button><button className="button secondary" onClick={() => setTab('episodes')}>Add episode →</button><button className="button secondary" onClick={() => setTab('lumi')}>✦ Create with Lumi</button></div></div><div className="studio-cinematic-feature" style={selectedShow?.banner || selectedShow?.artwork ? { backgroundImage: `linear-gradient(0deg,#09090def,transparent 90%),url(${selectedShow.banner || selectedShow.artwork})` } : undefined}>{selectedShow ? <><span>IN YOUR SPOTLIGHT</span><strong>{selectedShow.title}</strong><small>{selectedShow.status} · {selectedShow.year}</small><button type="button" onClick={() => setTab('series')}>Manage series ↗</button></> : <><span>YOUR STUDIO</span><strong>{projects.length}</strong><small>Creative project{projects.length === 1 ? '' : 's'}. Your next chapter.</small></>}</div></section>
               <details className="panel studio-project-switcher"><summary>Switch production</summary><div className="form-grid">
             <label className="studio-v3-project">
               <span>Project</span>

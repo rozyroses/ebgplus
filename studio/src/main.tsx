@@ -50,4 +50,4 @@ import './studioInbox.css'
 
 import './studioWorkflow.css'
 
-import './studioEditorial.css'
+import './studioCinematic.css'
