@@ -519,8 +519,8 @@ function AvatarVisual({ avatar, nav = false }: { avatar: string; nav?: boolean }
 
 function App() {
   useEffect(()=>{
-    document.documentElement.dataset.theme='light'
-    document.documentElement.style.colorScheme='light'
+    document.documentElement.dataset.theme='dark'
+    document.documentElement.style.colorScheme='dark'
   },[])
 
   useEffect(() => {
@@ -1781,14 +1781,6 @@ function HomePage({
     else if (heroIndex >= homeShows.length) setHeroIndex(0)
   }, [cms.heroShowId, homeShows.length])
 
-  useEffect(() => {
-    if (homeShows.length < 2) return
-    const timer = window.setInterval(() => {
-      setHeroIndex((current) => (current + 1) % homeShows.length)
-    }, 7000)
-    return () => window.clearInterval(timer)
-  }, [homeShows.length])
-
   const heroLogoIsUnique = hero?.logoImage && !homeShows.some(
     (show) => show.id !== hero.id && show.logoImage?.trim() === hero.logoImage?.trim(),
   )
@@ -1798,7 +1790,7 @@ function HomePage({
       {hero ? (
         <section
           key={hero.id}
-          className="hero-banner home-featured-hero home-carousel-hero"
+          className="cinema-viewer-hero"
           style={{
             backgroundImage: `url(${hero.banner || hero.artwork})`,
             backgroundPosition: hero.bannerPosition || 'center center',
@@ -1807,7 +1799,7 @@ function HomePage({
           aria-live="polite"
         >
           <div
-            className="desktop-hero-visual"
+            className="cinema-viewer-art"
             style={{
               backgroundImage: `url(${hero.banner || hero.artwork})`,
               backgroundPosition: hero.bannerPosition || 'center center',
@@ -1816,23 +1808,27 @@ function HomePage({
             aria-hidden="true"
           />
 
-          <div className="home-carousel-brand-stage">
-            <div className="desktop-hero-panel">
-              <Link className="home-carousel-brand-link" to={`/app/shows/${hero.id}`} aria-label={`Open ${hero.title}`}>
+          <div className="cinema-viewer-stage">
+            <div className="cinema-viewer-panel">
+              <Link className="cinema-viewer-brand" to={`/app/shows/${hero.id}`} aria-label={`Open ${hero.title}`}>
                 {heroLogoIsUnique ? (
-                  <img className="home-carousel-brand-logo" src={hero.logoImage} alt={`${hero.title} logo`} />
+                  <img className="cinema-viewer-logo" src={hero.logoImage} alt={`${hero.title} logo`} />
                 ) : (
-                  <span className="home-carousel-brand-fallback">{hero.title}</span>
+                  <span className="cinema-viewer-title">{hero.title}</span>
                 )}
               </Link>
-              <p className="desktop-hero-meta">{hero.year} · {hero.maturity} · {hero.genre}</p>
-              <Link className="btn desktop-hero-button" to={`/app/shows/${hero.id}`}>View Show</Link>
+              <p className="cinema-viewer-meta">{hero.year} · {hero.maturity} · {hero.genre}</p>
+              <p className="cinema-viewer-description">{hero.description}</p>
+              <div className="home-hero-actions">
+                <Link className="btn desktop-hero-button" to={`/app/shows/${hero.id}`}>Explore title →</Link>
+                <button className="btn muted" type="button" aria-pressed={profile.watchlist.includes(hero.id)} onClick={() => onToggleWatchlist(hero.id)}>{profile.watchlist.includes(hero.id) ? '✓ In My List' : '＋ My List'}</button>
+              </div>
             </div>
           </div>
 
           {homeShows.length > 1 && (
-            <div className="home-carousel-controls home-slide-bars" role="group" aria-label="Featured shows">
-              <div className="home-carousel-dots">
+            <div className="cinema-viewer-controls" role="group" aria-label="Featured shows">
+              <div className="cinema-viewer-dots">
                 {homeShows.map((show, index) => (
                   <button
                     key={show.id}
