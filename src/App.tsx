@@ -4,6 +4,8 @@ import BrandLogo from './components/BrandLogo'
 import ModernLanding from './components/ModernLanding'
 import MobileNavigation from './components/MobileNavigation'
 import MoviesPage from './components/MoviesPage'
+import VinylLibrary from './components/VinylLibrary'
+import type { LibraryAlbum } from './components/VinylLibrary'
 import AccountIdentitySettings from './components/AccountIdentitySettings'
 import { CreatorCredit, CreditsProvider, loadPublicCredits, type CreditMap } from './components/CreatorCredit'
 import ScrollToTop from './components/ScrollToTop'
@@ -3233,40 +3235,30 @@ function MusicPage({ cms }: { cms: CmsData }) {
   const artistName = (artistId: string) => artists.find((artist: any) => artist.id === artistId)?.name ?? 'EBG Artist'
   const visibleTracks = tracks.filter((track: any) => {
     const details = catalogTrack(track, artistName(track.artistId))
-    return (!favoritesOnly || favorites.includes(details.id)) && `${track.title} ${details.artist}`.toLowerCase().includes(query.trim().toLowerCase())
+    const releaseTitle = releases.find((release: any) => release.id === track.releaseId)?.title || ''
+    return (!favoritesOnly || favorites.includes(details.id)) && `${track.title} ${details.artist} ${releaseTitle}`.toLowerCase().includes(query.trim().toLowerCase())
   }).sort((a: any, b: any) => sort === 'title' ? String(a.title).localeCompare(String(b.title)) : sort === 'artist' ? artistName(a.artistId).localeCompare(artistName(b.artistId)) : 0)
-  const featured = releases.find((release: any) => release.id === music.featuredReleaseId) ?? releases[0]
-  const featuredTracks = featured ? tracks.filter((track: any) => track.releaseId === featured.id).sort((a: any, b: any) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0)) : []
+  const libraryAlbums: LibraryAlbum[] = releases.map((release: any) => ({
+    id: release.id, releaseId: release.id, title: release.title, artist: artistName(release.artistId),
+    cover: release.cover, type: release.type || 'album',
+    tracks: tracks.filter((track: any) => track.releaseId === release.id)
+      .sort((a: any, b: any) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
+      .map((track: any) => catalogTrack(track, artistName(track.artistId || release.artistId), release.cover)),
+  }))
+  // Standalone songs get their own sleeve, so the shelf includes the existing full catalog.
+  for (const track of tracks.filter((item: any) => !item.releaseId)) {
+    const artist = artists.find((item: any) => item.id === track.artistId)
+    libraryAlbums.push({ id: 'track:' + track.id, title: track.title, artist: artistName(track.artistId),
+      cover: track.cover || track.artwork || artist?.image, type: 'single',
+      tracks: [catalogTrack(track, artistName(track.artistId), track.cover || track.artwork || artist?.image)] })
+  }
+  if (sort === 'title') libraryAlbums.sort((a, b) => a.title.localeCompare(b.title))
+  if (sort === 'artist') libraryAlbums.sort((a, b) => a.artist.localeCompare(b.artist))
 
   return (
     <main className="page music-v2-page">
-      <div className="music-catalog-tools"><label>Find a song or artist<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search songs and artists" /></label><label>Sort songs<select value={sort} onChange={event => setSort(event.target.value)}><option value="catalog">Catalog order</option><option value="title">Song title</option><option value="artist">Artist</option></select></label><button className="btn muted" type="button" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(!favoritesOnly)}>{favoritesOnly ? '♥ Favorites' : '♡ Favorites'}</button></div>
-      {featured && (
-        <section className="music-v2-hero">
-          <Link className="music-v2-cover music-v2-cover-link" to={'/app/music/release/' + featured.id}>{featured.cover ? <img src={featured.cover} alt={featured.title + ' cover'} /> : <span>♫</span>}</Link>
-          <div className="music-v2-hero-copy">
-            <p className="eyebrow">FEATURED {String(featured.type || 'release').toUpperCase()}</p>
-            <h1><Link to={'/app/music/release/' + featured.id}>{featured.title}</Link></h1>
-            <span className="creator-credit-line"><CreatorCredit kind="release" id={featured.id} /></span>
-            <p className="music-v2-artist"><Link to={'/app/music/artist/' + featured.artistId}>{artistName(featured.artistId)}</Link></p>
-            <p>{featured.genre || 'Music'}{featured.releaseDate ? ' · ' + new Date(featured.releaseDate).getFullYear() : ''}{featured.explicit ? ' · Explicit' : ''}</p>
-            {featuredTracks[0] && hasPlayableAudio(featuredTracks[0]) && <EbgAudioPlayer track={catalogTrack(featuredTracks[0], artistName(featured.artistId), featured.cover)} queue={featuredTracks.map((item: any) => catalogTrack(item, artistName(featured.artistId), featured.cover))} src={featuredTracks[0].audioUrl || ''} title={featuredTracks[0].title || featured.title} artist={artistName(featured.artistId)} artwork={featured.cover || undefined} lyrics={featuredTracks[0].lyrics || ''} timedLyrics={featuredTracks[0].timedLyrics || []} />}
-          </div>
-        </section>
-      )}
-
-      <section className="music-v2-section">
-        <div className="music-v2-section-head"><div><p className="eyebrow">MUSIC ON EBG+</p><h2>New Releases</h2></div><span>{releases.length} live</span></div>
-        {releases.length ? <div className="music-v2-release-grid">{releases.map((release: any) => (
-          <Link className="music-v2-release-card" key={release.id} to={'/app/music/release/' + release.id}>
-            <div>{release.cover ? <img src={release.cover} alt="" /> : <span>♫</span>}</div>
-            <h3>{release.title}</h3>
-            <span className="creator-credit-line"><CreatorCredit kind="release" id={release.id} /></span>
-            <p>{artistName(release.artistId)}</p>
-            <small>{String(release.type || 'release').toUpperCase()} · {release.genre || 'Music'}{release.explicit ? ' · E' : ''}</small>
-          </Link>
-        ))}</div> : <div className="music-v2-empty"><h3>No live releases yet.</h3><p>Music marked Live in EBG Studio will appear here.</p></div>}
-      </section>
+      <div className="music-catalog-tools"><label>Find an album, song, or artist<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search albums, songs, and artists" /></label><label>Sort library<select value={sort} onChange={event => setSort(event.target.value)}><option value="catalog">Catalog order</option><option value="title">Title</option><option value="artist">Artist</option></select></label><button className="btn muted" type="button" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(!favoritesOnly)}>{favoritesOnly ? '♥ Favorites' : '♡ Favorites'}</button></div>
+      <VinylLibrary albums={libraryAlbums} query={query} favorites={favorites} favoritesOnly={favoritesOnly} />
 
       {tracks.length > 0 && <section className="music-v2-section">
         <div className="music-v2-section-head"><div><p className="eyebrow">LISTEN NOW</p><h2>Songs</h2></div><MusicCollectionActions tracks={visibleTracks.map((item: any) => catalogTrack(item, artistName(item.artistId), releases.find((r: any) => r.id === item.releaseId)?.cover))} /></div>

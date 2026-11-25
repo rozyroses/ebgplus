@@ -3,8 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { audioMime, catalogTrack, nextQueueIndex, selectSource, sourceSupported } from '../lib/musicPlayback'
 import type { AudioQuality, MusicSource, MusicTrack } from '../lib/musicPlayback'
+import VinylTurntable from './VinylTurntable'
+import { Link } from 'react-router-dom'
 
-type PlayRequest = { track: MusicTrack; queue: MusicTrack[]; shuffle?: boolean }
+type MusicAlbum = { id: string; releaseId?: string; title: string; cover?: string; tracks: MusicTrack[] }
+type PlayRequest = { track: MusicTrack; queue: MusicTrack[]; shuffle?: boolean; album?: Omit<MusicAlbum, 'tracks'> }
 const PLAY_EVENT = 'ebg-music-play-v2'
 const QUEUE_EVENT = 'ebg-music-queue-v2'
 const FAVORITES_KEY = 'ebg.music.favorites.v1'
@@ -19,6 +22,11 @@ export function useMusicFavorites() {
   return favorites
 }
 const playTracks = (track: MusicTrack, queue: MusicTrack[], shuffle = false) => window.dispatchEvent(new CustomEvent<PlayRequest>(PLAY_EVENT, { detail: { track, queue: queue.filter(item => item.sources.length), shuffle } }))
+export function playMusicAlbum(album: MusicAlbum) {
+  const queue = album.tracks.filter(track => track.sources.length)
+  if (!queue.length) return
+  window.dispatchEvent(new CustomEvent<PlayRequest>(PLAY_EVENT, { detail: { track: queue[0], queue, album: { id: album.id, releaseId: album.releaseId, title: album.title, cover: album.cover } } }))
+}
 const time = (seconds: number) => Number.isFinite(seconds) ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` : '0:00'
 function SourceBadges({ track }: { track: MusicTrack }) {
   return <span className="music-source-badges">{track.sources.some(source => source.quality === 'lossless') && <span>Lossless source</span>}{track.sources.some(source => source.quality === 'atmos') && <span>Atmos mix</span>}</span>
@@ -47,6 +55,7 @@ export function EbgMusicDock() {
   const [queue, setQueue] = useState<MusicTrack[]>([])
   const [index, setIndex] = useState(0)
   const [expanded, setExpanded] = useState(false)
+  const [album, setAlbum] = useState<PlayRequest['album']>()
   const [playing, setPlaying] = useState(false)
   const [loading, setLoading] = useState(false)
   const [position, setPosition] = useState(0)
@@ -77,6 +86,8 @@ export function EbgMusicDock() {
       const tracks = request.queue.length ? request.queue : [request.track]
       const next = Math.max(0, tracks.findIndex(item => item.id === request.track.id))
       audio.current?.pause(); changeQueue(tracks); choose(next); setShuffle(!!request.shuffle)
+      setAlbum(request.album)
+      if (request.album) { setExpanded(true); setPanel('queue') }
     }
     const add = (event: Event) => {
       const item = (event as CustomEvent<MusicTrack>).detail
@@ -161,17 +172,18 @@ export function EbgMusicDock() {
       <input className="music-dock-seek" type="range" min="0" max={duration || 1} step=".1" value={Math.min(position, duration || 0)} onChange={event => seek(Number(event.target.value))} aria-label="Seek song" disabled={!duration} />
       {(error || notice) && <p className="music-dock-notice" role={error ? 'alert' : 'status'}>{error || notice}</p>}
     </aside>
-    <dialog ref={dialog} className="music-dialog-v3" aria-labelledby="music-dialog-title" onCancel={() => setExpanded(false)} onClose={() => setExpanded(false)}>
-      <header><span>NOW PLAYING</span><button type="button" className="music-icon-button" onClick={() => setExpanded(false)} aria-label="Close now playing">×</button></header>
+    <dialog ref={dialog} className="music-dialog-v3 vinyl-player-dialog" aria-labelledby="music-dialog-title" onCancel={() => setExpanded(false)} onClose={() => setExpanded(false)}>
+      <header><span>THE LISTENING ROOM</span><button type="button" className="music-icon-button" onClick={() => setExpanded(false)} aria-label="Close now playing">×</button></header>
       <div className="music-dialog-grid"><section className="music-listening-panel">
-        <div className="music-playing-art">{track.artwork ? <img src={track.artwork} alt="" /> : <span>♪</span>}</div><h2 id="music-dialog-title">{track.title}</h2><p>{track.artist}</p>
+        <VinylTurntable key={album?.id || track.artwork || track.id} artwork={track.artwork || album?.cover} title={album?.title || track.title} playing={playing && !loading} />
+        {album && <p className="vinyl-album-title">{album.title}</p>}<h2 id="music-dialog-title">{track.title}</h2><p>{track.artist}</p>
         <span className="music-quality-badge">{qualityLabel}{selectedSource?.bitDepth && selectedSource?.sampleRate ? ` · ${selectedSource.bitDepth}-bit / ${selectedSource.sampleRate / 1000} kHz` : ''}</span>
         <div className="music-timeline"><span>{time(position)}</span><input type="range" min="0" max={duration || 1} step=".1" value={Math.min(position, duration || 0)} onChange={event => seek(Number(event.target.value))} aria-label="Seek song" disabled={!duration} /><span>{time(duration)}</span></div>
         <div className="music-transport"><button type="button" className="music-icon-button" aria-label="Shuffle" aria-pressed={shuffle} onClick={() => setShuffle(!shuffle)}>⤨</button><button type="button" className="music-icon-button" onClick={previous} aria-label="Previous song">⏮</button>{playButton}<button type="button" className="music-icon-button" onClick={() => advance()} aria-label="Next song">⏭</button><button type="button" className="music-icon-button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat !== 'off'} onClick={() => setRepeat(repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off')}>{repeat === 'one' ? '↻ 1' : '↻'}</button></div>
         <div className="music-volume"><button type="button" className="music-icon-button" aria-label={muted ? 'Unmute' : 'Mute'} onClick={() => { if (audio.current) audio.current.muted = !muted }}>{muted ? 'Muted' : 'Volume'}</button><input type="range" min="0" max="1" step=".05" value={volume} onChange={event => { if (audio.current) { audio.current.volume = Number(event.target.value); audio.current.muted = false } }} aria-label="Volume" /></div>
         <div className="music-listening-options"><label>Audio quality<select value={quality} onChange={event => changeQuality(event.target.value as AudioQuality)}><option value="auto">Best available</option>{(['standard', 'lossless', 'atmos'] as const).map(option => <option key={option} value={option} disabled={!track.sources.some((source, i) => source.quality === option && supported[i])}>{option === 'atmos' ? 'Dolby Atmos' : option === 'lossless' ? 'Lossless' : 'Standard'}</option>)}</select></label><button className="btn muted" type="button" onClick={favoriteTrack} aria-pressed={favorite}>{favorite ? '♥ Saved' : '♡ Favorite'}</button></div>
         <p className="music-quality-note">Quality depends on the available mix, browser, and output device. Bluetooth and system processing may affect lossless output.</p>{(error || notice) && <p role={error ? 'alert' : 'status'}>{error || notice}</p>}
-      </section><section className="music-companion-panel"><div className="music-panel-tabs"><button type="button" aria-pressed={panel === 'queue'} onClick={() => setPanel('queue')}>Queue ({queue.length})</button><button type="button" aria-pressed={panel === 'lyrics'} onClick={() => setPanel('lyrics')}>Lyrics</button></div>
+      </section><section className="music-companion-panel">{album && <div className="vinyl-tracklist-heading"><p className="eyebrow">ON THE TURNTABLE</p><h3>{album.title}</h3><p>{queue.length} {queue.length === 1 ? 'song' : 'songs'}</p>{album.releaseId && <Link to={`/app/music/release/${album.releaseId}`} onClick={() => setExpanded(false)}>Album details & credits</Link>}</div>}<div className="music-panel-tabs"><button type="button" aria-pressed={panel === 'queue'} onClick={() => setPanel('queue')}>{album ? 'Tracklist' : 'Queue'} ({queue.length})</button><button type="button" aria-pressed={panel === 'lyrics'} onClick={() => setPanel('lyrics')}>Lyrics</button></div>
         {panel === 'queue' ? <ol className="music-queue-list">{queue.map((item, i) => <li key={`${item.id}-${i}`} className={i === index ? 'active' : ''}><button type="button" aria-current={i === index ? 'true' : undefined} onClick={() => choose(i)}><span>{i === index && playing ? '♫' : i + 1}</span><span><strong>{item.title}</strong><small>{item.artist}</small></span></button>{i !== index && <button type="button" className="music-icon-button" aria-label={`Remove ${item.title} from queue`} onClick={() => { changeQueue(queue.filter((_, n) => n !== i)); if (i < index) { indexRef.current = index - 1; setIndex(index - 1) } }}>×</button>}</li>)}</ol> : track.timedLyrics?.length ? <div className="music-lyrics-lines">{track.timedLyrics.map((line, i) => <button className={i === activeLyric ? 'active' : ''} type="button" key={`${line.start}-${i}`} onClick={() => seek(line.start)}>{line.text}</button>)}</div> : <p className="music-plain-lyrics">{track.lyrics || 'Lyrics haven’t been added for this song yet.'}</p>}
       </section></div>
     </dialog>

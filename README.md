@@ -119,6 +119,18 @@ Run `npm run test:broadcast` for server authorization, private publisher credent
 activation, heartbeat leases, stop cleanup, and concurrent catalog updates. The
 deployment workflow runs both suites before publishing.
 
+## Music library
+
+The Music page presents existing published releases and standalone songs as a
+scrollable shelf of album spines. Search matches albums, artists, and songs;
+Favorites filters the shelf to releases containing a saved track. Selecting a
+playable sleeve opens the listening room, animates its artwork and vinyl onto a
+turntable, and plays the release's available tracks in track-number order using
+the existing persistent audio player. Pause and buffering stop the record;
+closing the room keeps playback available in the dock. Releases without audio
+still link to their detail pages. The shelf supports keyboard focus and mobile
+scrolling, and reduced-motion preferences disable the animations.
+
 ## Update the visual identity
 
 The public entrance is `src/components/ModernLanding.tsx` with
