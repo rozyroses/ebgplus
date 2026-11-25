@@ -2,7 +2,7 @@ import { readLumiReferences } from './lumiReferences'
 import LumiAutoUpload from './LumiAutoUpload'
 import LumiVoiceInput from './LumiVoiceInput'
 import LumiHandoffReview from './LumiHandoffReview'
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { loadAuthState, readStoredSession } from '../../src/lib/auth'
 import {
   createLumiChat,
@@ -182,6 +182,38 @@ export default function StudioLumi() {
   const [imageAspect, setImageAspect] = useState<LumiImageAspect>('square')
   const [imageGenerating, setImageGenerating] = useState(false)
   const [referenceFiles, setReferenceFiles] = useState<File[]>([])
+  const overlay = useRef<HTMLElement>(null)
+  const conversation = useRef<HTMLDivElement>(null)
+  const followLatest = useRef(true)
+  const previousConversation = useRef('')
+  useLayoutEffect(() => {
+    if (!active) return
+    const toolbar = document.querySelector('.studio-v3-topbar')
+    const viewport = window.visualViewport
+    const resize = () => {
+      const top = Math.max(0, toolbar?.getBoundingClientRect().bottom ?? 0, viewport?.offsetTop ?? 0)
+      const bottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight
+      overlay.current?.style.setProperty('--lumi-chat-top', `${top}px`)
+      overlay.current?.style.setProperty('--lumi-chat-height', `${Math.max(0, bottom-top)}px`)
+    }
+    resize()
+    const observer = new ResizeObserver(resize)
+    if (toolbar) observer.observe(toolbar)
+    window.addEventListener('resize', resize)
+    window.addEventListener('scroll', resize, { passive: true })
+    viewport?.addEventListener('resize', resize)
+    viewport?.addEventListener('scroll', resize)
+    return () => { observer.disconnect(); window.removeEventListener('resize', resize); window.removeEventListener('scroll', resize); viewport?.removeEventListener('resize', resize); viewport?.removeEventListener('scroll', resize) }
+  }, [active])
+  useLayoutEffect(() => {
+    const list = conversation.current
+    if (!list || !active) return
+    if (previousConversation.current !== activeChatId || followLatest.current || messages.at(-1)?.role === 'user') {
+      list.scrollTop = list.scrollHeight
+      followLatest.current = true
+    }
+    previousConversation.current = activeChatId
+  }, [active, activeChatId, messages, busy])
   useEffect(() => { setReferenceFiles([]); setAutoMode(false) }, [projectId, active])
   const greetingName = useMemo(() => profileName || 'there', [profileName])
 
@@ -709,7 +741,7 @@ export default function StudioLumi() {
   if (!active) return null
 
   return (
-    <section className="studio-lumi-overlay" aria-label="Lumi for EBG Studio">
+    <section ref={overlay} className={`studio-lumi-overlay${hasConversation ? ' has-conversation' : ''}`} aria-label="Lumi for EBG Studio">
       <div className={`studio-lumi-shell ${hasConversation ? 'conversation-active' : ''} ${contextOpen ? 'context-open' : 'context-closed'}`}>
         <header className="studio-lumi-topbar">
           <div className="studio-lumi-brand">
@@ -837,7 +869,7 @@ export default function StudioLumi() {
 
         {hasConversation && (
           <main className="studio-lumi-chat">
-            <div className="studio-lumi-messages">
+            <div ref={conversation} className="studio-lumi-messages" role="region" aria-label="Conversation with Lumi" tabIndex={0} onScroll={event => { const list=event.currentTarget; followLatest.current=list.scrollHeight-list.scrollTop-list.clientHeight<64 }}>
               {messages.map((message, index) => (
                 <article className={message.role} key={`${message.role}-${index}`}>
                   <span>{message.role === 'lumi' ? 'Lumi ✦' : profileName}</span>

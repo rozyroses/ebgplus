@@ -1,0 +1,50 @@
+/* Bound the conversation to the visible workspace, including the mobile keyboard.
+   The transcript scrolls; the header, notices, and composer keep their own space. */
+body .studio-lumi-overlay.has-conversation,
+body .workspace > .studio-lumi-overlay.has-conversation {
+  position: fixed !important;
+  inset: var(--lumi-chat-top, 74px) 0 auto !important;
+  height: var(--lumi-chat-height, calc(100dvh - 74px)) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  z-index: 70 !important;
+}
+body .studio-lumi-shell.conversation-active,
+body .studio-lumi-shell.conversation-active:has(.lumi-auto-upload) {
+  height: 100%;
+  min-height: 0 !important;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+}
+.conversation-active > .lumi-auto-upload {
+  min-height: 0;
+  max-height: min(30dvh, 18rem);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+body .conversation-active > .studio-lumi-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: max(.5rem, env(safe-area-inset-bottom));
+}
+.conversation-active .studio-lumi-messages {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+.conversation-active .studio-lumi-messages > article { flex-shrink: 0; overflow-wrap: anywhere; }
+.conversation-active .studio-lumi-messages:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: -2px; }
+.conversation-active .lumi-conversation-footer { position: relative; flex: 0 0 auto; }
+.conversation-active .studio-lumi-chat > :is(.studio-lumi-error, .studio-lumi-success) { flex: 0 0 auto; max-height: 25%; overflow-y: auto; }
+@media(max-height:600px) {
+  .conversation-active > .lumi-auto-upload { max-height: 20dvh; }
+  .conversation-active .lumi-quick-prompts.compact { display: none; }
+}
