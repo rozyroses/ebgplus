@@ -51,3 +51,4 @@ import './studioInbox.css'
 import './studioWorkflow.css'
 
 import './studioCinematic.css'
+import './studioLumiScroll.css'
