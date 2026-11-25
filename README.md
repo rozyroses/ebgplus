@@ -131,6 +131,29 @@ closing the room keeps playback available in the dock. Releases without audio
 still link to their detail pages. The shelf supports keyboard focus and mobile
 scrolling, and reduced-motion preferences disable the animations.
 
+Listeners open `/app/music/collection` from Music, the desktop Library menu, or
+mobile navigation. Saved albums, cassette playlists (name, color, song order),
+favorites, and recent songs are private to the signed-in account and available
+across devices. Save albums from the listening room or release details. Add songs
+using each player's playlist picker or the cassette editor. Catalog references
+are resolved against currently published music; removed or unpublished audio
+cannot be restored by an old playlist. Playlists retain unavailable song IDs so
+listeners can remove them or recover them if the music is republished.
+
+The `personal_music_collection` migration adds the owner-protected
+`music_collection_items` table and an invoker RPC. Playlist changes use individual
+actions under a row lock, avoiding whole-collection overwrites between devices.
+Reads refresh on focus, reconnect, and every 30 seconds while visible. Failed
+writes show an error and leave the displayed collection unchanged. Legacy device
+favorites are imported only through the explicit account import button. Recent
+history is limited to 40 songs (12 displayed); playlists support up to 500 songs.
+
+Run `npm run test:music-collection` for catalog publication and ordering checks.
+`scripts/test-music-collection.sql` verifies persistence, playlist actions, input
+validation, expired sessions, and account isolation inside a rollback-only SQL
+transaction. The migration is already applied to the existing EBG+ project;
+normal website builds do not apply database migrations.
+
 ## Update the visual identity
 
 The public entrance is `src/components/ModernLanding.tsx` with

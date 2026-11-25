@@ -5,7 +5,10 @@ import ModernLanding from './components/ModernLanding'
 import MobileNavigation from './components/MobileNavigation'
 import MoviesPage from './components/MoviesPage'
 import VinylLibrary from './components/VinylLibrary'
-import type { LibraryAlbum } from './components/VinylLibrary'
+import { buildMusicLibrary } from './lib/musicCatalog'
+import MusicCollectionPage from './components/MusicCollectionPage'
+import { CollectionStatus, MusicCollectionProvider } from './components/MusicCollectionContext'
+import SaveAlbumButton from './components/SaveAlbumButton'
 import AccountIdentitySettings from './components/AccountIdentitySettings'
 import { CreatorCredit, CreditsProvider, loadPublicCredits, type CreditMap } from './components/CreatorCredit'
 import ScrollToTop from './components/ScrollToTop'
@@ -826,7 +829,7 @@ function Shell() {
         path="/app/*"
         element={
           <ProtectedRoute account={account} profile={profile} requireProfile>
-            <CreditsProvider credits={credits}><AppLayout
+            <CreditsProvider credits={credits}><MusicCollectionProvider key={account?.id} accountId={account?.id ?? ''}><AppLayout
               account={account!}
               profile={profile!}
               cms={cms}
@@ -854,7 +857,7 @@ function Shell() {
                 }
                 setCastingApps((prev) => [saved, ...prev])
               }}
-            /></CreditsProvider>
+            /></MusicCollectionProvider></CreditsProvider>
           </ProtectedRoute>
         }
       />
@@ -1631,7 +1634,7 @@ function AppLayout({
         </nav>
         <p className="sidebar-caption">YOUR SPACE</p>
         <nav aria-label="Your library">
-          {[["My list", "/app/my-list"], ["Applications", "/app/applications"], ["Messages", "/app/inbox"], ["Notifications", "/app/notifications"], ["Settings", "/app/settings"]].map(([label, to]) => <NavLink key={to} to={to}>{label}</NavLink>)}
+          {[["Your collection", "/app/music/collection"], ["My list", "/app/my-list"], ["Applications", "/app/applications"], ["Messages", "/app/inbox"], ["Notifications", "/app/notifications"], ["Settings", "/app/settings"]].map(([label, to]) => <NavLink key={to} to={to}>{label}</NavLink>)}
         </nav>
         <Link className="sidebar-profile" to="/profiles"><AvatarVisual avatar={profile.avatar} nav /><span>{profile.name}<small>Switch profile</small></span></Link>
       </aside>
@@ -1661,6 +1664,7 @@ function AppLayout({
           <details className="nav-menu library-menu" open={openNavMenu === 'library'} onToggle={(event) => toggleMenu('library', event.currentTarget.open)}>
             <summary>Library <span aria-hidden="true">⌄</span></summary>
             <div className="nav-dropdown nav-dropdown-right" onClick={() => setOpenNavMenu(null)}>
+              <Link to="/app/music/collection">Your music collection</Link>
               <Link to="/app/my-list">My List</Link>
               <Link to="/app/applications">My Applications</Link>
               <Link to="/app/inbox">Messages</Link>
@@ -1702,6 +1706,7 @@ function AppLayout({
         <Route path="live-tv" element={<Suspense fallback={<main className="page" role="status">Loading Live TV…</main>}><LiveTvPage cms={cms} canManage={['founder', 'administrator'].includes(account.role)} /></Suspense>} />
         <Route path="movies" element={<MoviesPage cms={cms} />} />
         <Route path="music" element={<MusicPage cms={cms} />} />
+        <Route path="music/collection" element={<MusicCollectionPage music={cms.music ?? {}} />} />
         <Route path="music/artist/:artistId" element={<MusicArtistPage cms={cms} />} />
         <Route path="music/release/:releaseId" element={<MusicReleasePage cms={cms} />} />
         <Route path="originals" element={<OriginalsPage cms={cms} />} />
@@ -3238,25 +3243,14 @@ function MusicPage({ cms }: { cms: CmsData }) {
     const releaseTitle = releases.find((release: any) => release.id === track.releaseId)?.title || ''
     return (!favoritesOnly || favorites.includes(details.id)) && `${track.title} ${details.artist} ${releaseTitle}`.toLowerCase().includes(query.trim().toLowerCase())
   }).sort((a: any, b: any) => sort === 'title' ? String(a.title).localeCompare(String(b.title)) : sort === 'artist' ? artistName(a.artistId).localeCompare(artistName(b.artistId)) : 0)
-  const libraryAlbums: LibraryAlbum[] = releases.map((release: any) => ({
-    id: release.id, releaseId: release.id, title: release.title, artist: artistName(release.artistId),
-    cover: release.cover, type: release.type || 'album',
-    tracks: tracks.filter((track: any) => track.releaseId === release.id)
-      .sort((a: any, b: any) => (a.trackNumber ?? 0) - (b.trackNumber ?? 0))
-      .map((track: any) => catalogTrack(track, artistName(track.artistId || release.artistId), release.cover)),
-  }))
-  // Standalone songs get their own sleeve, so the shelf includes the existing full catalog.
-  for (const track of tracks.filter((item: any) => !item.releaseId)) {
-    const artist = artists.find((item: any) => item.id === track.artistId)
-    libraryAlbums.push({ id: 'track:' + track.id, title: track.title, artist: artistName(track.artistId),
-      cover: track.cover || track.artwork || artist?.image, type: 'single',
-      tracks: [catalogTrack(track, artistName(track.artistId), track.cover || track.artwork || artist?.image)] })
-  }
+  const libraryAlbums = buildMusicLibrary(music).albums
   if (sort === 'title') libraryAlbums.sort((a, b) => a.title.localeCompare(b.title))
   if (sort === 'artist') libraryAlbums.sort((a, b) => a.artist.localeCompare(b.artist))
 
   return (
     <main className="page music-v2-page">
+      <div className="music-collection-link"><Link className="btn muted" to="/app/music/collection">Your collection & mixtapes</Link></div>
+      <CollectionStatus />
       <div className="music-catalog-tools"><label>Find an album, song, or artist<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search albums, songs, and artists" /></label><label>Sort library<select value={sort} onChange={event => setSort(event.target.value)}><option value="catalog">Catalog order</option><option value="title">Title</option><option value="artist">Artist</option></select></label><button className="btn muted" type="button" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(!favoritesOnly)}>{favoritesOnly ? '♥ Favorites' : '♡ Favorites'}</button></div>
       <VinylLibrary albums={libraryAlbums} query={query} favorites={favorites} favoritesOnly={favoritesOnly} />
 
@@ -3268,7 +3262,7 @@ function MusicPage({ cms }: { cms: CmsData }) {
             {hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artistName(track.artistId), releases.find((r: any) => r.id === track.releaseId)?.cover)} queue={visibleTracks.map((item: any) => catalogTrack(item, artistName(item.artistId), releases.find((r: any) => r.id === item.releaseId)?.cover))} src={track.audioUrl || ''} title={track.title} artist={artistName(track.artistId)} artwork={releases.find((release: any) => release.id === track.releaseId)?.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}
           </article>
         ))}</div>
-        {!visibleTracks.length && <div className="music-v2-empty"><h3>{favoritesOnly ? 'No saved songs match.' : 'No songs match your search.'}</h3><p>{favoritesOnly ? 'Favorite songs in the player to find them here. Favorites are saved on this device.' : 'Try another title or artist.'}</p></div>}
+        {!visibleTracks.length && <div className="music-v2-empty"><h3>{favoritesOnly ? 'No saved songs match.' : 'No songs match your search.'}</h3><p>{favoritesOnly ? 'Favorite songs in the player to find them here. Favorites are saved to your account.' : 'Try another title or artist.'}</p></div>}
       </section>}
 
       {videos.length > 0 && <section className="music-v2-section">
@@ -3339,9 +3333,10 @@ function MusicReleasePage({ cms }: { cms: CmsData }) {
   return (
     <main className="page music-detail-page">
       <Link className="music-detail-back" to="/app/music">← Music</Link>
+      <CollectionStatus />
       <section className="music-release-hero">
         <div className="music-release-art">{release.cover ? <img src={release.cover} alt={release.title + ' cover'} /> : <span>♫</span>}</div>
-        <div className="music-release-info"><p className="eyebrow">{String(release.type || 'release').toUpperCase()}</p><h1>{release.title}</h1><span className="creator-credit-line"><CreatorCredit kind="release" id={release.id} /></span>{artist && <h2><Link to={'/app/music/artist/' + artist.id}>{artist.name}</Link></h2>}<p className="music-detail-muted">{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}{release.explicit ? ' · Explicit' : ''}</p><p>{tracks.length} {tracks.length === 1 ? 'song' : 'songs'}</p><MusicCollectionActions tracks={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} /></div>
+        <div className="music-release-info"><p className="eyebrow">{String(release.type || 'release').toUpperCase()}</p><h1>{release.title}</h1><span className="creator-credit-line"><CreatorCredit kind="release" id={release.id} /></span>{artist && <h2><Link to={'/app/music/artist/' + artist.id}>{artist.name}</Link></h2>}<p className="music-detail-muted">{release.genre || 'Music'}{release.releaseDate ? ' · ' + new Date(release.releaseDate).getFullYear() : ''}{release.explicit ? ' · Explicit' : ''}</p><p>{tracks.length} {tracks.length === 1 ? 'song' : 'songs'}</p><SaveAlbumButton albumId={release.id} /><MusicCollectionActions tracks={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} /></div>
       </section>
 
       <section className="music-v2-section"><div className="music-v2-section-head"><div><p className="eyebrow">TRACKLIST</p><h2>{release.title}</h2></div></div>{tracks.length ? <div className="music-v2-track-list">{tracks.map((track: any) => <article key={track.id}><div className="music-v2-track-meta"><span className="music-v2-track-number">{track.trackNumber || '•'}</span><div><strong>{track.title}{track.explicit ? ' ᴱ' : ''}</strong><small>{track.duration || (artist?.name ?? 'EBG+')}</small></div></div>{hasPlayableAudio(track) && <EbgAudioPlayer track={catalogTrack(track, artist?.name || 'EBG+', release.cover)} queue={tracks.map((item: any) => catalogTrack(item, artist?.name || 'EBG+', release.cover))} src={track.audioUrl || ''} title={track.title} artist={artist?.name || 'EBG+'} artwork={release.cover || undefined} lyrics={track.lyrics || ''} timedLyrics={track.timedLyrics || []} />}</article>)}</div> : <div className="music-v2-empty"><h3>No tracks attached to this release yet.</h3></div>}</section>

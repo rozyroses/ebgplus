@@ -1,10 +1,13 @@
 import { usePlaybackAnalytics } from '../lib/playbackAnalytics'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { audioMime, catalogTrack, nextQueueIndex, selectSource, sourceSupported } from '../lib/musicPlayback'
 import type { AudioQuality, MusicSource, MusicTrack } from '../lib/musicPlayback'
 import VinylTurntable from './VinylTurntable'
 import { Link } from 'react-router-dom'
+import { CollectionStatus, useMusicCollection } from './MusicCollectionContext'
+import SaveAlbumButton from './SaveAlbumButton'
+import PlaylistTrackPicker from './PlaylistTrackPicker'
 
 type MusicAlbum = { id: string; releaseId?: string; title: string; cover?: string; tracks: MusicTrack[] }
 type PlayRequest = { track: MusicTrack; queue: MusicTrack[]; shuffle?: boolean; album?: Omit<MusicAlbum, 'tracks'> }
@@ -16,10 +19,11 @@ const FAVORITES_EVENT = 'ebg-music-favorites-v1'
 function readPreference<T>(key: string, fallback: T): T { try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback } catch { return fallback } }
 function savePreference(key: string, value: unknown) { try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* Device storage is optional. */ } }
 export function useMusicFavorites() {
+  const collection=useMusicCollection()
   const read = () => { const saved = readPreference<unknown>(FAVORITES_KEY, []); return Array.isArray(saved) ? saved.filter(item => typeof item === 'string') as string[] : [] }
   const [favorites, setFavorites] = useState<string[]>(read)
   useEffect(() => { const sync = () => setFavorites(read()); window.addEventListener(FAVORITES_EVENT, sync); window.addEventListener('storage', sync); return () => { window.removeEventListener(FAVORITES_EVENT, sync); window.removeEventListener('storage', sync) } }, [])
-  return favorites
+  return collection ? collection.rows.filter(row => row.kind==='favorite').map(row => row.item_id) : favorites
 }
 const playTracks = (track: MusicTrack, queue: MusicTrack[], shuffle = false) => window.dispatchEvent(new CustomEvent<PlayRequest>(PLAY_EVENT, { detail: { track, queue: queue.filter(item => item.sources.length), shuffle } }))
 export function playMusicAlbum(album: MusicAlbum) {
@@ -38,7 +42,7 @@ export function EbgAudioPlayer(props: { track?: MusicTrack; queue?: MusicTrack[]
   if (!track.sources.length) return null
   return <div className="music-track-actions"><button type="button" className="music-track-launcher" onClick={() => playTracks(track, props.queue || [track])} aria-label={`Play ${track.title}`}>
     <span className="music-track-launcher-art">{track.artwork ? <img src={track.artwork} alt="" /> : '♪'}</span><span className="music-track-launcher-copy"><strong>{track.title}</strong><small>{track.artist}</small><SourceBadges track={track} /></span><span className="music-track-launcher-play" aria-hidden="true">▶</span>
-  </button><button className="music-queue-add" type="button" aria-label={`Add ${track.title} to queue`} onClick={() => { window.dispatchEvent(new CustomEvent(QUEUE_EVENT, { detail: track })); setQueued(true) }}>{queued ? 'Added' : '+ Queue'}</button><span className="music-sr-only" role="status">{queued ? `${track.title} added to queue` : ''}</span></div>
+  </button><button className="music-queue-add" type="button" aria-label={`Add ${track.title} to queue`} onClick={() => { window.dispatchEvent(new CustomEvent(QUEUE_EVENT, { detail: track })); setQueued(true) }}>{queued ? 'Added' : '+ Queue'}</button><PlaylistTrackPicker trackId={track.id} /><span className="music-sr-only" role="status">{queued ? `${track.title} added to queue` : ''}</span></div>
 }
 export function MusicCollectionActions({ tracks }: { tracks: MusicTrack[] }) {
   const playable = tracks.filter(track => track.sources.length)
@@ -47,6 +51,8 @@ export function MusicCollectionActions({ tracks }: { tracks: MusicTrack[] }) {
 }
 
 export function EbgMusicDock() {
+  const collection=useMusicCollection()
+  const lastRecordedTrack=useRef('')
   const audio = useRef<HTMLAudioElement>(null)
   const dialog = useRef<HTMLDialogElement>(null)
   const queueRef = useRef<MusicTrack[]>([])
@@ -73,6 +79,12 @@ export function EbgMusicDock() {
   const [panel, setPanel] = useState<'lyrics' | 'queue'>('queue')
   const favorites = useMusicFavorites()
   const track = queue[index]
+  useLayoutEffect(() => { const media=audio.current; return () => media?.pause() },[!!track])
+  useEffect(() => {
+    if (!track || !playing || !collection?.ready || lastRecordedTrack.current===track.id) return
+    lastRecordedTrack.current=track.id
+    void collection.act('recent',track.id,'save').then(saved => { if (!saved) lastRecordedTrack.current='' })
+  },[track?.id,playing,collection?.ready,collection?.act])
   const analytics = usePlaybackAnalytics(track?.id, track?.title, 'music')
   const resume = useRef({ time: 0, play: true })
   const choose = (next: number) => { audio.current?.pause(); resume.current = { time: 0, play: true }; indexRef.current = next; setIndex(next); setPosition(0); setDuration(0); setFailedSources([]); setError(''); setNotice('') }
@@ -151,7 +163,7 @@ export function EbgMusicDock() {
   const close = () => { audio.current?.pause(); changeQueue([]); setExpanded(false); setPlaying(false); setSelectedSource(null); setError(''); setNotice('') }
   const changeQuality = (next: AudioQuality) => { resume.current = { time: audio.current?.currentTime || 0, play: !audio.current?.paused }; savePreference(QUALITY_KEY, next); setFailedSources([]); setNotice(''); setQuality(next) }
   const favorite = favorites.includes(track.id)
-  const favoriteTrack = () => { const next = favorite ? favorites.filter(id => id !== track.id) : [...favorites, track.id]; savePreference(FAVORITES_KEY, next); window.dispatchEvent(new Event(FAVORITES_EVENT)) }
+  const favoriteTrack = () => { if (collection) { void collection.act('favorite',track.id,favorite ? 'remove' : 'save'); return } const next = favorite ? favorites.filter(id => id !== track.id) : [...favorites, track.id]; savePreference(FAVORITES_KEY, next); window.dispatchEvent(new Event(FAVORITES_EVENT)) }
   const qualityLabel = selectedSource?.quality === 'atmos' ? 'Dolby Atmos source' : selectedSource?.quality === 'lossless' ? 'Lossless source' : 'Standard audio'
   const activeLyric = track.timedLyrics?.findIndex(line => position >= line.start && position < line.end) ?? -1
   const playButton = <button type="button" className="music-play-button" disabled={loading || !selectedSource} onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{loading ? '…' : playing ? '❚❚' : '▶'}</button>
@@ -167,13 +179,14 @@ export function EbgMusicDock() {
     <aside className="music-dock-v3" aria-label="Now playing">
       <button className="music-dock-info" type="button" onClick={() => setExpanded(true)} aria-label="Open now playing"><span className="music-dock-art">{track.artwork ? <img src={track.artwork} alt="" /> : '♪'}</span><span><strong>{track.title}</strong><small>{track.artist} · {qualityLabel}</small></span></button>
       <button type="button" className="music-icon-button music-dock-previous" onClick={previous} aria-label="Previous song">⏮</button>{playButton}<button type="button" className="music-icon-button" onClick={() => advance()} disabled={queue.length < 2 && repeat === 'off'} aria-label="Next song">⏭</button>
-      <button type="button" className="music-icon-button" onClick={favoriteTrack} aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'} aria-pressed={favorite}>{favorite ? '♥' : '♡'}</button>
+      <button type="button" className="music-icon-button" onClick={favoriteTrack} aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'} aria-pressed={favorite} disabled={!!collection && (!collection.ready || collection.busy)}>{favorite ? '♥' : '♡'}</button>
       <button type="button" className="music-icon-button" onClick={close} aria-label="Close player">×</button>
       <input className="music-dock-seek" type="range" min="0" max={duration || 1} step=".1" value={Math.min(position, duration || 0)} onChange={event => seek(Number(event.target.value))} aria-label="Seek song" disabled={!duration} />
       {(error || notice) && <p className="music-dock-notice" role={error ? 'alert' : 'status'}>{error || notice}</p>}
     </aside>
     <dialog ref={dialog} className="music-dialog-v3 vinyl-player-dialog" aria-labelledby="music-dialog-title" onCancel={() => setExpanded(false)} onClose={() => setExpanded(false)}>
       <header><span>THE LISTENING ROOM</span><button type="button" className="music-icon-button" onClick={() => setExpanded(false)} aria-label="Close now playing">×</button></header>
+      {collection && <CollectionStatus />}
       <div className="music-dialog-grid"><section className="music-listening-panel">
         <VinylTurntable key={album?.id || track.artwork || track.id} artwork={track.artwork || album?.cover} title={album?.title || track.title} playing={playing && !loading} />
         {album && <p className="vinyl-album-title">{album.title}</p>}<h2 id="music-dialog-title">{track.title}</h2><p>{track.artist}</p>
@@ -181,9 +194,9 @@ export function EbgMusicDock() {
         <div className="music-timeline"><span>{time(position)}</span><input type="range" min="0" max={duration || 1} step=".1" value={Math.min(position, duration || 0)} onChange={event => seek(Number(event.target.value))} aria-label="Seek song" disabled={!duration} /><span>{time(duration)}</span></div>
         <div className="music-transport"><button type="button" className="music-icon-button" aria-label="Shuffle" aria-pressed={shuffle} onClick={() => setShuffle(!shuffle)}>⤨</button><button type="button" className="music-icon-button" onClick={previous} aria-label="Previous song">⏮</button>{playButton}<button type="button" className="music-icon-button" onClick={() => advance()} aria-label="Next song">⏭</button><button type="button" className="music-icon-button" aria-label={`Repeat: ${repeat}`} aria-pressed={repeat !== 'off'} onClick={() => setRepeat(repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off')}>{repeat === 'one' ? '↻ 1' : '↻'}</button></div>
         <div className="music-volume"><button type="button" className="music-icon-button" aria-label={muted ? 'Unmute' : 'Mute'} onClick={() => { if (audio.current) audio.current.muted = !muted }}>{muted ? 'Muted' : 'Volume'}</button><input type="range" min="0" max="1" step=".05" value={volume} onChange={event => { if (audio.current) { audio.current.volume = Number(event.target.value); audio.current.muted = false } }} aria-label="Volume" /></div>
-        <div className="music-listening-options"><label>Audio quality<select value={quality} onChange={event => changeQuality(event.target.value as AudioQuality)}><option value="auto">Best available</option>{(['standard', 'lossless', 'atmos'] as const).map(option => <option key={option} value={option} disabled={!track.sources.some((source, i) => source.quality === option && supported[i])}>{option === 'atmos' ? 'Dolby Atmos' : option === 'lossless' ? 'Lossless' : 'Standard'}</option>)}</select></label><button className="btn muted" type="button" onClick={favoriteTrack} aria-pressed={favorite}>{favorite ? '♥ Saved' : '♡ Favorite'}</button></div>
+        <div className="music-listening-options"><label>Audio quality<select value={quality} onChange={event => changeQuality(event.target.value as AudioQuality)}><option value="auto">Best available</option>{(['standard', 'lossless', 'atmos'] as const).map(option => <option key={option} value={option} disabled={!track.sources.some((source, i) => source.quality === option && supported[i])}>{option === 'atmos' ? 'Dolby Atmos' : option === 'lossless' ? 'Lossless' : 'Standard'}</option>)}</select></label><button className="btn muted" type="button" onClick={favoriteTrack} aria-pressed={favorite} disabled={!!collection && (!collection.ready || collection.busy)}>{favorite ? '♥ Saved' : '♡ Favorite'}</button><PlaylistTrackPicker trackId={track.id} onNavigate={() => setExpanded(false)} /></div>
         <p className="music-quality-note">Quality depends on the available mix, browser, and output device. Bluetooth and system processing may affect lossless output.</p>{(error || notice) && <p role={error ? 'alert' : 'status'}>{error || notice}</p>}
-      </section><section className="music-companion-panel">{album && <div className="vinyl-tracklist-heading"><p className="eyebrow">ON THE TURNTABLE</p><h3>{album.title}</h3><p>{queue.length} {queue.length === 1 ? 'song' : 'songs'}</p>{album.releaseId && <Link to={`/app/music/release/${album.releaseId}`} onClick={() => setExpanded(false)}>Album details & credits</Link>}</div>}<div className="music-panel-tabs"><button type="button" aria-pressed={panel === 'queue'} onClick={() => setPanel('queue')}>{album ? 'Tracklist' : 'Queue'} ({queue.length})</button><button type="button" aria-pressed={panel === 'lyrics'} onClick={() => setPanel('lyrics')}>Lyrics</button></div>
+      </section><section className="music-companion-panel">{album && <div className="vinyl-tracklist-heading"><p className="eyebrow">ON THE TURNTABLE</p><h3>{album.title}</h3>{!album.id.startsWith('playlist:') && <SaveAlbumButton albumId={album.id} />}<p>{queue.length} {queue.length === 1 ? 'song' : 'songs'}</p>{album.releaseId && <Link to={`/app/music/release/${album.releaseId}`} onClick={() => setExpanded(false)}>Album details & credits</Link>}</div>}<div className="music-panel-tabs"><button type="button" aria-pressed={panel === 'queue'} onClick={() => setPanel('queue')}>{album ? 'Tracklist' : 'Queue'} ({queue.length})</button><button type="button" aria-pressed={panel === 'lyrics'} onClick={() => setPanel('lyrics')}>Lyrics</button></div>
         {panel === 'queue' ? <ol className="music-queue-list">{queue.map((item, i) => <li key={`${item.id}-${i}`} className={i === index ? 'active' : ''}><button type="button" aria-current={i === index ? 'true' : undefined} onClick={() => choose(i)}><span>{i === index && playing ? '♫' : i + 1}</span><span><strong>{item.title}</strong><small>{item.artist}</small></span></button>{i !== index && <button type="button" className="music-icon-button" aria-label={`Remove ${item.title} from queue`} onClick={() => { changeQueue(queue.filter((_, n) => n !== i)); if (i < index) { indexRef.current = index - 1; setIndex(index - 1) } }}>×</button>}</li>)}</ol> : track.timedLyrics?.length ? <div className="music-lyrics-lines">{track.timedLyrics.map((line, i) => <button className={i === activeLyric ? 'active' : ''} type="button" key={`${line.start}-${i}`} onClick={() => seek(line.start)}>{line.text}</button>)}</div> : <p className="music-plain-lyrics">{track.lyrics || 'Lyrics haven’t been added for this song yet.'}</p>}
       </section></div>
     </dialog>
