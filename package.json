@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "postbuild": "node scripts/prepare-pages.mjs",
-    "check:deploy": "node scripts/check-deploy-env.mjs"
+    "check:deploy": "node scripts/check-deploy-env.mjs",
+    "test:music-collection": "node --experimental-strip-types scripts/test-music-collection.mjs"
   },
   "dependencies": {
     "hls.js": "1.7.3",

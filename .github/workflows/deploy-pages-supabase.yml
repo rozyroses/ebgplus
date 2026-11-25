@@ -32,6 +32,8 @@ jobs:
         run: npm run check:deploy
       - name: Build committed source
         run: npm run build
+      - name: Verify music collection catalog
+        run: npm run test:music-collection
       - name: Verify Live TV scheduling
         run: npm run test:live-tv
       - name: Verify browser broadcast authorization

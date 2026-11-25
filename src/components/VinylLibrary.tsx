@@ -1,21 +1,13 @@
 import { Link } from 'react-router-dom'
 import { playMusicAlbum } from './MusicPlayer'
-import type { MusicTrack } from '../lib/musicPlayback'
 
-export type LibraryAlbum = {
-  id: string
-  releaseId?: string
-  title: string
-  artist: string
-  cover?: string
-  type: string
-  tracks: MusicTrack[]
-}
+import type { LibraryAlbum } from '../lib/musicCatalog'
 
-export default function VinylLibrary({ albums, query, favorites, favoritesOnly }: {
+export default function VinylLibrary({ albums, query, favorites, favoritesOnly, compact = false }: {
   albums: LibraryAlbum[]
   query: string
   favorites: string[]
+  compact?: boolean
   favoritesOnly: boolean
 }) {
   const search = query.trim().toLowerCase()
@@ -23,12 +15,12 @@ export default function VinylLibrary({ albums, query, favorites, favoritesOnly }
     `${album.title} ${album.artist} ${album.tracks.map(track => track.title).join(' ')}`.toLowerCase().includes(search)
     && (!favoritesOnly || album.tracks.some(track => favorites.includes(track.id))))
 
-  return <section className="vinyl-library" aria-labelledby="vinyl-library-title">
-    <div className="vinyl-library-heading">
+  return <section className="vinyl-library" aria-labelledby={compact ? 'saved-albums-title' : 'vinyl-library-title'}>
+    {!compact && <div className="vinyl-library-heading">
       <div><p className="eyebrow">THE EBG+ COLLECTION</p><h1 id="vinyl-library-title">Pick a record.<br /><span>Make yourself at home.</span></h1></div>
       <p>Your music, a little more hands-on.<br />Choose an album spine to drop the needle.</p>
-    </div>
-    <div className="vinyl-shelf-heading"><h2>Music library</h2><span>{visible.length} {visible.length === 1 ? 'record' : 'records'}</span></div>
+    </div>}
+    <div className="vinyl-shelf-heading"><h2 id={compact ? 'saved-albums-title' : undefined}>{compact ? 'Saved albums' : 'Music library'}</h2><span>{visible.length} {visible.length === 1 ? 'record' : 'records'}</span></div>
     {visible.length ? <>
       <div className="vinyl-shelf" role="group" aria-label="Album shelf. Scroll to browse; select a spine to play.">
         {visible.map((album, index) => {
@@ -44,6 +36,6 @@ export default function VinylLibrary({ albums, query, favorites, favoritesOnly }
         })}
       </div>
       <p className="vinyl-shelf-caption"><span aria-hidden="true">♫</span> Browse the spines. Open a sleeve. Let it play.</p>
-    </> : <div className="vinyl-library-empty"><h3>{albums.length ? 'No records match.' : 'Your collection starts here.'}</h3><p>{albums.length ? 'Try another album, song, or artist, or turn off Favorites.' : 'Published music from EBG Studio will appear on this shelf.'}</p></div>}
+    </> : <div className="vinyl-library-empty"><h3>{albums.length ? 'No records match.' : compact ? 'Your record shelf is waiting.' : 'Your collection starts here.'}</h3><p>{albums.length ? 'Try another album, song, or artist, or turn off Favorites.' : compact ? 'Save an album from the listening room to keep it here.' : 'Published music from EBG Studio will appear on this shelf.'}</p></div>}
   </section>
 }

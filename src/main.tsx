@@ -21,6 +21,7 @@ import './styles/platform-mobile.css'
 import './styles/playful-brand.css'
 import './styles/cinematic-platform.css'
 import './styles/vinyl-library.css'
+import './styles/music-collection.css'
 
 function Root() {
   const [showSplash, setShowSplash] = useState(true)
